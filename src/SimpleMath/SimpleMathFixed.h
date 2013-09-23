@@ -695,6 +695,10 @@ class Matrix {
 			return mData;
 		}
 
+		const val_type *data() const{
+			return mData;
+		}
+
 		// regular transpose of a 6 dimensional matrix
 		Matrix<val_type, ncols, nrows> transpose() const {
 			Matrix<val_type, ncols, nrows> result;

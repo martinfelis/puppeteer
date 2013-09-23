@@ -16,6 +16,7 @@
 #include <iostream>
 #include <SimpleMath/SimpleMath.h>
 #include "Camera.h"
+#include "Scene.h"
 
 class GLWidget : public QGLWidget
 {
@@ -36,6 +37,7 @@ class GLWidget : public QGLWidget
 		bool draw_grid;
 
 		Camera camera;
+		Scene scene;
 
 	protected:
 		void drawGrid();

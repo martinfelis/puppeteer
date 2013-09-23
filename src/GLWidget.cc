@@ -44,6 +44,7 @@ GLWidget::GLWidget(QWidget *parent)
 {
 	setFocusPolicy(Qt::StrongFocus);
 	setMouseTracking(true);
+	scene.init();
 }
 
 GLWidget::~GLWidget() {
@@ -157,6 +158,8 @@ void GLWidget::drawScene() {
 
 	timer_start (&timer_info);
 
+	scene.draw();
+
 	draw_time += timer_stop(&timer_info);
 	draw_count++;
 }
@@ -202,6 +205,13 @@ void GLWidget::resizeGL(int width, int height)
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event) {
+	if (event->key() == Qt::Key_F1) {
+		scene.selectedObjectId = 0;
+	} else if (event->key() == Qt::Key_F2) {
+		scene.selectedObjectId = 1;
+	} else {
+		scene.selectedObjectId = -1;
+	}
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)

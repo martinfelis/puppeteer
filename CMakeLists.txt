@@ -24,6 +24,7 @@ SET ( QtGLBaseApp_SRCS
 	src/main.cc
 	src/GLWidget.cc
 	src/Camera.cc
+	src/Scene.cc
 	src/QtGLBaseApp.cc
 	src/MeshVBO.cc
 	src/objloader.cc
