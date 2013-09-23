@@ -279,6 +279,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	paintColorPickingFrameBuffer();
 	Vector4f color;
 	glReadPixels (lastMousePos.x(), windowHeight - lastMousePos.y(), 1, 1, GL_RGBA, GL_FLOAT, color.data());
+	qDebug () << color[0] << ", " << color[1] << ", " << color[2];
 	scene.mouseOverObjectId = scene.colorToObjectId(color);
 
 	colorPickingFrameBuffer->release();
