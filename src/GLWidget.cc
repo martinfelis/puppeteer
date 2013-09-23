@@ -40,7 +40,8 @@ GLWidget::GLWidget(QWidget *parent)
 		opengl_initialized (false),
 		draw_base_axes (false),
 		draw_grid (true),
-		camera (Camera())
+		camera (Camera()),
+		colorPickingFrameBuffer(NULL)
 {
 	setFocusPolicy(Qt::StrongFocus);
 	setMouseTracking(true);
@@ -49,6 +50,7 @@ GLWidget::GLWidget(QWidget *parent)
 
 GLWidget::~GLWidget() {
 	cerr << "DESTRUCTOR: drawing time: " << draw_time << "(s) count: " << draw_count << " ~" << draw_time / draw_count << "(s) per draw" << endl;
+	delete colorPickingFrameBuffer;
 
 	makeCurrent();
 }
@@ -188,6 +190,25 @@ void GLWidget::paintGL() {
 	}
 }
 
+void GLWidget::paintColorPickingFrameBuffer() {
+	glMatrixMode (GL_MODELVIEW);
+	glLoadIdentity();
+
+	camera.update(width(), height());
+
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glDisable(GL_LIGHTING);
+
+	scene.drawForColourPicking();
+
+	GLenum gl_error = glGetError();
+	if (gl_error != GL_NO_ERROR) {
+		cout << "OpenGL Error: " << gluErrorString(gl_error) << endl;
+		abort();
+	}
+}
+
 void GLWidget::resizeGL(int width, int height)
 {
 //	qDebug() << "resizing to" << width << "x" << height;
@@ -202,6 +223,14 @@ void GLWidget::resizeGL(int width, int height)
 
 	windowWidth = width;
 	windowHeight = height;
+
+	if (colorPickingFrameBuffer)
+		delete colorPickingFrameBuffer;
+
+	QGLFramebufferObjectFormat buffer_format;
+	buffer_format.setInternalTextureFormat (GL_RGBA);
+	buffer_format.setAttachment(QGLFramebufferObject::Depth);
+	colorPickingFrameBuffer = new QGLFramebufferObject(width, height, buffer_format);
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event) {
@@ -244,7 +273,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	lastMousePos = event->pos();
-
 	updateGL();
+
+	colorPickingFrameBuffer->bind();
+	paintColorPickingFrameBuffer();
+	Vector4f color;
+	glReadPixels (lastMousePos.x(), windowHeight - lastMousePos.y(), 1, 1, GL_RGBA, GL_FLOAT, color.data());
+	scene.mouseOverObjectId = scene.colorToObjectId(color);
+
+	colorPickingFrameBuffer->release();
 }
 

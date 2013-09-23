@@ -12,6 +12,7 @@
 #include "GL/glew.h"
 
 #include <QGLWidget>
+#include <QGLFramebufferObject>
 
 #include <iostream>
 #include <SimpleMath/SimpleMath.h>
@@ -39,12 +40,15 @@ class GLWidget : public QGLWidget
 		Camera camera;
 		Scene scene;
 
+		QGLFramebufferObject *colorPickingFrameBuffer;
+
 	protected:
 		void drawGrid();
 
 		void initializeGL();
 		void drawScene ();
 		void paintGL();
+		void paintColorPickingFrameBuffer();
 		void resizeGL(int width, int height);
 
 		void keyPressEvent (QKeyEvent* event);

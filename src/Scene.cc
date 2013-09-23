@@ -15,6 +15,12 @@ void Scene::init() {
 	boxobject.name = "box";
 	boxobject.transformation.translation.set(0., 2., 0.);
 	objects.push_back (boxobject);
+
+	SceneObject boxobject2;
+	boxobject2.mesh = CreateCuboid (1.f, 1.f, 1.f);
+	boxobject2.name = "box2";
+	boxobject2.transformation.translation.set(0., 2., 2.);
+	objects.push_back (boxobject2);
 }
 
 void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
@@ -45,11 +51,48 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 }
 
 void Scene::draw() {
+	selectedObjectId = mouseOverObjectId;
+
 	for (unsigned int i = 0; i < objects.size(); i++) {
 		if (i == selectedObjectId) {
 			drawSceneObjectStyled (objects[i], DrawStyleHighlighted);
 		} else {
 			drawSceneObjectStyled (objects[i], DrawStyleNormal);
 		}
+	}
+}
+
+Vector4f Scene::objectIdToColor (int id) {
+	Vector4f result (0.f, 0.f, 0.f, 1.f);
+
+	result[0] = static_cast<float>((id + 1) & 0xff0000) / 255.f;
+	result[1] = static_cast<float>((id + 1) & 0x00ff00) / 255.f;
+	result[2] = static_cast<float>((id + 1) & 0x0000ff) / 255.f;
+
+	return result;
+}
+
+int Scene::colorToObjectId (const Vector4f &color) {
+
+	int result = 0;
+	result = static_cast<int> (
+			color[0] * powf(2,32)
+			+ color[1] * powf(2,16)
+			+ color[2] * powf(2, 8)
+			);
+
+	return result - 1;
+}
+
+void Scene::drawForColourPicking() {
+	glDisable(GL_LIGHTING);
+	for (unsigned int i = 0; i < objects.size(); i++) {
+		glPushMatrix();
+		glMultMatrixf (objects[i].transformation.toGLMatrix().data());
+
+		glColor4fv (objectIdToColor (i).data());
+		const_cast<MeshVBO*>(&(objects[i].mesh))->draw(GL_TRIANGLES);
+
+		glPopMatrix();
 	}
 }

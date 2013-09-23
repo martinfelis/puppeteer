@@ -26,14 +26,19 @@ struct SceneObject {
 };
 
 struct Scene {
-	Scene() : selectedObjectId(-1) {	}
+	Scene() : selectedObjectId(-1), mouseOverObjectId(-1) {	}
 
 	std::vector<SceneObject> objects;
 
 	int selectedObjectId;
+	int mouseOverObjectId;
 
 	void init();
 	void draw();
+	void drawForColourPicking();
+
+	Vector4f objectIdToColor (int id);
+	int colorToObjectId (const Vector4f &color);
 
 	void drawSceneObjectStyled (const SceneObject &object, DrawStyle style);
 };
