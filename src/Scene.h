@@ -7,6 +7,9 @@
 #include "MeshVBO.h"
 #include "Transformation.h"
 
+Vector4f object_id_to_vector4 (int id);
+int vector4_to_object_id (const Vector4f &color);
+
 enum DrawStyle {
 	DrawStyleNormal = 0,
 	DrawStyleHighlighted ,
@@ -36,9 +39,6 @@ struct Scene {
 	void init();
 	void draw();
 	void drawForColourPicking();
-
-	Vector4f objectIdToColor (int id);
-	int colorToObjectId (const Vector4f &color);
 
 	void drawSceneObjectStyled (const SceneObject &object, DrawStyle style);
 };

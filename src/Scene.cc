@@ -4,6 +4,37 @@
 #include "Scene.h"
 #include "objloader.h"
 
+Vector4f object_id_to_vector4 (int id) {
+	Vector4f result (0.f, 0.f, 0.f, 1.f);
+
+	unsigned char byte = (id + 1 & 0x0000ff);
+	result[2] = static_cast<float>(byte) / 255.f;
+	byte = (id + 1 >> 8 & 0x0000ff);
+	result[1] = static_cast<float>(byte) / 255.f;
+	byte = (id + 1 >> 16 & 0x0000ff);
+	result[0] = static_cast<float>(byte) / 255.f;
+	
+	return result;
+}
+
+int vector4_to_object_id (const Vector4f &color) {
+	int result = 0;
+
+	if (color[0] != 0.f) {
+		result += (static_cast<int> (color[0] * 255.f) << 16);
+	}
+	
+	if (color[1] != 0.f) {
+		result += (static_cast<int> (color[1] * 255.f) << 8);
+	}
+	
+	if (color[2] != 0.f) {
+		result += static_cast<int> (color[2] * 255.f);
+	}
+
+	return result - 1;
+}
+
 void Scene::init() {
 	SceneObject monkeyobject;
 	load_obj (monkeyobject.mesh, "monkeyhead.obj");
@@ -36,13 +67,13 @@ void Scene::init() {
 	}
 
 	/*
-	assert (Vector4f (0.f, 0.f, 1.f, 1.f) == objectIdToColor (254));
-	assert (Vector4f (0.f, 1./255.f, 0.f, 1.f) == objectIdToColor (255));
-//	assert (Vector4f (0.f, 0.f, 0.f, 1.f) == objectIdToColor (0));
-	std::cout << "object id = " << colorToObjectId (Vector4f (0.f, 0.f, 1.f, 1.f)) << std::endl;
-	assert (255 == colorToObjectId (Vector4f (0.f, 0.f, 1.f, 1.f)));
-	std::cout << "object id = " << colorToObjectId (Vector4f (0.f, 1./255.f, 0.f, 1.f)) << std::endl;
-	assert (255 == colorToObjectId (Vector4f (0.f, 1./255.f, 0.f, 1.f)));
+	assert (Vector4f (0.f, 0.f, 1.f, 1.f) == object_id_to_vector4 (254));
+	assert (Vector4f (0.f, 1./255.f, 0.f, 1.f) == object_id_to_vector4 (255));
+//	assert (Vector4f (0.f, 0.f, 0.f, 1.f) == object_id_to_vector4 (0));
+	std::cout << "object id = " << vector4_to_object_id (Vector4f (0.f, 0.f, 1.f, 1.f)) << std::endl;
+	assert (255 == vector4_to_object_id (Vector4f (0.f, 0.f, 1.f, 1.f)));
+	std::cout << "object id = " << vector4_to_object_id (Vector4f (0.f, 1./255.f, 0.f, 1.f)) << std::endl;
+	assert (255 == vector4_to_object_id (Vector4f (0.f, 1./255.f, 0.f, 1.f)));
 	*/
 }
 
@@ -78,7 +109,7 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 void Scene::draw() {
 	selectedObjectId = mouseOverObjectId;
 
-	for (unsigned int i = 0; i < objects.size(); i++) {
+	for (int i = 0; i < objects.size(); i++) {
 		if (i == selectedObjectId) {
 			drawSceneObjectStyled (objects[i], DrawStyleHighlighted);
 		} else {
@@ -87,41 +118,13 @@ void Scene::draw() {
 	}
 }
 
-Vector4f Scene::objectIdToColor (int id) {
-	Vector4f result (0.f, 0.f, 0.f, 1.f);
-
-	unsigned int uid = static_cast<unsigned int>(id + 1);
-
-//	result[0] = static_cast<float>(uid & 0xff0000) / 255.f;
-//	result[1] = static_cast<float>(uid & 0x00ff00) >> 8) / 255.f;
-	result[1] = static_cast<float>((uid >> 8) & 0x0000ff) / 255.f;
-	result[2] = static_cast<float>(uid & 0x0000ff) / 255.f;
-
-	return result;
-}
-
-int Scene::colorToObjectId (const Vector4f &color) {
-
-	int result = 0;
-
-	if (color[0] != 0) {
-		result += static_cast<int> (color[0]) * 256 * 256 * 256 - 3;
-	} else if (color[1] != 0) {
-		result += static_cast<int> (color[1]) * 255 * 255 - 2;
-	} else if (color[2] != 0) {
-		result += static_cast<int> (color[2]) * 256 - 1;
-	}
-
-	return result;
-}
-
 void Scene::drawForColourPicking() {
 	glDisable(GL_LIGHTING);
-	for (unsigned int i = 0; i < objects.size(); i++) {
+	for (int i = 0; i < objects.size(); i++) {
 		glPushMatrix();
 		glMultMatrixf (objects[i].transformation.toGLMatrix().data());
 
-		glColor4fv (objectIdToColor (i).data());
+		glColor4fv (object_id_to_vector4 (i).data());
 		const_cast<MeshVBO*>(&(objects[i].mesh))->draw(GL_TRIANGLES);
 
 		glPopMatrix();
