@@ -20,20 +20,27 @@ SET ( MainWindow_UIS
 
 QT4_WRAP_UI (MainWindow_UIS_H ${MainWindow_UIS})
 
+SET ( SCENEGL_SRCS
+	src/Camera.cc
+	src/Scene.cc
+	src/MeshVBO.cc
+	src/objloader.cc
+	)
+
 SET ( QtGLBaseApp_SRCS
 	src/main.cc
 	src/GLWidget.cc
-	src/Camera.cc
-	src/Scene.cc
 	src/QtGLBaseApp.cc
-	src/MeshVBO.cc
-	src/objloader.cc
 	glew/src/glew.c
 	)
 
 QT4_WRAP_CPP ( QtGLBaseApp_MOC_SRCS
 	src/QtGLBaseApp.h
 	src/GLWidget.h
+	)
+
+ADD_LIBRARY ( SceneGL SHARED
+	${SCENEGL_SRCS}
 	)
 
 ADD_EXECUTABLE ( qtglbase
@@ -58,7 +65,12 @@ SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
 	INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" 
 )
 
+SUBDIRS (
+	tests
+	)
+
 TARGET_LINK_LIBRARIES ( qtglbase
+	SceneGL
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
 )
