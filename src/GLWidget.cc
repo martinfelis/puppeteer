@@ -236,23 +236,18 @@ void GLWidget::resizeGL(int width, int height)
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event) {
-	if (scene) {
-		if (event->key() == Qt::Key_F1) {
-			scene->selectedObjectId = 0;
-		} else if (event->key() == Qt::Key_F2) {
-			scene->selectedObjectId = 1;
-		} else {
-			scene->selectedObjectId = -1;
-		}
-	}
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-	if (scene->mouseOverObjectId >= 0) {
-		emit object_selected (scene->mouseOverObjectId);
-	}
 	lastMousePos = event->pos();
+
+	if (scene->mouseOverObjectId >= 0) {
+		scene->selectedObjectId = scene->mouseOverObjectId;
+	} else {
+		scene->selectedObjectId = -1;
+	}
+	emit object_selected (scene->selectedObjectId);
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)

@@ -33,6 +33,7 @@ public slots:
 		void action_quit();
 
 		void updateWidgetsFromObject (int object_id);
+		void updateObjectFromWidget ();
 };
  
 #endif

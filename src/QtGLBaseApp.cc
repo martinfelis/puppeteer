@@ -32,6 +32,30 @@ using namespace std;
 
 const double TimeLineDuration = 1000.;
 
+std::string vec3_to_string (const Vector3f vec3, unsigned int digits = 2) {
+	stringstream vec_stream ("");
+	vec_stream << std::fixed << std::setprecision(digits) << vec3[0] << ", " << vec3[1] << ", " << vec3[2];
+
+	return vec_stream.str();
+}
+
+Vector3f string_to_vec3 (const std::string vec3_string) {
+	Vector3f result;
+
+	unsigned int token_start = 0;
+	unsigned int token_end = vec3_string.find(",");
+	for (unsigned int i = 0; i < 3; i++) {
+		string token = vec3_string.substr (token_start, token_end - token_start);
+
+		result[i] = static_cast<float>(atof(token.c_str()));
+
+		token_start = token_end + 1;
+		token_end = vec3_string.find (", ", token_start);
+	}
+
+	return result;
+}
+
 QtGLBaseApp::~QtGLBaseApp() {
 	if (scene)
 		delete scene;
@@ -83,6 +107,11 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// object selection
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
+
+	// object widgets
+	QRegExpValidator *coord_validator = new QRegExpValidator (coord_expr, editObjectPosition);
+	editObjectPosition->setValidator(coord_validator);
+	connect (editObjectPosition, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
 }
 
 void print_usage() {
@@ -143,5 +172,18 @@ void QtGLBaseApp::action_quit () {
 }
 
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
+	if (object_id < 0) {
+		qDebug () << "No Object found";
+		editObjectPosition->setText ("");
+
+		return;
+	}
+
 	qDebug () << "Object " << object_id << " selected";
+	editObjectPosition->setText (vec3_to_string (scene->objects[object_id].transformation.translation).c_str());
 }
+
+void QtGLBaseApp::updateObjectFromWidget () {
+	qDebug () << "Updating Object " << scene->selectedObjectId;
+}
+
