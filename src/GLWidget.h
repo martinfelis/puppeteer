@@ -34,11 +34,13 @@ class GLWidget : public QGLWidget
 		Vector3f getCameraEye() { return camera.eye; }
 		void setCameraEye (const Vector3f &eye) { camera.eye = eye; }
 
+		void setScene (Scene* scene_ptr) { scene = scene_ptr; };
+
 		bool draw_base_axes;
 		bool draw_grid;
 
 		Camera camera;
-		Scene scene;
+		Scene* scene;
 
 		QGLFramebufferObject *colorPickingFrameBuffer;
 
@@ -74,6 +76,7 @@ class GLWidget : public QGLWidget
 	
 	signals:
 		void camera_changed();
+		void object_selected(int object_id);
 };
 
 #endif

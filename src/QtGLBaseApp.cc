@@ -16,6 +16,7 @@
 
 #include "GLWidget.h" 
 #include "QtGLBaseApp.h"
+#include "Scene.h"
 
 #include <sys/time.h>
 #include <ctime>
@@ -31,9 +32,21 @@ using namespace std;
 
 const double TimeLineDuration = 1000.;
 
+QtGLBaseApp::~QtGLBaseApp() {
+	if (scene)
+		delete scene;
+
+	scene = NULL;
+}
+
 QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 {
 	setupUi(this); // this sets up GUI
+
+	// create Scene
+	scene = new Scene;	
+	scene->init();
+	glWidget->setScene (scene);
 
 	draw_timer = new QTimer (this);
 	draw_timer->setSingleShot(false);
@@ -67,6 +80,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// call the drawing function
 	connect (draw_timer, SIGNAL(timeout()), glWidget, SLOT (updateGL()));
+
+	// object selection
+	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
 }
 
 void print_usage() {
@@ -124,4 +140,8 @@ void QtGLBaseApp::update_camera() {
 
 void QtGLBaseApp::action_quit () {
 	qApp->quit();
+}
+
+void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
+	qDebug () << "Object " << object_id << " selected";
 }

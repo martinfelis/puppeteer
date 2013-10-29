@@ -41,11 +41,11 @@ GLWidget::GLWidget(QWidget *parent)
 		draw_base_axes (false),
 		draw_grid (true),
 		camera (Camera()),
+		scene (NULL),
 		colorPickingFrameBuffer(NULL)
 {
 	setFocusPolicy(Qt::StrongFocus);
 	setMouseTracking(true);
-	scene.init();
 }
 
 GLWidget::~GLWidget() {
@@ -160,7 +160,8 @@ void GLWidget::drawScene() {
 
 	timer_start (&timer_info);
 
-	scene.draw();
+	if (scene)
+		scene->draw();
 
 	draw_time += timer_stop(&timer_info);
 	draw_count++;
@@ -200,7 +201,8 @@ void GLWidget::paintColorPickingFrameBuffer() {
 
 	glDisable(GL_LIGHTING);
 
-	scene.drawForColourPicking();
+	if (scene)
+		scene->drawForColourPicking();
 
 	GLenum gl_error = glGetError();
 	if (gl_error != GL_NO_ERROR) {
@@ -234,18 +236,23 @@ void GLWidget::resizeGL(int width, int height)
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event) {
-	if (event->key() == Qt::Key_F1) {
-		scene.selectedObjectId = 0;
-	} else if (event->key() == Qt::Key_F2) {
-		scene.selectedObjectId = 1;
-	} else {
-		scene.selectedObjectId = -1;
+	if (scene) {
+		if (event->key() == Qt::Key_F1) {
+			scene->selectedObjectId = 0;
+		} else if (event->key() == Qt::Key_F2) {
+			scene->selectedObjectId = 1;
+		} else {
+			scene->selectedObjectId = -1;
+		}
 	}
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
- 	lastMousePos = event->pos();
+	if (scene->mouseOverObjectId >= 0) {
+		emit object_selected (scene->mouseOverObjectId);
+	}
+	lastMousePos = event->pos();
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -253,13 +260,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	float dx = static_cast<float>(event->x() - lastMousePos.x());
 	float dy = static_cast<float>(event->y() - lastMousePos.y());
 
-#if QT_VERSION <= 0x040700
-	if (event->buttons().testFlag(Qt::MidButton)
-			|| ( event->buttons().testFlag(Qt::LeftButton) && event->buttons().testFlag(Qt::RightButton))) {
-#else
 	if (event->buttons().testFlag(Qt::MiddleButton)
 			|| ( event->buttons().testFlag(Qt::LeftButton) && event->buttons().testFlag(Qt::RightButton))) {
-#endif
 		camera.move (dx, dy);
 		emit camera_changed();
 	} else if (event->buttons().testFlag(Qt::LeftButton)) {
@@ -279,7 +281,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	paintColorPickingFrameBuffer();
 	Vector4f color;
 	glReadPixels (lastMousePos.x(), windowHeight - lastMousePos.y(), 1, 1, GL_RGBA, GL_FLOAT, color.data());
-	scene.mouseOverObjectId = vector4_to_object_id(color);
+	if (scene) {
+		scene->mouseOverObjectId = vector4_to_object_id(color);
+	}
 
 	colorPickingFrameBuffer->release();
 }

@@ -13,20 +13,26 @@
 #include <QTimeLine>
 #include "ui_MainWindow.h"
 
+struct Scene;
+
 class QtGLBaseApp : public QMainWindow, public Ui::MainWindow
 {
     Q_OBJECT
- 
+
 public:
     QtGLBaseApp(QWidget *parent = 0);
+		virtual ~QtGLBaseApp();
 
 protected:
 		QTimer *draw_timer;
+		Scene *scene;
 
 public slots:
 		void camera_changed ();
 		void update_camera ();
 		void action_quit();
+
+		void updateWidgetsFromObject (int object_id);
 };
  
 #endif
