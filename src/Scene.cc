@@ -65,16 +65,6 @@ void Scene::init() {
 			}
 		}
 	}
-
-	/*
-	assert (Vector4f (0.f, 0.f, 1.f, 1.f) == object_id_to_vector4 (254));
-	assert (Vector4f (0.f, 1./255.f, 0.f, 1.f) == object_id_to_vector4 (255));
-//	assert (Vector4f (0.f, 0.f, 0.f, 1.f) == object_id_to_vector4 (0));
-	std::cout << "object id = " << vector4_to_object_id (Vector4f (0.f, 0.f, 1.f, 1.f)) << std::endl;
-	assert (255 == vector4_to_object_id (Vector4f (0.f, 0.f, 1.f, 1.f)));
-	std::cout << "object id = " << vector4_to_object_id (Vector4f (0.f, 1./255.f, 0.f, 1.f)) << std::endl;
-	assert (255 == vector4_to_object_id (Vector4f (0.f, 1./255.f, 0.f, 1.f)));
-	*/
 }
 
 void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {

@@ -7,6 +7,9 @@
 #include <iostream>
 
 struct Transformation {
+	Vector3f translation;
+	SimpleMath::GL::Quaternion rotation;
+
 	Transformation() : 
 		translation (0.f, 0.f, 0.f),
 		rotation (0.f, 0.f, 0.f, 1.f) {}
@@ -16,9 +19,6 @@ struct Transformation {
 	Transformation ( const Vector3f &translation, const Matrix33f rotation_mat) :
 		translation (translation),
 		rotation (SimpleMath::GL::Quaternion::fromMatrix(rotation_mat)) {}
-
-	Vector3f translation;
-	SimpleMath::GL::Quaternion rotation;
 
 	Matrix44f toGLMatrix() const {
 		return rotation.toGLMatrix() * SimpleMath::GL::TranslateMat44 (translation[0], translation[1], translation[2]);
