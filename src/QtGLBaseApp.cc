@@ -39,7 +39,7 @@ std::string vec3_to_string (const Vector3f vec3, unsigned int digits = 2) {
 	return vec_stream.str();
 }
 
-Vector3f string_to_vec3 (const std::string vec3_string) {
+Vector3f string_to_vec3 (const std::string &vec3_string) {
 	Vector3f result;
 
 	unsigned int token_start = 0;
@@ -80,7 +80,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	checkBoxDrawGrid->setChecked (glWidget->draw_grid);
 
 	// camera controls
-	QRegExp	coord_expr ("^\\s*-?\\d+(\\.|\\.\\d+)?\\s*,\\s*-?\\d+(\\.|\\.\\d+)?\\s*,\\s*-?\\d+(\\.|\\.\\d+)?\\s*$");
+	QRegExp	coord_expr ("^\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*$");
 	QRegExpValidator *coord_validator_eye = new QRegExpValidator (coord_expr, lineEditCameraEye);
 	QRegExpValidator *coord_validator_center = new QRegExpValidator (coord_expr, lineEditCameraCenter);
 	lineEditCameraEye->setValidator (coord_validator_eye);
@@ -173,17 +173,19 @@ void QtGLBaseApp::action_quit () {
 
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (object_id < 0) {
-		qDebug () << "No Object found";
 		editObjectPosition->setText ("");
 
 		return;
 	}
 
-	qDebug () << "Object " << object_id << " selected";
 	editObjectPosition->setText (vec3_to_string (scene->objects[object_id].transformation.translation).c_str());
 }
 
 void QtGLBaseApp::updateObjectFromWidget () {
-	qDebug () << "Updating Object " << scene->selectedObjectId;
+	if (scene->selectedObjectId < 0)
+		return;
+
+	Vector3f position = string_to_vec3 (editObjectPosition->text().toStdString());
+	scene->objects[scene->selectedObjectId].transformation.translation = position;
 }
 

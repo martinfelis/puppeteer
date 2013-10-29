@@ -247,6 +247,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 	} else {
 		scene->selectedObjectId = -1;
 	}
+
 	emit object_selected (scene->selectedObjectId);
 }
 

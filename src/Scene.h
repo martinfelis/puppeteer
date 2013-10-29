@@ -12,7 +12,8 @@ int vector4_to_object_id (const Vector4f &color);
 
 enum DrawStyle {
 	DrawStyleNormal = 0,
-	DrawStyleHighlighted ,
+	DrawStyleHighlighted,
+	DrawStyleSelected,
 	DrawStyleHidden
 };
 

@@ -74,7 +74,7 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 	glPushMatrix();
 	glMultMatrixf (object.transformation.toGLMatrix().data());
 
-	if (style == DrawStyleHighlighted) {
+	if (style == DrawStyleSelected) {
 		glDisable(GL_LIGHTING);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
@@ -88,6 +88,20 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 		glEnable(GL_LIGHTING);
 		glColor3f (0.f, 0.8f, 0.8f);
 		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
+	} else if (style == DrawStyleHighlighted) {
+		glDisable(GL_LIGHTING);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		glPushMatrix();
+		glScalef (1.03f, 1.03f, 1.03f);
+		glColor3f (0.9, 0.9, 0.3);
+		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
+		glPopMatrix();
+		glCullFace(GL_BACK);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_LIGHTING);
+		glColor3f (0.8, 0.8, 0.2);
+		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
 	} else {
 		glColor3fv (object.color.data());
 		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
@@ -97,10 +111,12 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 }
 
 void Scene::draw() {
-	selectedObjectId = mouseOverObjectId;
+//	selectedObjectId = mouseOverObjectId;
 
 	for (int i = 0; i < objects.size(); i++) {
 		if (i == selectedObjectId) {
+			drawSceneObjectStyled (objects[i], DrawStyleSelected);
+		} else if (i == mouseOverObjectId) {
 			drawSceneObjectStyled (objects[i], DrawStyleHighlighted);
 		} else {
 			drawSceneObjectStyled (objects[i], DrawStyleNormal);
