@@ -1,4 +1,5 @@
 #include "MarkerModel.h"
+#include "Scene.h"
 
 #include <assert.h>
 #include <iostream>
@@ -64,6 +65,26 @@ bool MarkerModel::loadFromFile(const char* filename) {
 		Body body = model_table["frames"][i]["body"];
 
 		unsigned int body_id = rbdlModel->AddBody (parent_id, joint_frame, joint, body, body_name);
+
+		RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
+
+		// Add joint scene object
+		SceneObject joint_scene_object;
+		joint_scene_object.name = body_name + "_joint";
+		joint_scene_object.color = Vector3f (1.f, 0.f, 0.f);
+	
+		RigidBodyDynamics::Math::Vector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, body_id, RigidBodyDynamics::Math::Vector3d (0., 0., 0.));
+	
+		Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
+		joint_scene_object.transformation.translation = joint_position;
+		joint_scene_object.mesh = CreateUVSphere (8, 16);
+
+		scene->objects.push_back (joint_scene_object);
+		JointObject joint_object;
+		joint_object.sceneObjectId = scene->objects.size() - 1;
+		joint_object.rbdlJointId = body_id;
+
+		joints.push_back (joint_object);
 	}
 
 	return true;

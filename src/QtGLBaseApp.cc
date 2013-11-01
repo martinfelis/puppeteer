@@ -204,7 +204,12 @@ void QtGLBaseApp::quitApplication() {
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (object_id < 0) {
 		lineEditObjectPosition->setText ("");
+		return;
+	}
 
+	if (markerModel->isJointObject(object_id)) {
+		qDebug() << "clicked on joint!";
+		lineEditObjectPosition->setText ("");
 		return;
 	}
 

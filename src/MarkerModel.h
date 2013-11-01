@@ -52,6 +52,14 @@ struct MarkerModel {
 	std::vector<JointObject> joints;
 	std::vector<JointTransformObject> jointTransforms;
 
+	bool isJointObject (int objectid) {
+		for (size_t i = 0; i < joints.size(); i++) {
+			if (joints[i].sceneObjectId == objectid)
+				return true;
+		}
+		return false;
+	}
+
 	bool loadFromFile (const char* filename);
 	bool saveToFile (const char* filename);
 };
