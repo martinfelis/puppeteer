@@ -77,6 +77,7 @@ bool MarkerModel::loadFromFile(const char* filename) {
 	
 		Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
 		joint_scene_object.transformation.translation = joint_position;
+		joint_scene_object.transformation.scaling = Vector3f (0.05, 0.05, 0.05);
 		joint_scene_object.mesh = CreateUVSphere (8, 16);
 
 		scene->objects.push_back (joint_scene_object);
