@@ -184,6 +184,26 @@ class Quaternion : public Vector4f {
 					);
 		}
 
+
+		static Quaternion fromEulerYXZ (const Vector3f &yxz_euler) {
+			return Quaternion::fromGLRotate (yxz_euler[0] * 180.f / M_PI, 0.f, 1.f, 0.f)
+				* Quaternion::fromGLRotate (yxz_euler[1] * 180.f / M_PI, 1.f, 0.f, 0.f)
+				* Quaternion::fromGLRotate (yxz_euler[2] * 180.f / M_PI, 0.f, 0.f, 1.f);
+		}
+
+		Vector3f toEulerYXZ() const {
+			return Vector3f (
+					atan2 (-2.f * (*this)[0] * (*this)[2] +  2.f * (*this)[3] * (*this)[1],
+						(*this)[2] * (*this)[2] - (*this)[1] * (*this)[1]
+						-(*this)[0] * (*this)[0] + (*this)[3] * (*this)[3]),
+					asin (2.f * (*this)[1] * (*this)[2] + 2.f * (*this)[3] * (*this)[0]),
+					atan2 (-2.f * (*this)[0] * (*this)[1] +  2.f * (*this)[3] * (*this)[2],
+						(*this)[1] * (*this)[1] - (*this)[2] * (*this)[2]
+						+(*this)[3] * (*this)[3] - (*this)[0] * (*this)[0]
+						)
+					);
+		}
+
 		Matrix33f toMatrix() const {
 			float x = (*this)[0];
 			float y = (*this)[1];
