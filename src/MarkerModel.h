@@ -11,12 +11,12 @@ namespace RigidBodyDynamics {
 	struct Model;
 }
 
-struct Joint {
+struct JointObject {
 	int sceneObjectId;
 	unsigned int rbdlJointId;
 };
 
-struct JointTransform {
+struct JointTransformObject {
 	int sceneObjectId;
 	unsigned int rbdlJointTransformId;
 
@@ -24,7 +24,7 @@ struct JointTransform {
 	SimpleMath::GL::Quaternion rotation;
 };
 
-struct Body {
+struct BodyObject {
 	int sceneObjectId;
 	unsigned int rbdlBodyId;
 
@@ -39,7 +39,8 @@ struct MarkerModel {
 		rbdlModel(NULL)
 	{}
 	MarkerModel(Scene* scene_) :
-		scene (scene_)
+		scene (scene_),
+		rbdlModel (NULL)
 	{}
 	MarkerModel(const MarkerModel &model);
 	MarkerModel& operator=(const MarkerModel &model);
@@ -47,9 +48,9 @@ struct MarkerModel {
 	Scene *scene;
 	RigidBodyDynamics::Model *rbdlModel;
 
-	std::vector<Body> bodies;
-	std::vector<Joint> joints;
-	std::vector<JointTransform> jointTransforms;
+	std::vector<BodyObject> bodies;
+	std::vector<JointObject> joints;
+	std::vector<JointTransformObject> jointTransforms;
 
 	bool loadFromFile (const char* filename);
 	bool saveToFile (const char* filename);
