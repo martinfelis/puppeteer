@@ -123,9 +123,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	lineEditObjectRotation->setValidator(rotation_validator);
 	connect (lineEditObjectRotation, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
 
-	QRegExpValidator *scale_validator = new QRegExpValidator (vector3_expr, lineEditObjectScale);
-	lineEditObjectScale->setValidator(scale_validator);
-	connect (lineEditObjectScale, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+	QRegExpValidator *scale_validator = new QRegExpValidator (vector3_expr, lineEditObjectScaling);
+	lineEditObjectScaling->setValidator(scale_validator);
+	connect (lineEditObjectScaling, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
 }
 
 void print_usage(const char* execname) {
@@ -219,6 +219,9 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 
 	lineEditObjectRotation->setText (vec3_to_string (zyx_rotation).c_str());
 
+	Vector3f scaling = scene->objects[object_id].transformation.scaling;
+
+	lineEditObjectScaling->setText (vec3_to_string (scaling).c_str());
 }
 
 void QtGLBaseApp::updateObjectFromWidget () {
@@ -230,7 +233,10 @@ void QtGLBaseApp::updateObjectFromWidget () {
 	Vector3f zyx_rotation = string_to_vec3 (lineEditObjectRotation->text().toStdString()) * M_PI / 180.f;
 	Quaternion rotation = Quaternion::fromEulerZYX (zyx_rotation);
 
+	Vector3f scaling = string_to_vec3 (lineEditObjectScaling->text().toStdString());
+
 	scene->objects[scene->selectedObjectId].transformation.translation = position;
 	scene->objects[scene->selectedObjectId].transformation.rotation = rotation;
+	scene->objects[scene->selectedObjectId].transformation.scaling = scaling;
 }
 

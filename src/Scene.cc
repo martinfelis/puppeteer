@@ -39,6 +39,9 @@ void Scene::init() {
 	SceneObject monkeyobject;
 	load_obj (monkeyobject.mesh, "monkeyhead.obj");
 	monkeyobject.name = "monkeyhead";
+	monkeyobject.transformation.translation = Vector3f (5.f, 0.f, 0.f);
+	monkeyobject.transformation.rotation = SimpleMath::GL::Quaternion::fromGLRotate (90.f, 0.f, 0.f, 1.f);
+	monkeyobject.transformation.scaling = Vector3f (3.f, 1.f, 1.f);
 	objects.push_back (monkeyobject);
 
 	SceneObject boxobject2;
@@ -46,6 +49,8 @@ void Scene::init() {
 	boxobject2.name = "box2";
 	boxobject2.transformation.translation.set(0., 2., 2.);
 	objects.push_back (boxobject2);
+
+	return;
 
 	int box_count_x = 10;
 	int box_count_y = 5;
