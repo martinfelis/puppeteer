@@ -21,5 +21,10 @@ int main(int argc, char *argv[])
 	QtGLBaseApp *main_window = new QtGLBaseApp;
 
 	main_window->show();
+	if (!main_window->parseArgs (argc, argv)) {
+		cerr << "Invalid arguments!" << endl;
+		return 0;
+	}
+
 	return app.exec();
 }

@@ -17,6 +17,7 @@
 #include "GLWidget.h" 
 #include "QtGLBaseApp.h"
 #include "Scene.h"
+#include "MarkerModel.h"
 
 #include <sys/time.h>
 #include <ctime>
@@ -74,9 +75,12 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	scene->init();
 	glWidget->setScene (scene);
 
-	draw_timer = new QTimer (this);
-	draw_timer->setSingleShot(false);
-	draw_timer->start(20);
+	// marker model
+	markerModel = new MarkerModel(scene);
+
+	drawTimer = new QTimer (this);
+	drawTimer->setSingleShot(false);
+	drawTimer->start(20);
 
 	checkBoxDrawBaseAxes->setChecked (glWidget->draw_base_axes);
 	checkBoxDrawGrid->setChecked (glWidget->draw_grid);
@@ -100,12 +104,12 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (actionTopView, SIGNAL (triggered()), glWidget, SLOT (set_top_view()));
 	connect (actionToggleOrthographic, SIGNAL (toggled(bool)), glWidget, SLOT (toggle_draw_orthographic(bool)));
 
-	// action_quit() makes sure to set the settings before we quit
-	connect (actionQuit, SIGNAL( triggered() ), this, SLOT( action_quit() ));
-	connect (pushButtonUpdateCamera, SIGNAL (clicked()), this, SLOT (update_camera()));
+	// actionQuit() makes sure to set the settings before we quit
+	connect (actionQuit, SIGNAL( triggered() ), this, SLOT( quitApplication() ));
+	connect (pushButtonUpdateCamera, SIGNAL (clicked()), this, SLOT (updateCamera()));
 
 	// call the drawing function
-	connect (draw_timer, SIGNAL(timeout()), glWidget, SLOT (updateGL()));
+	connect (drawTimer, SIGNAL(timeout()), glWidget, SLOT (updateGL()));
 
 	// object selection
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
@@ -124,14 +128,30 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (lineEditObjectScale, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
 }
 
-void print_usage() {
-	cout << "Usage: meshup [model_name] [animation_file] " << endl
-		<< "Visualization tool for multi-body systems based on skeletal animation and magic." << endl
-		<< endl
-		<< "Report bugs to martin.felis@iwr.uni-heidelberg.de" << endl;
+void print_usage(const char* execname) {
+	cout << "Usage: " << execname << " [modelfile.lua]" << endl;
 }
 
-void QtGLBaseApp::camera_changed() {
+bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
+	if (argc == 1)
+		return true;
+
+	if (argc == 2) {
+		loadModelFile (argv[1]);
+	} else {
+		print_usage (argv[0]);
+		return false;
+	}
+
+	return true;
+}
+
+bool QtGLBaseApp::loadModelFile (const char* filename) {
+	assert (markerModel);
+	return markerModel->loadFromFile (filename);
+}
+
+void QtGLBaseApp::cameraChanged() {
 	Vector3f center = glWidget->getCameraPoi();	
 	Vector3f eye = glWidget->getCameraEye();	
 
@@ -166,7 +186,7 @@ Vector3f parse_vec3_string (const std::string vec3_string) {
 	return result;
 }
 
-void QtGLBaseApp::update_camera() {
+void QtGLBaseApp::updateCamera() {
 	string center_string = lineEditCameraCenter->text().toStdString();
 	Vector3f poi = parse_vec3_string (center_string);
 
@@ -177,7 +197,7 @@ void QtGLBaseApp::update_camera() {
 	glWidget->setCameraEye(eye);
 }
 
-void QtGLBaseApp::action_quit () {
+void QtGLBaseApp::quitApplication() {
 	qApp->quit();
 }
 

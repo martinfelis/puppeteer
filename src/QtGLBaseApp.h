@@ -14,6 +14,7 @@
 #include "ui_MainWindow.h"
 
 struct Scene;
+struct MarkerModel;
 
 class QtGLBaseApp : public QMainWindow, public Ui::MainWindow
 {
@@ -23,14 +24,18 @@ public:
     QtGLBaseApp(QWidget *parent = 0);
 		virtual ~QtGLBaseApp();
 
+		bool parseArgs(int argc, char* argv[]);
+		bool loadModelFile (const char* filename);
+
 protected:
-		QTimer *draw_timer;
+		QTimer *drawTimer;
 		Scene *scene;
+		MarkerModel *markerModel;
 
 public slots:
-		void camera_changed ();
-		void update_camera ();
-		void action_quit();
+		void cameraChanged ();
+		void updateCamera ();
+		void quitApplication();
 
 		void updateWidgetsFromObject (int object_id);
 		void updateObjectFromWidget ();
