@@ -17,6 +17,7 @@ function draw()
 	camera:rotate()
 	camera:setPosition()
 	camera:setDirection()
+	camera:setUp()
 	camera:setFov()
 	camera:setOrthographic (state)
 	camera:updateFromMouse

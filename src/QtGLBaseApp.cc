@@ -30,6 +30,8 @@
 
 using namespace std;
 
+using namespace SimpleMath::GL;
+
 const double TimeLineDuration = 1000.;
 
 std::string vec3_to_string (const Vector3f vec3, unsigned int digits = 2) {
@@ -80,9 +82,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	checkBoxDrawGrid->setChecked (glWidget->draw_grid);
 
 	// camera controls
-	QRegExp	coord_expr ("^\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*$");
-	QRegExpValidator *coord_validator_eye = new QRegExpValidator (coord_expr, lineEditCameraEye);
-	QRegExpValidator *coord_validator_center = new QRegExpValidator (coord_expr, lineEditCameraCenter);
+	QRegExp	vector3_expr ("^\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*$");
+	QRegExpValidator *coord_validator_eye = new QRegExpValidator (vector3_expr, lineEditCameraEye);
+	QRegExpValidator *coord_validator_center = new QRegExpValidator (vector3_expr, lineEditCameraCenter);
 	lineEditCameraEye->setValidator (coord_validator_eye);
 	lineEditCameraCenter->setValidator (coord_validator_center);
 
@@ -109,9 +111,17 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
 
 	// object widgets
-	QRegExpValidator *coord_validator = new QRegExpValidator (coord_expr, editObjectPosition);
-	editObjectPosition->setValidator(coord_validator);
-	connect (editObjectPosition, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+	QRegExpValidator *position_validator = new QRegExpValidator (vector3_expr, lineEditObjectPosition);
+	lineEditObjectPosition->setValidator(position_validator);
+	connect (lineEditObjectPosition, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+
+	QRegExpValidator *rotation_validator = new QRegExpValidator (vector3_expr, lineEditObjectRotation);
+	lineEditObjectRotation->setValidator(rotation_validator);
+	connect (lineEditObjectRotation, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+
+	QRegExpValidator *scale_validator = new QRegExpValidator (vector3_expr, lineEditObjectScale);
+	lineEditObjectScale->setValidator(scale_validator);
+	connect (lineEditObjectScale, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
 }
 
 void print_usage() {
@@ -173,19 +183,29 @@ void QtGLBaseApp::action_quit () {
 
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (object_id < 0) {
-		editObjectPosition->setText ("");
+		lineEditObjectPosition->setText ("");
 
 		return;
 	}
 
-	editObjectPosition->setText (vec3_to_string (scene->objects[object_id].transformation.translation).c_str());
+	lineEditObjectPosition->setText (vec3_to_string (scene->objects[object_id].transformation.translation).c_str());
+
+	Vector3f zyx_rotation = scene->objects[object_id].transformation.rotation.toEulerZYX() * 180.f / static_cast<float>(M_PI);
+
+	lineEditObjectRotation->setText (vec3_to_string (zyx_rotation).c_str());
+
 }
 
 void QtGLBaseApp::updateObjectFromWidget () {
 	if (scene->selectedObjectId < 0)
 		return;
 
-	Vector3f position = string_to_vec3 (editObjectPosition->text().toStdString());
+	Vector3f position = string_to_vec3 (lineEditObjectPosition->text().toStdString());
+
+	Vector3f zyx_rotation = string_to_vec3 (lineEditObjectRotation->text().toStdString()) * M_PI / 180.f;
+	Quaternion rotation = Quaternion::fromEulerZYX (zyx_rotation);
+
 	scene->objects[scene->selectedObjectId].transformation.translation = position;
+	scene->objects[scene->selectedObjectId].transformation.rotation = rotation;
 }
 

@@ -66,12 +66,12 @@
    <addaction name="menuFile"/>
    <addaction name="menuControl_Panels"/>
   </widget>
-  <widget class="QDockWidget" name="dockObjectProperties_2">
+  <widget class="QDockWidget" name="dockMeshProperties">
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
    <property name="windowTitle">
-    <string>Object Properties</string>
+    <string>Mesh Properties</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -81,126 +81,53 @@
      <property name="fieldGrowthPolicy">
       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
      </property>
-     <item row="0" column="0">
-      <layout class="QFormLayout" name="formLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="layoutDirection">
-          <enum>Qt::RightToLeft</enum>
-         </property>
-         <property name="text">
-          <string>Name:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="lineEditName"/>
      </item>
-     <item row="1" column="0">
+     <item row="2" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Position:</string>
+        <string>Position</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="editObjectPosition"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QDoubleSpinBox" name="spinboxRotZ">
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-       <property name="minimum">
-        <double>-180.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>180.000000000000000</double>
-       </property>
-      </widget>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="lineEditObjectPosition"/>
      </item>
      <item row="3" column="1">
-      <widget class="QSlider" name="hsliderRotZ">
-       <property name="minimum">
-        <number>-180</number>
-       </property>
-       <property name="maximum">
-        <number>180</number>
-       </property>
-       <property name="tracking">
-        <bool>false</bool>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
+      <widget class="QLineEdit" name="lineEditObjectRotation"/>
      </item>
-     <item row="4" column="0">
-      <widget class="QDoubleSpinBox" name="spinboxRotY">
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-       <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::UpDownArrows</enum>
-       </property>
-       <property name="minimum">
-        <double>-360.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>360.000000000000000</double>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Rotation</string>
        </property>
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QSlider" name="hsliderRotY">
-       <property name="minimum">
-        <number>-180</number>
-       </property>
-       <property name="maximum">
-        <number>180</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+      <widget class="QLineEdit" name="lineEditObjectScale"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Scale</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QDoubleSpinBox" name="spinboxRotX">
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-       <property name="minimum">
-        <double>-180.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>180.000000000000000</double>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>Frame</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
-      <widget class="QSlider" name="hsliderRotX">
-       <property name="minimum">
-        <number>-180</number>
-       </property>
-       <property name="maximum">
-        <number>180</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="comboBoxFrame"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Name</string>
        </property>
       </widget>
      </item>
@@ -509,7 +436,7 @@
   </action>
   <zorder>dockRenderSettings</zorder>
   <zorder>dockCameraControls</zorder>
-  <zorder>dockObjectProperties_2</zorder>
+  <zorder>dockMeshProperties</zorder>
  </widget>
  <customwidgets>
   <customwidget>
