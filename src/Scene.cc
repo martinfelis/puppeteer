@@ -37,11 +37,13 @@ int vector4_to_object_id (const Vector4f &color) {
 
 void Scene::init() {
 	SceneObject monkeyobject;
-	load_obj (monkeyobject.mesh, "monkeyhead.obj");
+	MeshVBO monkey_obj;
+	load_obj (monkey_obj, "monkeyhead.obj");
+	Matrix44f rot_mat = SimpleMath::GL::RotateMat44 (90.f, 1.f, 0.f, 0.f);
+	monkeyobject.mesh.join (rot_mat, monkey_obj);
 	monkeyobject.name = "monkeyhead";
-	monkeyobject.transformation.translation = Vector3f (5.f, 0.f, 0.f);
-	monkeyobject.transformation.rotation = SimpleMath::GL::Quaternion::fromGLRotate (90.f, 0.f, 0.f, 1.f);
-	monkeyobject.transformation.scaling = Vector3f (3.f, 1.f, 1.f);
+	monkeyobject.transformation.translation = Vector3f (2.f, 0.f, 0.f);
+	monkeyobject.transformation.scaling = Vector3f (1.f, 1.f, 1.f);
 	objects.push_back (monkeyobject);
 
 	SceneObject boxobject2;

@@ -11,6 +11,13 @@
 
 #include <SimpleMath/SimpleMath.h>
 
+/**
+ * \warning This class is hacked such that it uses the following
+ * coordinate system: X forward, Y left, Z up. However the vectors in poi,
+ * eye, up use the standard OpenGL coordinate system: X forward, Y up, Z
+ * right. (Note: left and right are here seen from a person standing at
+ * the origin).
+ */
 struct Camera {
 	Vector3f poi;
 	Vector3f eye;

@@ -33,7 +33,7 @@ Vector4f light_ks (0.7f, 0.7f, 0.7f, 1.0f);
 //Vector4f light_ks (0.7f, 0.7f, 0.7f, 1.0f);
 Vector4f light_position (0.f, 0.f, 0.f, 1.f);
 
-MeshVBO grid_mesh = CreateGrid (20, 20, Vector3f (0.1f, 0.1f, 0.1), Vector3f (0.8f, 0.8f, 0.8f));
+MeshVBO grid_mesh = CreateGrid (4, 4, Vector3f (0.f, 0.f, 1.f), Vector3f (0.1f, 0.1f, 0.1), Vector3f (0.8f, 0.8f, 0.8f));
 
 GLWidget::GLWidget(QWidget *parent)
     : QGLWidget(parent),
@@ -179,6 +179,20 @@ void GLWidget::paintGL() {
 	glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_kd.data());
 	glEnable(GL_LIGHT0);	
 	glEnable(GL_LIGHTING);
+
+	glBegin (GL_LINES);
+	glColor3f (1.f, 0.f, 0.f);
+	glVertex3f (0.f, 0.f, 0.f);
+	glVertex3f (1.f, 0.f, 0.f);
+	glColor3f (0.f, 1.f, 0.f);
+	glVertex3f (0.f, 0.f, 0.f);
+	glVertex3f (0.f, 1.f, 0.f);
+	glColor3f (0.f, 0.f, 1.f);
+	glVertex3f (0.f, 0.f, 0.f);
+	glVertex3f (0.f, 0.f, 1.f);
+	glEnd();
+
+	
 
 	drawScene();
 

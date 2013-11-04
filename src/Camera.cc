@@ -10,6 +10,7 @@
 #include <GL/glu.h>
 
 #include "Camera.h"
+#include "SimpleMath/SimpleMathGL.h"
 
 Camera::Camera() :
 	poi(Vector3f(0.f, 1.f, 0.f)),
@@ -32,16 +33,16 @@ void Camera::update(int width, int height) {
 	s_phi = sin (phi);
 	c_phi = cos (phi);
 
+	Matrix44f rot_mat_44 = SimpleMath::GL::RotateMat44 (90.f, 1.f, 0.f, 0.f);
+	Matrix33f rot_mat = rot_mat_44.block<3,3>(0,0);
+
 	eye[0] = (r * s_theta * c_phi);
-	eye[1] = (r * c_theta);
-	eye[2] = (r * s_theta * s_phi);
+	eye[1] = -(r * s_theta * s_phi);
+	eye[2] = (r * c_theta);
 
 	eye += poi;
 
-	if (eye[1] < 0.)
-		eye[1];
-
-	Vector3f right (-s_phi, 0., c_phi);
+	Vector3f right (-s_phi, -c_phi, 0.f);
 
 	Vector3f eye_normalized (eye);
 	eye_normalized.normalize();
