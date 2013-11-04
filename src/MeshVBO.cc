@@ -133,7 +133,7 @@ unsigned int MeshVBO::generate_vbo() {
 		memcpy (&(raw_buffer[4 * vertices.size()]), &normals[0], sizeof(float) * 3 * normals.size());
 
 	if (have_colors)
-		memcpy (&(raw_buffer[4 * (vertices.size() + normals.size())]), &colors[0], sizeof(float) * 4 * colors.size());
+		memcpy (&(raw_buffer[(4 * vertices.size() + 3 * normals.size())]), &colors[0], sizeof(float) * 4 * colors.size());
 
 	glUnmapBuffer (GL_ARRAY_BUFFER);
 
@@ -499,17 +499,22 @@ MeshVBO CreateCuboid (float width, float height, float depth) {
 	return result;
 }
 
-MeshVBO CreateGrid (unsigned int cells_x, unsigned int cells_z, Vector3f color1, Vector3f color2) {
-	assert (cells_x > 0);
-	assert (cells_z > 0);
+MeshVBO CreateGrid (unsigned int cells_u, unsigned int cells_v, const Vector3f &normal, Vector3f color1, Vector3f color2) {
+	assert (cells_u > 0);
+	assert (cells_v > 0);
 
 	MeshVBO result;
 
 	result.begin();
-	Vector3f normal (0.f, 1.f, 0.f);
+	Vector3f u_vec_temp (1.f, 0.f, 0.f);
+	if (u_vec_temp.dot(normal.normalized()) > 0.8) {
+		u_vec_temp = Vector3f (0.f, 1.f, 0.f);
+	}
+	Vector3f v_vec = normal.cross (u_vec_temp);
+	Vector3f u_vec = v_vec.cross (normal);	
 
-	for (unsigned int i = 0; i < cells_x; i++) {
-		for (unsigned int j = 0; j < cells_z; j++) {
+	for (unsigned int i = 0; i < cells_u; i++) {
+		for (unsigned int j = 0; j < cells_v; j++) {
 			Vector3f color;
 
 			if ((i + j) % 2 == 0) {
@@ -518,29 +523,31 @@ MeshVBO CreateGrid (unsigned int cells_x, unsigned int cells_z, Vector3f color1,
 				color = color2;
 			}
 
-			Vector3f center ((i + 0.5f) - cells_x * 0.5f, 0.f, (j + 0.5f) - cells_z * 0.5f);
+			Vector3f center =
+				  u_vec * (i + 0.5f) - u_vec * cells_u * 0.5f
+				+ v_vec * (j + 0.5f) - v_vec * cells_v * 0.5f;
 
-			result.addVertex3fv ((center + Vector3f (0.5f, 0.f, 0.5f)).data());
+			result.addVertex3fv ((center + (u_vec + v_vec) * 0.5f).data());
 			result.addNormalfv (normal.data());
 			result.addColor3fv (color.data());
 
-			result.addVertex3fv ((center + Vector3f (-0.5f, 0.f, 0.5f)).data());
+			result.addVertex3fv ((center + (-u_vec + v_vec) * 0.5f).data());
 			result.addNormalfv (normal.data());
 			result.addColor3fv (color.data());
 
-			result.addVertex3fv ((center + Vector3f (-0.5f, 0.f, -0.5f)).data());
+			result.addVertex3fv ((center + (-u_vec - v_vec) * 0.5f).data());
 			result.addNormalfv (normal.data());
 			result.addColor3fv (color.data());
 
-			result.addVertex3fv ((center + Vector3f (-0.5f, 0.f, -0.5f)).data());
+			result.addVertex3fv ((center + (-u_vec - v_vec) * 0.5f).data());
 			result.addNormalfv (normal.data());
 			result.addColor3fv (color.data());
 
-			result.addVertex3fv ((center + Vector3f (0.5f, 0.f, -0.5f)).data());
+			result.addVertex3fv ((center + (u_vec - v_vec) * 0.5f).data());
 			result.addNormalfv (normal.data());
 			result.addColor3fv (color.data());
 
-			result.addVertex3fv ((center + Vector3f (0.5f, 0.f, 0.5f)).data());
+			result.addVertex3fv ((center + (u_vec + v_vec) * 0.5f).data());
 			result.addNormalfv (normal.data());
 			result.addColor3fv (color.data());
 		}

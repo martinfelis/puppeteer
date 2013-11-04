@@ -87,7 +87,7 @@ MeshVBO CreateUVSphere (unsigned int rows, unsigned int segments);
 
 MeshVBO CreateCuboid (float width, float height, float depth);
 
-MeshVBO CreateGrid (unsigned int cells_x, unsigned int cells_z, Vector3f color1, Vector3f color2);
+MeshVBO CreateGrid (unsigned int cells_u, unsigned int cells_v, const Vector3f &normal, Vector3f color1, Vector3f color2);
 
 inline MeshVBO CreateCube () {
 	return CreateCuboid (1.f, 1.f, 1.f);
