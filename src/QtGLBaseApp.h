@@ -11,6 +11,7 @@
 
 #include <QTimer>
 #include <QTimeLine>
+#include "QtVariantPropertyManager"
 #include "ui_MainWindow.h"
 
 struct Scene;
@@ -31,11 +32,16 @@ protected:
 		QTimer *drawTimer;
 		Scene *scene;
 		MarkerModel *markerModel;
+		QtVariantPropertyManager *variantManager;
+		QtVariantEditorFactory *variantEditorFactory;
+		QMap<QtProperty *, QSTring> propertyToId;
 
 public slots:
 		void cameraChanged ();
 		void updateCamera ();
 		void quitApplication();
+
+		void propertyChanged(QtProperty *property, const QVariant &variant);
 
 		void updateWidgetsFromObject (int object_id);
 		void updateObjectFromWidget ();

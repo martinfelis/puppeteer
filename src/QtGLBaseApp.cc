@@ -16,6 +16,8 @@
 
 #include "GLWidget.h" 
 #include "QtGLBaseApp.h"
+#include "QtVariantPropertyManager"
+
 #include "Scene.h"
 #include "MarkerModel.h"
 
@@ -126,6 +128,13 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	QRegExpValidator *scale_validator = new QRegExpValidator (vector3_expr, lineEditObjectScaling);
 	lineEditObjectScaling->setValidator(scale_validator);
 	connect (lineEditObjectScaling, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+
+	// property browser test
+	variantManager = new QtVariantPropertyManager ();
+	variantEditorFactory = new QtVariantEditorFactory();
+	propertiesBrowser->setFactoryForManager (variantManager, variantEditorFactory);
+
+	connect (variantManager, SIGNAL (valueChanged (QtProperty *, const QVariant &)), this, SLOT (propertyChanged(QtProperty *, const QVariant &)));
 }
 
 void print_usage(const char* execname) {
@@ -201,6 +210,11 @@ void QtGLBaseApp::quitApplication() {
 	qApp->quit();
 }
 
+void QtGLBaseApp::propertyChanged(QtProperty *property, const QVariant &variant) {
+	
+	qDebug() << "something changed!";
+}
+
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (object_id < 0) {
 		lineEditObjectPosition->setText ("");
@@ -222,6 +236,32 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	Vector3f scaling = scene->objects[object_id].transformation.scaling;
 
 	lineEditObjectScaling->setText (vec3_to_string (scaling).c_str());
+
+	variantManager->clear();
+
+	Vector3f position = scene->objects[object_id].transformation.translation;
+
+	QtVariantProperty *pos_x = variantManager->addProperty(QVariant::Double, "Position X");
+	pos_x->setAttribute ("minimum", -10.);
+	pos_x->setAttribute ("maximum", 10.);
+	pos_x->setValue (position[0]);
+
+	propertiesBrowser->addProperty(pos_x);
+
+	QtVariantProperty *pos_y = variantManager->addProperty(QVariant::Double, "Position Y");
+	pos_y->setAttribute ("minimum", -10.);
+	pos_y->setAttribute ("maximum", 10.);
+	pos_y->setValue (position[1]);
+
+	propertiesBrowser->addProperty(pos_y);
+
+	QtVariantProperty *pos_z = variantManager->addProperty(QVariant::Double, "Position Z");
+	pos_z->setAttribute ("minimum", -10.);
+	pos_z->setAttribute ("maximum", 10.);
+	pos_z->setValue (position[2]);
+
+	propertiesBrowser->addProperty(pos_z);
+
 }
 
 void QtGLBaseApp::updateObjectFromWidget () {
