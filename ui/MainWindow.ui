@@ -66,74 +66,6 @@
    <addaction name="menuFile"/>
    <addaction name="menuControl_Panels"/>
   </widget>
-  <widget class="QDockWidget" name="dockMeshProperties">
-   <property name="layoutDirection">
-    <enum>Qt::LeftToRight</enum>
-   </property>
-   <property name="windowTitle">
-    <string>Mesh Properties</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_5">
-    <layout class="QVBoxLayout" name="verticalLayout_4">
-     <item>
-      <widget class="QLineEdit" name="lineEditName"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Name</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBoxFrame"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>Frame</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEditObjectPosition"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Position</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEditObjectRotation"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Rotation</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEditObjectScaling"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Scale</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QtTreePropertyBrowser" name="propertiesBrowser" native="true"/>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <widget class="QDockWidget" name="dockRenderSettings">
    <property name="enabled">
     <bool>true</bool>
@@ -331,6 +263,24 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockFrameProperties">
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="windowTitle">
+    <string>Frame Properties</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_5">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QtTreePropertyBrowser" name="propertiesBrowser" native="true"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
@@ -436,7 +386,7 @@
   </action>
   <zorder>dockRenderSettings</zorder>
   <zorder>dockCameraControls</zorder>
-  <zorder>dockMeshProperties</zorder>
+  <zorder>dockFrameProperties</zorder>
  </widget>
  <customwidgets>
   <customwidget>

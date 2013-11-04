@@ -12,6 +12,8 @@
 #include <QTimer>
 #include <QTimeLine>
 #include "QtVariantPropertyManager"
+#include "qtpropertymanager.h"
+#include "qteditorfactory.h"
 #include "ui_MainWindow.h"
 
 struct Scene;
@@ -32,19 +34,37 @@ protected:
 		QTimer *drawTimer;
 		Scene *scene;
 		MarkerModel *markerModel;
-		QtVariantPropertyManager *variantManager;
-		QtVariantEditorFactory *variantEditorFactory;
-		QMap<QtProperty *, QSTring> propertyToId;
+
+		QtDoublePropertyManager *doubleManager;
+		QtStringPropertyManager *stringManager;
+		QtColorPropertyManager *colorManager;
+
+		QtDoubleSpinBoxFactory *doubleSpinBoxFactory;
+		QtLineEditFactory *lineEditFactory;
+		QtColorEditorFactory *colorEditFactory;
+		QtGroupPropertyManager *groupManager;
+
+		QMap<QtProperty *, QString> propertyToName;
+		QMap<QString, QtProperty *> nameToProperty;
+		QMap<QString, QtBrowserItem *> idToItem;
+		QMap<QString, bool> idToExpanded;
+
+		void updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
+		void restoreExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
+		void registerProperty (QtProperty *property, const QString &name) {
+			propertyToName[property] = name;
+			nameToProperty[name] = property;
+		}
 
 public slots:
 		void cameraChanged ();
 		void updateCamera ();
 		void quitApplication();
 
-		void propertyChanged(QtProperty *property, const QVariant &variant);
-
+		void collapseProperties();
 		void updateWidgetsFromObject (int object_id);
-		void updateObjectFromWidget ();
+
+		void valueChanged(QtProperty *property, double value);
 };
  
 #endif

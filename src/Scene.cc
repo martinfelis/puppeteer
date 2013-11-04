@@ -43,6 +43,7 @@ void Scene::init() {
 	monkeyobject.mesh.join (rot_mat, monkey_obj);
 	monkeyobject.name = "monkeyhead";
 	monkeyobject.transformation.translation = Vector3f (2.f, 0.f, 0.f);
+	monkeyobject.transformation.rotation = SimpleMath::GL::Quaternion::fromGLRotate (45.f, 1.f, 0.f, 0.f);
 	monkeyobject.transformation.scaling = Vector3f (1.f, 1.f, 1.f);
 	objects.push_back (monkeyobject);
 

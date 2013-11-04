@@ -84,6 +84,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	drawTimer->setSingleShot(false);
 	drawTimer->start(20);
 
+	dockCameraControls->setVisible(false);
+	dockRenderSettings->setVisible(false);
+
 	checkBoxDrawBaseAxes->setChecked (glWidget->draw_base_axes);
 	checkBoxDrawGrid->setChecked (glWidget->draw_grid);
 
@@ -116,25 +119,24 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	// object selection
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
 
-	// object widgets
-	QRegExpValidator *position_validator = new QRegExpValidator (vector3_expr, lineEditObjectPosition);
-	lineEditObjectPosition->setValidator(position_validator);
-	connect (lineEditObjectPosition, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+	// property browser: managers
+	doubleManager = new QtDoublePropertyManager(propertiesBrowser);
+	stringManager = new QtStringPropertyManager(propertiesBrowser);
+	colorManager = new QtColorPropertyManager(propertiesBrowser);
+	groupManager = new QtGroupPropertyManager(propertiesBrowser);
 
-	QRegExpValidator *rotation_validator = new QRegExpValidator (vector3_expr, lineEditObjectRotation);
-	lineEditObjectRotation->setValidator(rotation_validator);
-	connect (lineEditObjectRotation, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+	// property browser: editor factories
+	doubleSpinBoxFactory = new QtDoubleSpinBoxFactory(propertiesBrowser);
+	lineEditFactory = new QtLineEditFactory(propertiesBrowser);
+	colorEditFactory = new QtColorEditorFactory(propertiesBrowser);
 
-	QRegExpValidator *scale_validator = new QRegExpValidator (vector3_expr, lineEditObjectScaling);
-	lineEditObjectScaling->setValidator(scale_validator);
-	connect (lineEditObjectScaling, SIGNAL(editingFinished()), this, SLOT(updateObjectFromWidget()));
+	// property browser: manager <-> editor
+	propertiesBrowser->setFactoryForManager (doubleManager, doubleSpinBoxFactory);
+	propertiesBrowser->setFactoryForManager (stringManager, lineEditFactory);
+	propertiesBrowser->setFactoryForManager (colorManager, colorEditFactory);
 
-	// property browser test
-	variantManager = new QtVariantPropertyManager ();
-	variantEditorFactory = new QtVariantEditorFactory();
-	propertiesBrowser->setFactoryForManager (variantManager, variantEditorFactory);
-
-	connect (variantManager, SIGNAL (valueChanged (QtProperty *, const QVariant &)), this, SLOT (propertyChanged(QtProperty *, const QVariant &)));
+	// signals
+	connect (doubleManager, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (valueChanged (QtProperty *, double)));
 }
 
 void print_usage(const char* execname) {
@@ -210,73 +212,143 @@ void QtGLBaseApp::quitApplication() {
 	qApp->quit();
 }
 
-void QtGLBaseApp::propertyChanged(QtProperty *property, const QVariant &variant) {
-	
-	qDebug() << "something changed!";
+void QtGLBaseApp::collapseProperties() {
+	// collapse all items
+	QList<QtBrowserItem*>::ConstIterator prop_iter = propertiesBrowser->topLevelItems().constBegin();
+
+	while (prop_iter != propertiesBrowser->topLevelItems().constEnd()) {
+		propertiesBrowser->setExpanded (*prop_iter, false);
+		prop_iter++;
+	}
+}
+
+void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
+	QListIterator<QtBrowserItem *> it(list);
+	while (it.hasNext()) {
+		QtBrowserItem *item = it.next();
+		QtProperty *prop = item->property();
+		QString property_id = parent_property_id + prop->propertyName();
+
+		if (item->children().size() > 0) {
+			updateExpandStateRecursive (item->children(), property_id);
+		}
+
+		idToExpanded[property_id] = propertiesBrowser->isExpanded(item);
+	}
+}
+
+void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
+	QListIterator<QtBrowserItem *> it(list);
+	while (it.hasNext()) {
+		QtBrowserItem *item = it.next();
+		QtProperty *prop = item->property();
+		QString property_id = parent_property_id + prop->propertyName();
+
+		if (item->children().size() > 0) {
+			restoreExpandStateRecursive (item->children(), property_id);
+		}
+
+		if ( idToExpanded.contains(property_id))
+			propertiesBrowser->setExpanded(item, idToExpanded[property_id]);
+	}
 }
 
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (object_id < 0) {
-		lineEditObjectPosition->setText ("");
 		return;
 	}
 
 	if (markerModel->isJointObject(object_id)) {
 		qDebug() << "clicked on joint!";
-		lineEditObjectPosition->setText ("");
 		return;
 	}
 
-	lineEditObjectPosition->setText (vec3_to_string (scene->objects[object_id].transformation.translation).c_str());
-
 	Vector3f zyx_rotation = scene->objects[object_id].transformation.rotation.toEulerZYX() * 180.f / static_cast<float>(M_PI);
 
-	lineEditObjectRotation->setText (vec3_to_string (zyx_rotation).c_str());
+	updateExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 
-	Vector3f scaling = scene->objects[object_id].transformation.scaling;
+	// update properties browser
+	propertiesBrowser->clear();
 
-	lineEditObjectScaling->setText (vec3_to_string (scaling).c_str());
+	// property browser: properties
+	QtProperty *frame_name_property = stringManager->addProperty ("Name");
 
-	variantManager->clear();
+	// joints
+	QtProperty *joint_group = groupManager->addProperty("Joint");
 
+	// joints: position
 	Vector3f position = scene->objects[object_id].transformation.translation;
 
-	QtVariantProperty *pos_x = variantManager->addProperty(QVariant::Double, "Position X");
-	pos_x->setAttribute ("minimum", -10.);
-	pos_x->setAttribute ("maximum", 10.);
-	pos_x->setValue (position[0]);
+	QtProperty *joint_position_group = groupManager->addProperty("Position");
+	QtProperty *position_x = doubleManager->addProperty("X");
+	QtProperty *position_y = doubleManager->addProperty("Y");
+	QtProperty *position_z = doubleManager->addProperty("Z");
 
-	propertiesBrowser->addProperty(pos_x);
+	joint_position_group->addSubProperty (position_x);
+	joint_position_group->addSubProperty (position_y);
+	joint_position_group->addSubProperty (position_z);
 
-	QtVariantProperty *pos_y = variantManager->addProperty(QVariant::Double, "Position Y");
-	pos_y->setAttribute ("minimum", -10.);
-	pos_y->setAttribute ("maximum", 10.);
-	pos_y->setValue (position[1]);
+	registerProperty (position_x, "joint_position_x");
+	registerProperty (position_y, "joint_position_y");
+	registerProperty (position_z, "joint_position_z");
 
-	propertiesBrowser->addProperty(pos_y);
+	doubleManager->setValue (position_x, position[0]);
+	doubleManager->setValue (position_y, position[1]);
+	doubleManager->setValue (position_z, position[2]);
 
-	QtVariantProperty *pos_z = variantManager->addProperty(QVariant::Double, "Position Z");
-	pos_z->setAttribute ("minimum", -10.);
-	pos_z->setAttribute ("maximum", 10.);
-	pos_z->setValue (position[2]);
+	joint_group->addSubProperty (joint_position_group);
 
-	propertiesBrowser->addProperty(pos_z);
+	// joints: orientation
+	QtProperty *joint_orientation_group = groupManager->addProperty("Orientation");
+	QtProperty *orientation_x = doubleManager->addProperty("X");
+	QtProperty *orientation_y = doubleManager->addProperty("Y");
+	QtProperty *orientation_z = doubleManager->addProperty("Z");
 
+	joint_orientation_group->addSubProperty (orientation_y);
+	joint_orientation_group->addSubProperty (orientation_x);
+	joint_orientation_group->addSubProperty (orientation_z);
+
+	registerProperty (orientation_x, "joint_orientation_x");
+	registerProperty (orientation_y, "joint_orientation_y");
+	registerProperty (orientation_z, "joint_orientation_z");
+
+	Vector3f yxz_rotation = scene->objects[object_id].transformation.rotation.toEulerYXZ() * 180.f / static_cast<float>(M_PI);
+	doubleManager->setValue(orientation_y, yxz_rotation[0]);
+	doubleManager->setValue(orientation_x, yxz_rotation[1]);
+	doubleManager->setValue(orientation_z, yxz_rotation[2]);
+
+	joint_group->addSubProperty (joint_orientation_group);
+
+	QtProperty *visuals_group = groupManager->addProperty("Visuals");
+
+	propertiesBrowser->addProperty (frame_name_property);
+	propertiesBrowser->addProperty (joint_group);
+	propertiesBrowser->addProperty (visuals_group);
+
+	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
-void QtGLBaseApp::updateObjectFromWidget () {
-	if (scene->selectedObjectId < 0)
+void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
+	if (!propertyToName.contains(property))
 		return;
 
-	Vector3f position = string_to_vec3 (lineEditObjectPosition->text().toStdString());
+	QString property_name = propertyToName[property];
 
-	Vector3f zyx_rotation = string_to_vec3 (lineEditObjectRotation->text().toStdString()) * M_PI / 180.f;
-	Quaternion rotation = Quaternion::fromEulerZYX (zyx_rotation);
+	if (property_name.startsWith ("joint_orientation")) {
+		Vector3f yxz_rotation;
+		yxz_rotation[0] = doubleManager->value(nameToProperty["joint_orientation_y"]);
+		yxz_rotation[1] = doubleManager->value(nameToProperty["joint_orientation_x"]);
+		yxz_rotation[2] = doubleManager->value(nameToProperty["joint_orientation_z"]);
 
-	Vector3f scaling = string_to_vec3 (lineEditObjectScaling->text().toStdString());
+		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
 
-	scene->objects[scene->selectedObjectId].transformation.translation = position;
-	scene->objects[scene->selectedObjectId].transformation.rotation = rotation;
-	scene->objects[scene->selectedObjectId].transformation.scaling = scaling;
+		scene->objects[scene->selectedObjectId].transformation.rotation = rotation;
+	} else if (property_name.startsWith ("joint_position")) {
+		Vector3f position;
+		position[0] = doubleManager->value(nameToProperty["joint_position_x"]);
+		position[1] = doubleManager->value(nameToProperty["joint_position_y"]);
+		position[2] = doubleManager->value(nameToProperty["joint_position_z"]);
+
+		scene->objects[scene->selectedObjectId].transformation.translation = position;
+	}
 }
-
