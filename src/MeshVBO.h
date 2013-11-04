@@ -27,8 +27,6 @@ struct MeshVBO {
 		vbo_id(0),
 		started(false),
 		smooth_shading(true),
-		have_normals (false),
-		have_colors (false),
 		buffer_size (0),
 		normal_offset (0),
 		color_offset (0),
@@ -50,12 +48,16 @@ struct MeshVBO {
 	void begin();
 	void end();
 
-	void addVertice (float x, float y, float z);
-	void addVerticefv (float vert[3]);
+	void addVertex4f (float x, float y, float z, float w);
+	void addVertex4fv (const float vert[4]);
+	void addVertex3f (float x, float y, float z);
+	void addVertex3fv (const float vert[3]);
 	void addNormal (float x, float y, float z);
-	void addNormalfv (float norm[3]);
-	void addColor (float x, float y, float z);
-	void addColorfv (float norm[3]);
+	void addNormalfv (const float norm[3]);
+	void addColor4f (float x, float y, float z, float a);
+	void addColor4fv (const float color[4]);
+	void addColor3f (float x, float y, float z);
+	void addColor3fv (const float color[3]);
 
 	unsigned int generate_vbo();
 	void delete_vbo();
@@ -67,9 +69,6 @@ struct MeshVBO {
 	bool started;
 	bool smooth_shading;
 
-	bool have_normals;
-	bool have_colors;
-
 	GLsizeiptr buffer_size;
 	GLsizeiptr normal_offset;
 	GLsizeiptr color_offset;
@@ -77,9 +76,11 @@ struct MeshVBO {
 	Vector3f bbox_min;
 	Vector3f bbox_max;
 
-	std::vector<Vector3f> vertices;
+	std::vector<Vector4f> vertices;
 	std::vector<Vector3f> normals;
-	std::vector<Vector3f> colors;
+	std::vector<Vector4f> colors;
+
+	void join (const Matrix44f &transformation, const MeshVBO &other);
 };
 
 MeshVBO CreateUVSphere (unsigned int rows, unsigned int segments);

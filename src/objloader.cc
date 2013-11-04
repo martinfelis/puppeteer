@@ -287,7 +287,7 @@ bool load_obj (MeshVBO &mesh, const char *filename, const char *object_name, boo
 	for (int fi = 0; fi < face_infos.size(); fi++) {
 		for (int vi = 0; vi < 3; vi ++) {
 			Vector4f vertex = vertices.at(face_infos[fi].vertex_index[vi] - 1);
-			mesh.addVertice(vertex[0], vertex[1], vertex[2]);
+			mesh.addVertex3f(vertex[0], vertex[1], vertex[2]);
 	//		cout << "added vertice " << vertex.transpose() << endl;
 
 			if (face_infos[fi].normal_index[vi] != -1) {
