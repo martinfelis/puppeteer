@@ -272,7 +272,7 @@ class Matrix {
 			zero();
 		}
 
-		val_type norm() {
+		val_type norm() const {
 			return sqrt(this->squaredNorm());
 		}
 
@@ -281,6 +281,10 @@ class Matrix {
 
 			for (unsigned int i = 0; i < ncols * nrows; i++)
 				mData[i] /= length;
+		}
+
+		Matrix<val_type> normalized() const {
+			return Matrix<val_type> (*this) / this->norm();
 		}
 
 		Matrix<val_type> cross(const Matrix<val_type> &other_vector) {

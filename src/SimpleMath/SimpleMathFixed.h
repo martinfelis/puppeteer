@@ -488,7 +488,7 @@ class Matrix {
 			zero();
 		}
 
-		val_type norm() {
+		val_type norm() const {
 			return sqrt(this->squaredNorm());
 		}
 
@@ -501,7 +501,11 @@ class Matrix {
 			return *this;
 		}
 
-		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
+		matrix_type normalized() const {
+			return matrix_type (*this) / this->norm();
+		}
+
+		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) const {
 			COMPILE_ASSERT (nrows * ncols == 3);
 
 			Matrix<val_type, 3, 1> result;
