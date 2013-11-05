@@ -20,6 +20,7 @@
 
 #include "Scene.h"
 #include "MarkerModel.h"
+#include "MarkerData.h"
 
 #include <sys/time.h>
 #include <ctime>
@@ -77,8 +78,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	scene->init();
 	glWidget->setScene (scene);
 
-	// marker model
+	// marker model and data
 	markerModel = new MarkerModel(scene);
+	markerData = new MarkerData(scene);
 
 	drawTimer = new QTimer (this);
 	drawTimer->setSingleShot(false);
@@ -140,18 +142,23 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 }
 
 void print_usage(const char* execname) {
-	cout << "Usage: " << execname << " [modelfile.lua]" << endl;
+	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d>" << endl;
 }
 
 bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 	if (argc == 1)
 		return true;
 
-	if (argc == 2) {
-		loadModelFile (argv[1]);
-	} else {
-		print_usage (argv[0]);
-		return false;
+	for (int i = 1; i < argc; i++) {
+		std::string arg (argv[i]);
+		if (arg.substr(arg.size() - 4, 4) == ".lua")
+			loadModelFile (arg.c_str());
+		else if (arg.substr(arg.size() - 4, 4) == ".c3d")
+			loadMocapFile (arg.c_str());
+		else {
+			print_usage (argv[0]);
+			return false;
+		}
 	}
 
 	return true;
@@ -160,6 +167,11 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 bool QtGLBaseApp::loadModelFile (const char* filename) {
 	assert (markerModel);
 	return markerModel->loadFromFile (filename);
+}
+
+bool QtGLBaseApp::loadMocapFile (const char* filename) {
+	assert (markerData);
+	return markerData->loadFromFile (filename);
 }
 
 void QtGLBaseApp::cameraChanged() {

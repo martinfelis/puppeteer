@@ -42,6 +42,7 @@ struct MarkerModel {
 		scene (scene_),
 		rbdlModel (NULL)
 	{}
+	~MarkerModel();
 	MarkerModel(const MarkerModel &model);
 	MarkerModel& operator=(const MarkerModel &model);
 

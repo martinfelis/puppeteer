@@ -18,6 +18,7 @@
 
 struct Scene;
 struct MarkerModel;
+struct MarkerData;
 
 class QtGLBaseApp : public QMainWindow, public Ui::MainWindow
 {
@@ -29,11 +30,13 @@ public:
 
 		bool parseArgs(int argc, char* argv[]);
 		bool loadModelFile (const char* filename);
+		bool loadMocapFile (const char* filename);
 
 protected:
 		QTimer *drawTimer;
 		Scene *scene;
 		MarkerModel *markerModel;
+		MarkerData *markerData;
 
 		QtDoublePropertyManager *doubleManager;
 		QtStringPropertyManager *stringManager;

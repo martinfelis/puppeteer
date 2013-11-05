@@ -21,6 +21,12 @@ MarkerModel::MarkerModel(const MarkerModel &model) :
 	joints(model.joints),
 	jointTransforms(model.jointTransforms)
 {}
+MarkerModel::~MarkerModel() {
+	if (rbdlModel) {
+		delete rbdlModel;
+		rbdlModel = NULL;
+	}
+}
 MarkerModel& MarkerModel::operator=(const MarkerModel &model) {
 	if (this != &model) {
 		scene = model.scene;
