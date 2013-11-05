@@ -68,6 +68,7 @@ public slots:
 		void updateWidgetsFromObject (int object_id);
 
 		void valueChanged(QtProperty *property, double value);
+		void captureFrameSliderChanged (int value);
 };
  
 #endif

@@ -70,6 +70,9 @@
    <property name="enabled">
     <bool>true</bool>
    </property>
+   <property name="floating">
+    <bool>false</bool>
+   </property>
    <property name="features">
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
@@ -142,9 +145,6 @@
      <width>206</width>
      <height>195</height>
     </size>
-   </property>
-   <property name="floating">
-    <bool>false</bool>
    </property>
    <property name="windowTitle">
     <string>Camera Controls</string>
@@ -271,12 +271,28 @@
     <string>Frame Properties</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>1</number>
+    <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_5">
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
       <widget class="QtTreePropertyBrowser" name="propertiesBrowser" native="true"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidgetSlider">
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QVBoxLayout" name="verticalLayout_7">
+     <item>
+      <widget class="QSlider" name="captureFrameSlider">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -387,6 +403,7 @@
   <zorder>dockRenderSettings</zorder>
   <zorder>dockCameraControls</zorder>
   <zorder>dockFrameProperties</zorder>
+  <zorder>dockWidgetSlider</zorder>
  </widget>
  <customwidgets>
   <customwidget>

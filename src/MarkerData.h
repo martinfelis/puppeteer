@@ -40,7 +40,8 @@ struct MarkerData {
 	std::string getMarkerName (int markerIndex);
 	int getFirstFrame ();
 	int getLastFrame ();
-	void setCurrentFrame (int frame_index);
+	void setCurrentFrameNumber (int frame_number);
+	void updateMarkerSceneObjects();
 
 	private:
 	MarkerData (const MarkerData &marker_data) {};

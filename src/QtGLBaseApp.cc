@@ -79,8 +79,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	glWidget->setScene (scene);
 
 	// marker model and data
-	markerModel = new MarkerModel(scene);
-	markerData = new MarkerData(scene);
+	markerModel = NULL;
+	markerData = NULL;
 
 	drawTimer = new QTimer (this);
 	drawTimer->setSingleShot(false);
@@ -88,6 +88,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	dockCameraControls->setVisible(false);
 	dockRenderSettings->setVisible(false);
+	dockWidgetSlider->setVisible(false);
 
 	checkBoxDrawBaseAxes->setChecked (glWidget->draw_base_axes);
 	checkBoxDrawGrid->setChecked (glWidget->draw_grid);
@@ -165,13 +166,29 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 }
 
 bool QtGLBaseApp::loadModelFile (const char* filename) {
+	if (markerModel)
+		delete markerModel;
+	markerModel = new MarkerModel (scene);
 	assert (markerModel);
 	return markerModel->loadFromFile (filename);
 }
 
 bool QtGLBaseApp::loadMocapFile (const char* filename) {
+	if (markerData)
+		delete markerData;
+	markerData = new MarkerData (scene);
 	assert (markerData);
-	return markerData->loadFromFile (filename);
+
+	if(!markerData->loadFromFile (filename))
+		return false;
+
+	dockWidgetSlider->setVisible(true);
+	captureFrameSlider->setMinimum (markerData->getFirstFrame());
+	captureFrameSlider->setMaximum (markerData->getLastFrame());
+
+	connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
+
+	return true;
 }
 
 void QtGLBaseApp::cameraChanged() {
@@ -270,7 +287,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 		return;
 	}
 
-	if (markerModel->isJointObject(object_id)) {
+	if (markerModel && markerModel->isJointObject(object_id)) {
 		qDebug() << "clicked on joint!";
 		return;
 	}
@@ -363,4 +380,9 @@ void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
 
 		scene->objects[scene->selectedObjectId].transformation.translation = position;
 	}
+}
+
+void QtGLBaseApp::captureFrameSliderChanged (int value) {
+	assert (markerData);
+	markerData->setCurrentFrameNumber (value);
 }

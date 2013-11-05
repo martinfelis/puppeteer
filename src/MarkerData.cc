@@ -67,6 +67,7 @@ bool MarkerData::loadFromFile(const char *filename) {
 	enableMarker ("LHEE", Vector3f (0.f, 1.f, 0.f));
 	enableMarker ("LTOE", Vector3f (0.f, 1.f, 0.f));
 
+	return true;
 }
 
 void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
@@ -111,3 +112,18 @@ int MarkerData::getLastFrame () {
 	return static_cast<int>(c3dfile->header.last_frame);
 }
 
+void MarkerData::setCurrentFrameNumber (int frame_number) {
+	assert (frame_number >= getFirstFrame());
+	assert (frame_number <= getLastFrame());
+
+	currentFrame = frame_number;
+
+	updateMarkerSceneObjects();
+}
+
+void MarkerData::updateMarkerSceneObjects() {
+	for (size_t i = 0; i < markers.size(); i++) {
+		Vector3f position = getMarkerCurrentPosition(markers[i].markerName.c_str());
+		scene->objects[markers[i].sceneObjectId].transformation.translation = position;
+	}
+}
