@@ -77,14 +77,14 @@ bool MarkerModel::loadFromFile(const char* filename) {
 		SceneObject joint_scene_object;
 
 		joint_scene_object.name = body_name + "_joint";
-		joint_scene_object.color = Vector3f (1.f, 0.f, 0.f);
+		joint_scene_object.color = Vector3f (0.9f, 0.9f, 0.9f);
 	
 		RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
 		RigidBodyDynamics::Math::Vector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, body_id, RigidBodyDynamics::Math::Vector3d (0., 0., 0.));
 	
 		Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
 		joint_scene_object.transformation.translation = joint_position;
-		joint_scene_object.transformation.scaling = Vector3f (0.05, 0.05, 0.05);
+		joint_scene_object.transformation.scaling = Vector3f (0.03, 0.03, 0.03);
 		joint_scene_object.mesh = CreateUVSphere (8, 16);
 		joint_scene_object.noDepthTest = true;
 
