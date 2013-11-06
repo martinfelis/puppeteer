@@ -161,11 +161,12 @@ local function newHeiMan (model_mass, model_height)
 			dimensions = { 
 				default_width,
 				default_width,
-				parameters.segment_lengths_rel[segment_name] * height},
-				color = color,
-				mesh_center = { 0, 0, -parameters.segment_lengths_rel[segment_name] * height * 0.5},
-				src = mesh_name,
-			}
+				parameters.segment_lengths_rel[segment_name] * height
+			},
+			color = color,
+			mesh_center = { 0, 0, -parameters.segment_lengths_rel[segment_name] * height * 0.5},
+			src = mesh_name,
+		}
 		return visual
 	end
 

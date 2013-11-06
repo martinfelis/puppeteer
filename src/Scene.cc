@@ -82,6 +82,11 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 	glPushMatrix();
 	glMultMatrixf (object.transformation.toGLMatrix().data());
 
+	if (object.noDepthTest) 
+		glDisable (GL_DEPTH_TEST);
+	else
+		glEnable (GL_DEPTH_TEST);
+
 	if (style == DrawStyleSelected) {
 		glDisable(GL_LIGHTING);
 		glEnable(GL_CULL_FACE);
@@ -93,7 +98,10 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 		glPopMatrix();
 		glCullFace(GL_BACK);
 		glDisable(GL_CULL_FACE);
-		glEnable(GL_LIGHTING);
+
+		if (!object.noLighting)
+			glEnable(GL_LIGHTING);
+
 		glColor3f (0.f, 0.8f, 0.8f);
 		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
 	} else if (style == DrawStyleHighlighted) {
@@ -107,10 +115,18 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 		glPopMatrix();
 		glCullFace(GL_BACK);
 		glDisable(GL_CULL_FACE);
-		glEnable(GL_LIGHTING);
+		
+		if (!object.noLighting)
+			glEnable(GL_LIGHTING);
+
 		glColor3f (0.8, 0.8, 0.2);
 		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
 	} else {
+		if (object.noLighting)
+			glDisable(GL_LIGHTING);
+		else
+			glEnable(GL_LIGHTING);
+
 		glColor3fv (object.color.data());
 		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
 	}
@@ -121,7 +137,13 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 void Scene::draw() {
 //	selectedObjectId = mouseOverObjectId;
 
+	std::vector<SceneObject*> depth_ignoring_objects;
+
 	for (int i = 0; i < objects.size(); i++) {
+		if (objects[i].noDepthTest) {
+			depth_ignoring_objects.push_back (&objects[i]);
+			continue;
+		}
 		if (i == selectedObjectId) {
 			drawSceneObjectStyled (objects[i], DrawStyleSelected);
 		} else if (i == mouseOverObjectId) {
@@ -129,6 +151,10 @@ void Scene::draw() {
 		} else {
 			drawSceneObjectStyled (objects[i], DrawStyleNormal);
 		}
+	}
+
+	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
+		drawSceneObjectStyled (*(depth_ignoring_objects[i]), DrawStyleNormal);
 	}
 }
 

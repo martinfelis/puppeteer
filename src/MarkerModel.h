@@ -33,6 +33,26 @@ struct BodyObject {
 	Matrix33f inertia;
 };
 
+struct VisualsObject {
+	VisualsObject() :
+		sceneObjectId(-1),
+		scale (-1.f, -1.f, -1.f),
+		dimensions (1.f, 1.f, 1.f),
+		color (1.f, 1.f, 1.f),
+		mesh_center (-1.f, -1.f, -1.f),
+		translate (-1.f, -1.f, -1.f),
+		src ("")
+	{}
+
+	int sceneObjectId;
+	Vector3f scale;
+	Vector3f dimensions;
+	Vector3f color;
+	Vector3f mesh_center;
+	Vector3f translate;
+	std::string src;
+};
+
 struct MarkerModel {
 	MarkerModel():
 		scene(NULL),

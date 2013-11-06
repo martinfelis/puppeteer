@@ -1,8 +1,32 @@
 #ifndef MARKER_MODEL_LUA_TYPES
 #define MARKER_MODEL_LUA_TYPES
 
+#include "MarkerModel.h"
 #include <rbdl/rbdl_math.h>
 #include <rbdl/addons/luamodel/luatables.h>
+
+// SimpleMath Vector3f
+template<> SimpleMath::Fixed::Matrix<float, 3, 1> LuaTableNode::getDefault<SimpleMath::Fixed::Matrix<float, 3, 1> >(const SimpleMath::Fixed::Matrix<float, 3, 1> &default_value) { 
+	SimpleMath::Fixed::Matrix<float, 3, 1> result = default_value;
+
+	if (stackQueryValue()) {
+		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+
+		if (vector_table.length() != 3) {
+			std::cerr << "LuaModel Error: invalid 3d vector!" << std::endl;
+			abort();
+		}
+		
+		result[0] = static_cast<float>(vector_table[1].get<double>());
+		result[1] = static_cast<float>(vector_table[2].get<double>());
+		result[2] = static_cast<float>(vector_table[3].get<double>());
+	}
+
+	stackRestore();
+
+	return result;
+};
+
 
 template<> RigidBodyDynamics::Math::Vector3d LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(const RigidBodyDynamics::Math::Vector3d &default_value) { 
 	RigidBodyDynamics::Math::Vector3d result = default_value;
@@ -179,6 +203,27 @@ template<> RigidBodyDynamics::Body LuaTableNode::getDefault<RigidBodyDynamics::B
 
 	return result;
 }
+
+template<> VisualsObject LuaTableNode::getDefault<VisualsObject>(const VisualsObject &default_value) {
+	VisualsObject result = default_value;
+
+	if (stackQueryValue()) {
+		LuaTable visuals_table = LuaTable::fromLuaState (luaTable->L);
+
+		result.scale = visuals_table["scale"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+		result.dimensions = visuals_table["dimensions"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+		result.color = visuals_table["color"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+		result.mesh_center = visuals_table["mesh_center"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+		result.translate = visuals_table["translate"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+		result.src = visuals_table["src"].get<std::string>();
+	}
+
+	stackRestore();
+
+	return result;
+}
+
+
 
 /* MARKER_MODEL_LUA_TYPES */
 #endif

@@ -20,11 +20,15 @@ enum DrawStyle {
 struct SceneObject {
 	SceneObject () :
 		name ("unnamed"),
-		color (1.f, 1.f, 1.f)
+		color (1.f, 1.f, 1.f),
+		noDepthTest(false),
+		noLighting(false)
 	{ }
 
 	std::string name;
 	Vector3f color;
+	bool noDepthTest;
+	bool noLighting;
 	Transformation transformation;
 	MeshVBO mesh;
 };
