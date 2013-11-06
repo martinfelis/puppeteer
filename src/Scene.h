@@ -19,12 +19,14 @@ enum DrawStyle {
 
 struct SceneObject {
 	SceneObject () :
+		id (-1),
 		name ("unnamed"),
 		color (1.f, 1.f, 1.f),
 		noDepthTest(false),
 		noLighting(false)
 	{ }
 
+	int id;
 	std::string name;
 	Vector3f color;
 	bool noDepthTest;
@@ -34,18 +36,26 @@ struct SceneObject {
 };
 
 struct Scene {
-	Scene() : selectedObjectId(-1), mouseOverObjectId(-1) {	}
+	Scene() : 
+		lastObjectId (0),
+		selectedObjectId(-1),
+		mouseOverObjectId(-1) {	}
 
-	std::vector<SceneObject> objects;
-
+	int lastObjectId;
 	int selectedObjectId;
 	int mouseOverObjectId;
 
 	void init();
 	void draw();
-	void drawForColourPicking();
+	void drawForColorPicking();
 
 	void drawSceneObjectStyled (const SceneObject &object, DrawStyle style);
+	int registerSceneObject (const SceneObject &object);
+
+	SceneObject &getObject (int id); 
+
+	private:
+		std::vector<SceneObject> objects;
 };
 
 /* _SCENE_H */

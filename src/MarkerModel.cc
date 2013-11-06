@@ -88,9 +88,8 @@ bool MarkerModel::loadFromFile(const char* filename) {
 		joint_scene_object.mesh = CreateUVSphere (8, 16);
 		joint_scene_object.noDepthTest = true;
 
-		scene->objects.push_back (joint_scene_object);
 		JointObject joint_object;
-		joint_object.sceneObjectId = scene->objects.size() - 1;
+		joint_object.sceneObjectId = scene->registerSceneObject (joint_scene_object);
 		joint_object.rbdlJointId = body_id;
 
 		joints.push_back (joint_object);
@@ -127,8 +126,7 @@ bool MarkerModel::loadFromFile(const char* filename) {
 			visual_scene_object.transformation = object_transformation;
 
 			// register scene object
-			scene->objects.push_back (visual_scene_object);
-			visual_object.sceneObjectId = scene->objects.size() - 1;
+			visual_object.sceneObjectId = scene->registerSceneObject (visual_scene_object);
 			visuals.push_back(visual_object);
 		}
 	}

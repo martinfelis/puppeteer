@@ -292,7 +292,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 		return;
 	}
 
-	Vector3f zyx_rotation = scene->objects[object_id].transformation.rotation.toEulerZYX() * 180.f / static_cast<float>(M_PI);
+	Vector3f zyx_rotation = scene->getObject(object_id).transformation.rotation.toEulerZYX() * 180.f / static_cast<float>(M_PI);
 
 	updateExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 
@@ -306,7 +306,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	QtProperty *joint_group = groupManager->addProperty("Joint");
 
 	// joints: position
-	Vector3f position = scene->objects[object_id].transformation.translation;
+	Vector3f position = scene->getObject(object_id).transformation.translation;
 
 	QtProperty *joint_position_group = groupManager->addProperty("Position");
 	QtProperty *position_x = doubleManager->addProperty("X");
@@ -341,7 +341,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	registerProperty (orientation_y, "joint_orientation_y");
 	registerProperty (orientation_z, "joint_orientation_z");
 
-	Vector3f yxz_rotation = scene->objects[object_id].transformation.rotation.toEulerYXZ() * 180.f / static_cast<float>(M_PI);
+	Vector3f yxz_rotation = scene->getObject(object_id).transformation.rotation.toEulerYXZ() * 180.f / static_cast<float>(M_PI);
 	doubleManager->setValue(orientation_y, yxz_rotation[0]);
 	doubleManager->setValue(orientation_x, yxz_rotation[1]);
 	doubleManager->setValue(orientation_z, yxz_rotation[2]);
@@ -371,14 +371,14 @@ void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
 
 		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
 
-		scene->objects[scene->selectedObjectId].transformation.rotation = rotation;
+		scene->getObject(scene->selectedObjectId).transformation.rotation = rotation;
 	} else if (property_name.startsWith ("joint_position")) {
 		Vector3f position;
 		position[0] = doubleManager->value(nameToProperty["joint_position_x"]);
 		position[1] = doubleManager->value(nameToProperty["joint_position_y"]);
 		position[2] = doubleManager->value(nameToProperty["joint_position_z"]);
 
-		scene->objects[scene->selectedObjectId].transformation.translation = position;
+		scene->getObject(scene->selectedObjectId).transformation.translation = position;
 	}
 }
 

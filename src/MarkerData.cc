@@ -83,10 +83,8 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	scene_marker.mesh = CreateUVSphere (4, 8);
 	scene_marker.transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
 
-	scene->objects.push_back (scene_marker);
-
 	MarkerObject marker_object;
-	marker_object.sceneObjectId = scene->objects.size() - 1;
+	marker_object.sceneObjectId = scene->registerSceneObject (scene_marker);
 	marker_object.markerName = marker_name;
 
 	markers.push_back (marker_object);
@@ -124,6 +122,6 @@ void MarkerData::setCurrentFrameNumber (int frame_number) {
 void MarkerData::updateMarkerSceneObjects() {
 	for (size_t i = 0; i < markers.size(); i++) {
 		Vector3f position = getMarkerCurrentPosition(markers[i].markerName.c_str());
-		scene->objects[markers[i].sceneObjectId].transformation.translation = position;
+		scene->getObject(markers[i].sceneObjectId).transformation.translation = position;
 	}
 }

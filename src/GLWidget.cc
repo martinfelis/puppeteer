@@ -216,7 +216,7 @@ void GLWidget::paintColorPickingFrameBuffer() {
 	glDisable(GL_LIGHTING);
 
 	if (scene)
-		scene->drawForColourPicking();
+		scene->drawForColorPicking();
 
 	GLenum gl_error = glGetError();
 	if (gl_error != GL_NO_ERROR) {

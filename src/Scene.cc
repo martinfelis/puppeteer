@@ -1,8 +1,13 @@
+#include <iostream>
+#include <assert.h>
+
 #include "GL/glew.h"
 #include <GL/glu.h>
 
 #include "Scene.h"
 #include "objloader.h"
+
+using namespace std;
 
 Vector4f object_id_to_vector4 (int id) {
 	Vector4f result (0.f, 0.f, 0.f, 1.f);
@@ -45,13 +50,13 @@ void Scene::init() {
 	monkeyobject.transformation.translation = Vector3f (2.f, 0.f, 0.f);
 	monkeyobject.transformation.rotation = SimpleMath::GL::Quaternion::fromGLRotate (45.f, 1.f, 0.f, 0.f);
 	monkeyobject.transformation.scaling = Vector3f (1.f, 1.f, 1.f);
-	objects.push_back (monkeyobject);
+	registerSceneObject (monkeyobject);
 
 	SceneObject boxobject2;
 	boxobject2.mesh = CreateCuboid (1.f, 1.f, 1.f);
 	boxobject2.name = "box2";
 	boxobject2.transformation.translation.set(0., 2., 2.);
-	objects.push_back (boxobject2);
+	registerSceneObject (boxobject2);
 
 	return;
 
@@ -69,7 +74,7 @@ void Scene::init() {
 						float (j),
 						float (k - box_count_z / 2.f)
 						);
-				objects.push_back(boxobject);
+				registerSceneObject (boxobject);
 			}
 		}
 	}
@@ -82,10 +87,7 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 	glPushMatrix();
 	glMultMatrixf (object.transformation.toGLMatrix().data());
 
-	if (object.noDepthTest) 
-		glDisable (GL_DEPTH_TEST);
-	else
-		glEnable (GL_DEPTH_TEST);
+	glEnable (GL_DEPTH_TEST);
 
 	if (style == DrawStyleSelected) {
 		glDisable(GL_LIGHTING);
@@ -135,7 +137,38 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 }
 
 void Scene::draw() {
-//	selectedObjectId = mouseOverObjectId;
+	std::vector<SceneObject*> depth_ignoring_objects;
+
+	for (int i = 0; i < objects.size(); i++) {
+		if (objects[i].noDepthTest) {
+			depth_ignoring_objects.push_back (&objects[i]);
+			continue;
+		}
+		if (objects[i].id == selectedObjectId) {
+			drawSceneObjectStyled (objects[i], DrawStyleSelected);
+		} else if (objects[i].id == mouseOverObjectId) {
+			drawSceneObjectStyled (objects[i], DrawStyleHighlighted);
+		} else {
+			drawSceneObjectStyled (objects[i], DrawStyleNormal);
+		}
+	}
+
+	glClear (GL_DEPTH_BUFFER_BIT);
+
+	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
+		drawSceneObjectStyled (*(depth_ignoring_objects[i]), DrawStyleNormal);
+		if (depth_ignoring_objects[i]->id == selectedObjectId) {
+			drawSceneObjectStyled (*depth_ignoring_objects[i], DrawStyleSelected);
+		} else if (depth_ignoring_objects[i]->id == mouseOverObjectId) {
+			drawSceneObjectStyled (*depth_ignoring_objects[i], DrawStyleHighlighted);
+		} else {
+			drawSceneObjectStyled (*depth_ignoring_objects[i], DrawStyleNormal);
+		}
+	}
+}
+
+void Scene::drawForColorPicking() {
+	glDisable(GL_LIGHTING);
 
 	std::vector<SceneObject*> depth_ignoring_objects;
 
@@ -144,29 +177,48 @@ void Scene::draw() {
 			depth_ignoring_objects.push_back (&objects[i]);
 			continue;
 		}
-		if (i == selectedObjectId) {
-			drawSceneObjectStyled (objects[i], DrawStyleSelected);
-		} else if (i == mouseOverObjectId) {
-			drawSceneObjectStyled (objects[i], DrawStyleHighlighted);
-		} else {
-			drawSceneObjectStyled (objects[i], DrawStyleNormal);
-		}
-	}
 
-	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
-		drawSceneObjectStyled (*(depth_ignoring_objects[i]), DrawStyleNormal);
-	}
-}
-
-void Scene::drawForColourPicking() {
-	glDisable(GL_LIGHTING);
-	for (int i = 0; i < objects.size(); i++) {
 		glPushMatrix();
 		glMultMatrixf (objects[i].transformation.toGLMatrix().data());
 
-		glColor4fv (object_id_to_vector4 (i).data());
+		glColor4fv (object_id_to_vector4 (objects[i].id).data());
 		const_cast<MeshVBO*>(&(objects[i].mesh))->draw(GL_TRIANGLES);
 
 		glPopMatrix();
 	}
+
+	glClear (GL_DEPTH_BUFFER_BIT);
+
+	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
+		glPushMatrix();
+		glMultMatrixf (depth_ignoring_objects[i]->transformation.toGLMatrix().data());
+
+		glColor4fv (object_id_to_vector4 (depth_ignoring_objects[i]->id).data());
+		const_cast<MeshVBO*>(&(depth_ignoring_objects[i]->mesh))->draw(GL_TRIANGLES);
+
+		glPopMatrix();
+	}
 }
+
+int Scene::registerSceneObject (const SceneObject &object) {
+	assert (object.id == -1);
+
+	lastObjectId = lastObjectId + 1;
+	objects.push_back (object);
+	objects[objects.size() - 1].id = lastObjectId;
+
+	return lastObjectId;
+}
+
+SceneObject& Scene::getObject (int id) {
+	for (size_t i = 0; i < objects.size(); i++) {
+		if (objects[i].id == id)
+			return objects[i];
+	}
+
+	std::cerr << "Error: could not find object with id " << id << "." << std::endl;
+	abort();
+
+	return objects[0];
+}
+
