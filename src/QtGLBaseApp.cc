@@ -128,16 +128,20 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	stringManager = new QtStringPropertyManager(propertiesBrowser);
 	colorManager = new QtColorPropertyManager(propertiesBrowser);
 	groupManager = new QtGroupPropertyManager(propertiesBrowser);
+	vector3DPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
 
 	// property browser: editor factories
 	doubleSpinBoxFactory = new QtDoubleSpinBoxFactory(propertiesBrowser);
 	lineEditFactory = new QtLineEditFactory(propertiesBrowser);
 	colorEditFactory = new QtColorEditorFactory(propertiesBrowser);
+	vector3DEditorFactory = new QtVector3DEditorFactory(propertiesBrowser);
 
 	// property browser: manager <-> editor
 	propertiesBrowser->setFactoryForManager (doubleManager, doubleSpinBoxFactory);
 	propertiesBrowser->setFactoryForManager (stringManager, lineEditFactory);
 	propertiesBrowser->setFactoryForManager (colorManager, colorEditFactory);
+	propertiesBrowser->setFactoryForManager (vector3DPropertyManager, vector3DEditorFactory);
+	propertiesBrowser->setFactoryForManager (vector3DPropertyManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
 	// signals
 	connect (doubleManager, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (valueChanged (QtProperty *, double)));
@@ -294,6 +298,11 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	QtProperty *frame_name_property = stringManager->addProperty ("Name");
 	stringManager->setValue (frame_name_property, markerModel->getFrameName (frame_id).c_str());
 	propertiesBrowser->addProperty (frame_name_property);
+
+	// Test Vector3d property
+	QtProperty *position_property = vector3DPropertyManager->addProperty("Position");
+	vector3DPropertyManager->setValue (position_property, QVector3D (1., 2., 3.));
+	propertiesBrowser->addProperty (position_property);
 
 	// world position
 	QtProperty *world_position_group = groupManager->addProperty("Position");

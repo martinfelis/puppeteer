@@ -55,6 +55,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QVector3D>
 
 #include <limits.h>
 #include <float.h>
@@ -6637,6 +6638,251 @@ void QtCursorPropertyManager::initializeProperty(QtProperty *property)
 */
 void QtCursorPropertyManager::uninitializeProperty(QtProperty *property)
 {
+    d_ptr->m_values.remove(property);
+}
+
+// QtVector3DPropertyManager
+
+class QtVector3DPropertyManagerPrivate
+{
+    QtVector3DPropertyManager *q_ptr;
+    Q_DECLARE_PUBLIC(QtVector3DPropertyManager)
+public:
+
+    void slotDoubleChanged(QtProperty *property, double value);
+    void slotPropertyDestroyed(QtProperty *property);
+
+    typedef QMap<const QtProperty *, QVector3D> PropertyValueMap;
+    PropertyValueMap m_values;
+
+    QtDoublePropertyManager *m_doublePropertyManager;
+
+    QMap<const QtProperty *, QtProperty *> m_propertyToX;
+    QMap<const QtProperty *, QtProperty *> m_propertyToY;
+    QMap<const QtProperty *, QtProperty *> m_propertyToZ;
+
+    QMap<const QtProperty *, QtProperty *> m_xToProperty;
+    QMap<const QtProperty *, QtProperty *> m_yToProperty;
+    QMap<const QtProperty *, QtProperty *> m_zToProperty;
+};
+
+void QtVector3DPropertyManagerPrivate::slotDoubleChanged(QtProperty *property, double value)
+{
+    if (QtProperty *prop = m_xToProperty.value(property, 0)) {
+        QVector3D v = m_values[prop];
+				v.setX(value);
+        q_ptr->setValue(prop, v);
+    } else if (QtProperty *prop = m_yToProperty.value(property, 0)) {
+        QVector3D v = m_values[prop];
+				v.setY(value);
+        q_ptr->setValue(prop, v);
+    } else if (QtProperty *prop = m_zToProperty.value(property, 0)) {
+        QVector3D v = m_values[prop];
+				v.setZ(value);
+        q_ptr->setValue(prop, v);
+    }
+}
+
+void QtVector3DPropertyManagerPrivate::slotPropertyDestroyed(QtProperty *property)
+{
+    if (QtProperty *pointProp = m_xToProperty.value(property, 0)) {
+        m_propertyToX[pointProp] = 0;
+        m_xToProperty.remove(property);
+    } else if (QtProperty *pointProp = m_yToProperty.value(property, 0)) {
+        m_propertyToY[pointProp] = 0;
+        m_yToProperty.remove(property);
+    } else if (QtProperty *pointProp = m_zToProperty.value(property, 0)) {
+        m_propertyToZ[pointProp] = 0;
+        m_zToProperty.remove(property);
+    }
+}
+
+/*!
+    \class QtVector3DPropertyManager
+
+    \brief The QtVector3DPropertyManager provides and manages QVector3D properties.
+
+    A color property has nested \e red, \e green and \e blue
+    subproperties. The top-level property's value can be retrieved
+    using the value() function, and set using the setValue() slot.
+
+    The subproperties are created by a QtDoublePropertyManager object. This
+    manager can be retrieved using the subDoublePropertyManager() function.  In
+    order to provide editing widgets for the subproperties in a
+    property browser widget, this manager must be associated with an
+    editor factory.
+
+    In addition, QtVector3DPropertyManager provides the valueChanged() signal
+    which is emitted whenever a property created by this manager
+    changes.
+
+    \sa QtAbstractPropertyManager, QtAbstractPropertyBrowser, QtDoublePropertyManager
+*/
+
+/*!
+    \fn void QtVector3DPropertyManager::valueChanged(QtProperty *property, const QVector3D &value)
+
+    This signal is emitted whenever a property created by this manager
+    changes its value, passing a pointer to the \a property and the new
+    \a value as parameters.
+
+    \sa setValue()
+*/
+
+/*!
+    Creates a manager with the given \a parent.
+*/
+QtVector3DPropertyManager::QtVector3DPropertyManager(QObject *parent)
+    : QtAbstractPropertyManager(parent)
+{
+    d_ptr = new QtVector3DPropertyManagerPrivate;
+    d_ptr->q_ptr = this;
+
+    d_ptr->m_doublePropertyManager = new QtDoublePropertyManager(this);
+    connect(d_ptr->m_doublePropertyManager, SIGNAL(valueChanged(QtProperty *, double)),
+                this, SLOT(slotDoubleChanged(QtProperty *, double)));
+
+    connect(d_ptr->m_doublePropertyManager, SIGNAL(propertyDestroyed(QtProperty *)),
+                this, SLOT(slotPropertyDestroyed(QtProperty *)));
+}
+
+/*!
+    Destroys this manager, and all the properties it has created.
+*/
+QtVector3DPropertyManager::~QtVector3DPropertyManager()
+{
+    clear();
+    delete d_ptr;
+}
+
+/*!
+    Returns the manager that produces the nested \e red, \e green and
+    \e blue subproperties.
+
+    In order to provide editing widgets for the subproperties in a
+    property browser widget, this manager must be associated with an
+    editor factory.
+
+    \sa QtAbstractPropertyBrowser::setFactoryForManager()
+*/
+QtDoublePropertyManager *QtVector3DPropertyManager::subDoublePropertyManager() const
+{
+    return d_ptr->m_doublePropertyManager;
+}
+
+/*!
+    Returns the given \a property's value.
+
+    If the given \a property is not managed by \e this manager, this
+    function returns an invalid color.
+
+    \sa setValue()
+*/
+QVector3D QtVector3DPropertyManager::value(const QtProperty *property) const
+{
+    return d_ptr->m_values.value(property, QVector3D());
+}
+
+/*!
+    \reimp
+*/
+
+QString QtVector3DPropertyManager::valueText(const QtProperty *property) const
+{
+    const QtVector3DPropertyManagerPrivate::PropertyValueMap::const_iterator it = d_ptr->m_values.constFind(property);
+    if (it == d_ptr->m_values.constEnd())
+        return QString();
+
+    return QtPropertyBrowserUtils::vector3DValueText(it.value());
+}
+
+/*!
+    \reimp
+*/
+
+/*!
+    \fn void QtVector3DPropertyManager::setValue(QtProperty *property, const QVector3D &value)
+
+    Sets the value of the given \a property to \a value.  Nested
+    properties are updated automatically.
+
+    \sa value(), valueChanged()
+*/
+void QtVector3DPropertyManager::setValue(QtProperty *property, const QVector3D &val)
+{
+    const QtVector3DPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
+    if (it == d_ptr->m_values.end())
+        return;
+
+    if (it.value() == val)
+        return;
+
+    it.value() = val;
+
+    d_ptr->m_doublePropertyManager->setValue(d_ptr->m_propertyToX[property], val.x());
+    d_ptr->m_doublePropertyManager->setValue(d_ptr->m_propertyToY[property], val.y());
+    d_ptr->m_doublePropertyManager->setValue(d_ptr->m_propertyToZ[property], val.z());
+
+    emit propertyChanged(property);
+    emit valueChanged(property, val);
+}
+
+/*!
+    \reimp
+*/
+void QtVector3DPropertyManager::initializeProperty(QtProperty *property)
+{
+    QVector3D val;
+    d_ptr->m_values[property] = val;
+
+    QtProperty *xProp = d_ptr->m_doublePropertyManager->addProperty();
+    xProp->setPropertyName(tr("X"));
+    d_ptr->m_doublePropertyManager->setValue(xProp, val.x());
+    d_ptr->m_propertyToX[property] = xProp;
+    d_ptr->m_xToProperty[xProp] = property;
+    property->addSubProperty(xProp);
+
+    QtProperty *yProp = d_ptr->m_doublePropertyManager->addProperty();
+    yProp->setPropertyName(tr("Y"));
+    d_ptr->m_doublePropertyManager->setValue(yProp, val.y());
+    d_ptr->m_propertyToY[property] = yProp;
+    d_ptr->m_yToProperty[yProp] = property;
+    property->addSubProperty(yProp);
+
+    QtProperty *zProp = d_ptr->m_doublePropertyManager->addProperty();
+    zProp->setPropertyName(tr("Z"));
+    d_ptr->m_doublePropertyManager->setValue(zProp, val.z());
+    d_ptr->m_propertyToZ[property] = zProp;
+    d_ptr->m_zToProperty[zProp] = property;
+    property->addSubProperty(zProp);
+}
+
+/*!
+    \reimp
+*/
+void QtVector3DPropertyManager::uninitializeProperty(QtProperty *property)
+{
+    QtProperty *xProp = d_ptr->m_propertyToX[property];
+    if (xProp) {
+        d_ptr->m_xToProperty.remove(xProp);
+        delete xProp;
+    }
+    d_ptr->m_propertyToX.remove(property);
+
+    QtProperty *yProp = d_ptr->m_propertyToY[property];
+    if (yProp) {
+        d_ptr->m_yToProperty.remove(yProp);
+        delete yProp;
+    }
+    d_ptr->m_propertyToY.remove(property);
+
+    QtProperty *zProp = d_ptr->m_propertyToZ[property];
+    if (zProp) {
+        d_ptr->m_zToProperty.remove(zProp);
+        delete zProp;
+    }
+    d_ptr->m_propertyToZ.remove(property);
+
     d_ptr->m_values.remove(property);
 }
 

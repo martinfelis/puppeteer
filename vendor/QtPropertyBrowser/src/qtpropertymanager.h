@@ -53,6 +53,7 @@ class QDate;
 class QTime;
 class QDateTime;
 class QLocale;
+class QVector3D;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtGroupPropertyManager : public QtAbstractPropertyManager
 {
@@ -761,6 +762,36 @@ private:
     Q_DECLARE_PRIVATE(QtCursorPropertyManager)
     Q_DISABLE_COPY(QtCursorPropertyManager)
 };
+
+class QtVector3DPropertyManagerPrivate;
+
+class QT_QTPROPERTYBROWSER_EXPORT QtVector3DPropertyManager : public QtAbstractPropertyManager
+{
+    Q_OBJECT
+public:
+    QtVector3DPropertyManager(QObject *parent = 0);
+    ~QtVector3DPropertyManager();
+
+    QtDoublePropertyManager *subDoublePropertyManager() const;
+
+    QVector3D value(const QtProperty *property) const;
+
+public Q_SLOTS:
+    void setValue(QtProperty *property, const QVector3D &val);
+Q_SIGNALS:
+    void valueChanged(QtProperty *property, const QVector3D &val);
+protected:
+    QString valueText(const QtProperty *property) const;
+    virtual void initializeProperty(QtProperty *property);
+    virtual void uninitializeProperty(QtProperty *property);
+private:
+    QtVector3DPropertyManagerPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QtVector3DPropertyManager)
+    Q_DISABLE_COPY(QtVector3DPropertyManager)
+    Q_PRIVATE_SLOT(d_func(), void slotDoubleChanged(QtProperty *, double))
+    Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
+};
+
 
 #if QT_VERSION >= 0x040400
 QT_END_NAMESPACE

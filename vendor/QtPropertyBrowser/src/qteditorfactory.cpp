@@ -2696,6 +2696,160 @@ void QtFontEditorFactory::disconnectPropertyManager(QtFontPropertyManager *manag
     disconnect(manager, SIGNAL(valueChanged(QtProperty*,QFont)), this, SLOT(slotPropertyChanged(QtProperty*,QFont)));
 }
 
+// QtVector3DEditWidget
+
+class QtVector3DEditWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    QtVector3DEditWidget(QWidget *parent);
+
+public Q_SLOTS:
+    void setValue(const QVector3D &value);
+
+Q_SIGNALS:
+    void valueChanged(const QVector3D &value);
+
+protected:
+    void paintEvent(QPaintEvent *);
+
+private:
+    QVector3D m_vector3d;
+    QLabel *m_label;
+};
+
+QtVector3DEditWidget::QtVector3DEditWidget(QWidget *parent) :
+    QWidget(parent),
+    m_label(new QLabel)
+{
+    QHBoxLayout *lt = new QHBoxLayout(this);
+    setupTreeViewEditorMargin(lt);
+    lt->setSpacing(0);
+    lt->addWidget(m_label);
+    lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
+
+    m_label->setText(QtPropertyBrowserUtils::vector3DValueText(m_vector3d));
+}
+
+void QtVector3DEditWidget::setValue(const QVector3D &c)
+{
+    if (m_vector3d != c) {
+        m_vector3d = c;
+        m_label->setText(QtPropertyBrowserUtils::vector3DValueText(c));
+    }
+}
+
+void QtVector3DEditWidget::paintEvent(QPaintEvent *)
+{
+    QStyleOption opt;
+    opt.init(this);
+    QPainter p(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+}
+
+// QtVector3DEditorFactoryPrivate
+
+class QtVector3DEditorFactoryPrivate : public EditorFactoryPrivate<QtVector3DEditWidget>
+{
+    QtVector3DEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtVector3DEditorFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QVector3D &value);
+    void slotSetValue(const QVector3D &value);
+};
+
+void QtVector3DEditorFactoryPrivate::slotPropertyChanged(QtProperty *property,
+                const QVector3D &value)
+{
+    const PropertyToEditorListMap::iterator it = m_createdEditors.find(property);
+    if (it == m_createdEditors.end())
+        return;
+    QListIterator<QtVector3DEditWidget *> itEditor(it.value());
+
+    while (itEditor.hasNext())
+        itEditor.next()->setValue(value);
+}
+
+void QtVector3DEditorFactoryPrivate::slotSetValue(const QVector3D &value)
+{
+    QObject *object = q_ptr->sender();
+    const EditorToPropertyMap::ConstIterator ecend = m_editorToProperty.constEnd();
+    for (EditorToPropertyMap::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
+        if (itEditor.key() == object) {
+            QtProperty *property = itEditor.value();
+            QtVector3DPropertyManager *manager = q_ptr->propertyManager(property);
+            if (!manager)
+                return;
+            manager->setValue(property, value);
+            return;
+        }
+}
+
+/*!
+    \class QtVector3DEditorFactory
+
+    \brief The QtVector3DEditorFactory class provides vector3d editing  for
+    properties created by QtVector3DPropertyManager objects.
+
+    \sa QtAbstractEditorFactory, QtVector3DPropertyManager
+*/
+
+/*!
+    Creates a factory with the given \a parent.
+*/
+QtVector3DEditorFactory::QtVector3DEditorFactory(QObject *parent) :
+    QtAbstractEditorFactory<QtVector3DPropertyManager>(parent),
+    d_ptr(new QtVector3DEditorFactoryPrivate())
+{
+    d_ptr->q_ptr = this;
+}
+
+/*!
+    Destroys this factory, and all the widgets it has created.
+*/
+QtVector3DEditorFactory::~QtVector3DEditorFactory()
+{
+    qDeleteAll(d_ptr->m_editorToProperty.keys());
+    delete d_ptr;
+}
+
+/*!
+    \internal
+
+    Reimplemented from the QtAbstractEditorFactory class.
+*/
+void QtVector3DEditorFactory::connectPropertyManager(QtVector3DPropertyManager *manager)
+{
+    connect(manager, SIGNAL(valueChanged(QtProperty*,QVector3D)),
+            this, SLOT(slotPropertyChanged(QtProperty*,QVector3D)));
+}
+
+/*!
+    \internal
+
+    Reimplemented from the QtAbstractEditorFactory class.
+*/
+QWidget *QtVector3DEditorFactory::createEditor(QtVector3DPropertyManager *manager,
+        QtProperty *property, QWidget *parent)
+{
+    QtVector3DEditWidget *editor = d_ptr->createEditor(property, parent);
+    editor->setValue(manager->value(property));
+    connect(editor, SIGNAL(valueChanged(QVector3D)), this, SLOT(slotSetValue(QVector3D)));
+    connect(editor, SIGNAL(destroyed(QObject *)), this, SLOT(slotEditorDestroyed(QObject *)));
+    return editor;
+}
+
+/*!
+    \internal
+
+    Reimplemented from the QtAbstractEditorFactory class.
+*/
+void QtVector3DEditorFactory::disconnectPropertyManager(QtVector3DPropertyManager *manager)
+{
+    disconnect(manager, SIGNAL(valueChanged(QtProperty*,QVector3D)), this, SLOT(slotPropertyChanged(QtProperty*,QVector3D)));
+}
+
 #if QT_VERSION >= 0x040400
 QT_END_NAMESPACE
 #endif

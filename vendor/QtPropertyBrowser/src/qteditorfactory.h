@@ -399,6 +399,28 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QFont &))
 };
 
+class QtVector3DEditorFactoryPrivate;
+
+class QT_QTPROPERTYBROWSER_EXPORT QtVector3DEditorFactory : public QtAbstractEditorFactory<QtVector3DPropertyManager>
+{
+    Q_OBJECT
+public:
+    QtVector3DEditorFactory(QObject *parent = 0);
+    ~QtVector3DEditorFactory();
+protected:
+    void connectPropertyManager(QtVector3DPropertyManager *manager);
+    QWidget *createEditor(QtVector3DPropertyManager *manager, QtProperty *property,
+                QWidget *parent);
+    void disconnectPropertyManager(QtVector3DPropertyManager *manager);
+private:
+    QtVector3DEditorFactoryPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QtVector3DEditorFactory)
+    Q_DISABLE_COPY(QtVector3DEditorFactory)
+    Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty *, const QVector3D &))
+    Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed(QObject *))
+    Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QVector3D &))
+};
+
 #if QT_VERSION >= 0x040400
 QT_END_NAMESPACE
 #endif

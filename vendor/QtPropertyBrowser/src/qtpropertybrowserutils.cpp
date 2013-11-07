@@ -188,6 +188,12 @@ QString QtPropertyBrowserUtils::colorValueText(const QColor &c)
            .arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
 }
 
+QString QtPropertyBrowserUtils::vector3DValueText(const QVector3D &v)
+{
+    return QCoreApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3]")
+           .arg(v.x()).arg(v.y()).arg(v.z());
+}
+
 QPixmap QtPropertyBrowserUtils::fontValuePixmap(const QFont &font)
 {
     QFont f = font;

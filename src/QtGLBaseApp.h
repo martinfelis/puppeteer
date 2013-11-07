@@ -38,11 +38,13 @@ protected:
 		MarkerModel *markerModel;
 		MarkerData *markerData;
 
+		QtVector3DPropertyManager *vector3DPropertyManager;
 		QtDoublePropertyManager *doubleReadOnlyManager;
 		QtDoublePropertyManager *doubleManager;
 		QtStringPropertyManager *stringManager;
 		QtColorPropertyManager *colorManager;
 
+		QtVector3DEditorFactory *vector3DEditorFactory;
 		QtDoubleSpinBoxFactory *doubleSpinBoxFactory;
 		QtLineEditFactory *lineEditFactory;
 		QtColorEditorFactory *colorEditFactory;
