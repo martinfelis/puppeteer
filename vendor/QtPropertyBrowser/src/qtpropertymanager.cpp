@@ -6738,6 +6738,10 @@ QtVector3DPropertyManager::QtVector3DPropertyManager(QObject *parent)
     d_ptr = new QtVector3DPropertyManagerPrivate;
     d_ptr->q_ptr = this;
 
+		propertyLabel[0] = "X";
+		propertyLabel[1] = "Y";
+		propertyLabel[2] = "Z";
+
     d_ptr->m_doublePropertyManager = new QtDoublePropertyManager(this);
     connect(d_ptr->m_doublePropertyManager, SIGNAL(valueChanged(QtProperty *, double)),
                 this, SLOT(slotDoubleChanged(QtProperty *, double)));
@@ -6781,6 +6785,12 @@ QtDoublePropertyManager *QtVector3DPropertyManager::subDoublePropertyManager() c
 QVector3D QtVector3DPropertyManager::value(const QtProperty *property) const
 {
     return d_ptr->m_values.value(property, QVector3D());
+}
+
+void QtVector3DPropertyManager::setPropertyLabels (const QString &label_x, const QString &label_y, const QString &label_z) {
+	propertyLabel[0] = label_x;
+	propertyLabel[1] = label_y;
+	propertyLabel[2] = label_z;
 }
 
 /*!
@@ -6836,21 +6846,21 @@ void QtVector3DPropertyManager::initializeProperty(QtProperty *property)
     d_ptr->m_values[property] = val;
 
     QtProperty *xProp = d_ptr->m_doublePropertyManager->addProperty();
-    xProp->setPropertyName(tr("X"));
+    xProp->setPropertyName(tr(propertyLabel[0].toAscii()));
     d_ptr->m_doublePropertyManager->setValue(xProp, val.x());
     d_ptr->m_propertyToX[property] = xProp;
     d_ptr->m_xToProperty[xProp] = property;
     property->addSubProperty(xProp);
 
     QtProperty *yProp = d_ptr->m_doublePropertyManager->addProperty();
-    yProp->setPropertyName(tr("Y"));
+    yProp->setPropertyName(tr(propertyLabel[1].toAscii()));
     d_ptr->m_doublePropertyManager->setValue(yProp, val.y());
     d_ptr->m_propertyToY[property] = yProp;
     d_ptr->m_yToProperty[yProp] = property;
     property->addSubProperty(yProp);
 
     QtProperty *zProp = d_ptr->m_doublePropertyManager->addProperty();
-    zProp->setPropertyName(tr("Z"));
+    zProp->setPropertyName(tr(propertyLabel[2].toAscii()));
     d_ptr->m_doublePropertyManager->setValue(zProp, val.z());
     d_ptr->m_propertyToZ[property] = zProp;
     d_ptr->m_zToProperty[zProp] = property;

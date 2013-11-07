@@ -11,6 +11,7 @@
 
 #include <QTimer>
 #include <QTimeLine>
+#include <QVector3D>
 #include "QtVariantPropertyManager"
 #include "qtpropertymanager.h"
 #include "qteditorfactory.h"
@@ -39,12 +40,16 @@ protected:
 		MarkerData *markerData;
 
 		QtVector3DPropertyManager *vector3DPropertyManager;
+		QtVector3DPropertyManager *vector3DReadOnlyPropertyManager;
+		QtVector3DPropertyManager *vector3DYXZPropertyManager;
+		QtVector3DPropertyManager *vector3DYXZReadOnlyPropertyManager;
 		QtDoublePropertyManager *doubleReadOnlyManager;
 		QtDoublePropertyManager *doubleManager;
 		QtStringPropertyManager *stringManager;
 		QtColorPropertyManager *colorManager;
 
 		QtVector3DEditorFactory *vector3DEditorFactory;
+		QtVector3DEditorFactory *vector3DYXZEditorFactory;
 		QtDoubleSpinBoxFactory *doubleSpinBoxFactory;
 		QtLineEditFactory *lineEditFactory;
 		QtColorEditorFactory *colorEditFactory;
@@ -72,6 +77,7 @@ public slots:
 		void updatePropertiesForFrame (unsigned int frame_id);
 
 		void valueChanged(QtProperty *property, double value);
+		void valueChanged(QtProperty *property, QVector3D value);
 		void captureFrameSliderChanged (int value);
 };
  

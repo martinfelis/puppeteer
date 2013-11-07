@@ -775,6 +775,7 @@ public:
     QtDoublePropertyManager *subDoublePropertyManager() const;
 
     QVector3D value(const QtProperty *property) const;
+		void setPropertyLabels (const QString &label_x, const QString &label_y, const QString &label_z);
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QVector3D &val);
@@ -786,6 +787,7 @@ protected:
     virtual void uninitializeProperty(QtProperty *property);
 private:
     QtVector3DPropertyManagerPrivate *d_ptr;
+		QString propertyLabel[3];
     Q_DECLARE_PRIVATE(QtVector3DPropertyManager)
     Q_DISABLE_COPY(QtVector3DPropertyManager)
     Q_PRIVATE_SLOT(d_func(), void slotDoubleChanged(QtProperty *, double))

@@ -129,12 +129,17 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	colorManager = new QtColorPropertyManager(propertiesBrowser);
 	groupManager = new QtGroupPropertyManager(propertiesBrowser);
 	vector3DPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
+	vector3DReadOnlyPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
+	vector3DYXZPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
+	vector3DYXZReadOnlyPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);
+	vector3DYXZPropertyManager->setPropertyLabels ("Y", "X", "Z");
 
 	// property browser: editor factories
 	doubleSpinBoxFactory = new QtDoubleSpinBoxFactory(propertiesBrowser);
 	lineEditFactory = new QtLineEditFactory(propertiesBrowser);
 	colorEditFactory = new QtColorEditorFactory(propertiesBrowser);
 	vector3DEditorFactory = new QtVector3DEditorFactory(propertiesBrowser);
+	vector3DYXZEditorFactory = new QtVector3DEditorFactory(propertiesBrowser);
 
 	// property browser: manager <-> editor
 	propertiesBrowser->setFactoryForManager (doubleManager, doubleSpinBoxFactory);
@@ -142,9 +147,14 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	propertiesBrowser->setFactoryForManager (colorManager, colorEditFactory);
 	propertiesBrowser->setFactoryForManager (vector3DPropertyManager, vector3DEditorFactory);
 	propertiesBrowser->setFactoryForManager (vector3DPropertyManager->subDoublePropertyManager(), doubleSpinBoxFactory);
+	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager, vector3DEditorFactory);
+	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
 	// signals
 	connect (doubleManager, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (valueChanged (QtProperty *, double)));
+	connect (vector3DPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
+	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
+
 }
 
 void print_usage(const char* execname) {
@@ -299,128 +309,41 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	stringManager->setValue (frame_name_property, markerModel->getFrameName (frame_id).c_str());
 	propertiesBrowser->addProperty (frame_name_property);
 
-	// Test Vector3d property
-	QtProperty *position_property = vector3DPropertyManager->addProperty("Position");
-	vector3DPropertyManager->setValue (position_property, QVector3D (1., 2., 3.));
+	// global position
+	QtProperty *position_property = vector3DReadOnlyPropertyManager->addProperty("Position");
+	Vector3f pos = markerModel->getFrameLocationGlobal (frame_id);
+	vector3DReadOnlyPropertyManager->setValue (position_property, QVector3D (pos[0], pos[1], pos[2]));
 	propertiesBrowser->addProperty (position_property);
 
-	// world position
-	QtProperty *world_position_group = groupManager->addProperty("Position");
-	Vector3f frame_position_global = markerModel->getFrameLocationGlobal (frame_id);
-	QtProperty *world_position_x = doubleReadOnlyManager->addProperty("X");
-	QtProperty *world_position_y = doubleReadOnlyManager->addProperty("Y");
-	QtProperty *world_position_z = doubleReadOnlyManager->addProperty("Z");
-	doubleReadOnlyManager->setValue (world_position_x, frame_position_global[0]);
-	doubleReadOnlyManager->setValue (world_position_y, frame_position_global[1]);
-	doubleReadOnlyManager->setValue (world_position_z, frame_position_global[2]);
-	world_position_group->addSubProperty (world_position_x);
-	world_position_group->addSubProperty (world_position_y);
-	world_position_group->addSubProperty (world_position_z);
-	propertiesBrowser->addProperty (world_position_group);
-
-	// world orientation
-	QtProperty *world_orientation_group = groupManager->addProperty("Orientation");
-	Vector3f frame_orientation_global = markerModel->getFrameOrientationGlobalEulerYXZ (frame_id);
-	QtProperty *world_orientation_y = doubleReadOnlyManager->addProperty("Y");
-	QtProperty *world_orientation_x = doubleReadOnlyManager->addProperty("X");
-	QtProperty *world_orientation_z = doubleReadOnlyManager->addProperty("Z");
-	doubleReadOnlyManager->setValue (world_orientation_y, frame_orientation_global[0]);
-	doubleReadOnlyManager->setValue (world_orientation_x, frame_orientation_global[1]);
-	doubleReadOnlyManager->setValue (world_orientation_z, frame_orientation_global[2]);
-	world_orientation_group->addSubProperty (world_orientation_y);
-	world_orientation_group->addSubProperty (world_orientation_x);
-	world_orientation_group->addSubProperty (world_orientation_z);
-	propertiesBrowser->addProperty (world_orientation_group);
+	// global orientation
+	QtProperty *orientation_property = vector3DYXZReadOnlyPropertyManager->addProperty("Orientation");
+	Vector3f rot = markerModel->getFrameOrientationGlobalEulerYXZ (frame_id);
+	vector3DYXZReadOnlyPropertyManager->setValue (orientation_property, QVector3D (rot[0], rot[1], rot[2]));
+	propertiesBrowser->addProperty (orientation_property);
 
 	// joints
 	QtProperty *joint_group = groupManager->addProperty("Joint");
 
 	// joint local position
-	QtProperty *joint_position_group = groupManager->addProperty("Position");
+	QtProperty *joint_location_local_property = vector3DPropertyManager->addProperty("Position");
 	Vector3f joint_location_local = markerModel->getJointLocationLocal (frame_id);
-	QtProperty *joint_position_x = doubleManager->addProperty("X");
-	QtProperty *joint_position_y = doubleManager->addProperty("Y");
-	QtProperty *joint_position_z = doubleManager->addProperty("Z");
-	registerProperty (joint_position_x, "joint_local_position_x");
-	registerProperty (joint_position_y, "joint_local_position_y");
-	registerProperty (joint_position_z, "joint_local_position_z");
-	doubleManager->setValue (joint_position_x, joint_location_local[0]);
-	doubleManager->setValue (joint_position_y, joint_location_local[1]);
-	doubleManager->setValue (joint_position_z, joint_location_local[2]);
-	joint_position_group->addSubProperty (joint_position_x);
-	joint_position_group->addSubProperty (joint_position_y);
-	joint_position_group->addSubProperty (joint_position_z);
-	joint_group->addSubProperty (joint_position_group);	
+	vector3DPropertyManager->setValue (joint_location_local_property, QVector3D (joint_location_local[0], joint_location_local[1], joint_location_local[2]));
+	registerProperty (joint_location_local_property, "joint_location_local");
+	joint_group->addSubProperty (joint_location_local_property);
 
 	// joint local orientation
-	QtProperty *joint_orientation_group = groupManager->addProperty("Orientation");
+	QtProperty *joint_orientation_local_property = vector3DYXZPropertyManager->addProperty("Orientation");
 	Vector3f joint_orientation_local = markerModel->getJointOrientationLocalEulerYXZ (frame_id);
-	QtProperty *joint_orientation_y = doubleManager->addProperty("Y");
-	QtProperty *joint_orientation_x = doubleManager->addProperty("X");
-	QtProperty *joint_orientation_z = doubleManager->addProperty("Z");
-	registerProperty (joint_orientation_x, "joint_local_orientation_x");
-	registerProperty (joint_orientation_y, "joint_local_orientation_y");
-	registerProperty (joint_orientation_z, "joint_local_orientation_z");
-	doubleManager->setValue (joint_orientation_y, joint_orientation_local[0]);
-	doubleManager->setValue (joint_orientation_x, joint_orientation_local[1]);
-	doubleManager->setValue (joint_orientation_z, joint_orientation_local[2]);
-	joint_orientation_group->addSubProperty (joint_orientation_y);
-	joint_orientation_group->addSubProperty (joint_orientation_x);
-	joint_orientation_group->addSubProperty (joint_orientation_z);
-	joint_group->addSubProperty (joint_orientation_group);	
+	vector3DYXZPropertyManager->setValue (joint_orientation_local_property, QVector3D (joint_orientation_local[0], joint_orientation_local[1], joint_orientation_local[2]));
+	registerProperty (joint_orientation_local_property, "joint_orientation_local");
+	joint_group->addSubProperty (joint_orientation_local_property);
 
 	propertiesBrowser->addProperty (joint_group);
 
+//	QtProperty *visuals_group = groupManager->addProperty("Visuals");
+//	propertiesBrowser->addProperty (visuals_group);
 
-	/*
-	// joints: position
-	Vector3f position = scene->getObject(object_id).transformation.translation;
 
-	QtProperty *joint_position_group = groupManager->addProperty("Position");
-	QtProperty *position_x = doubleManager->addProperty("X");
-	QtProperty *position_y = doubleManager->addProperty("Y");
-	QtProperty *position_z = doubleManager->addProperty("Z");
-
-	joint_position_group->addSubProperty (position_x);
-	joint_position_group->addSubProperty (position_y);
-	joint_position_group->addSubProperty (position_z);
-
-	registerProperty (position_x, "joint_position_x");
-	registerProperty (position_y, "joint_position_y");
-	registerProperty (position_z, "joint_position_z");
-
-	doubleManager->setValue (position_x, position[0]);
-	doubleManager->setValue (position_y, position[1]);
-	doubleManager->setValue (position_z, position[2]);
-
-	joint_group->addSubProperty (joint_position_group);
-
-	// joints: orientation
-	QtProperty *joint_orientation_group = groupManager->addProperty("Orientation");
-	QtProperty *orientation_x = doubleManager->addProperty("X");
-	QtProperty *orientation_y = doubleManager->addProperty("Y");
-	QtProperty *orientation_z = doubleManager->addProperty("Z");
-
-	joint_orientation_group->addSubProperty (orientation_y);
-	joint_orientation_group->addSubProperty (orientation_x);
-	joint_orientation_group->addSubProperty (orientation_z);
-
-	registerProperty (orientation_x, "joint_orientation_x");
-	registerProperty (orientation_y, "joint_orientation_y");
-	registerProperty (orientation_z, "joint_orientation_z");
-
-	Vector3f yxz_rotation = scene->getObject(object_id).transformation.rotation.toEulerYXZ() * 180.f / static_cast<float>(M_PI);
-	doubleManager->setValue(orientation_y, yxz_rotation[0]);
-	doubleManager->setValue(orientation_x, yxz_rotation[1]);
-	doubleManager->setValue(orientation_z, yxz_rotation[2]);
-
-	joint_group->addSubProperty (joint_orientation_group);
-
-	QtProperty *visuals_group = groupManager->addProperty("Visuals");
-
-	propertiesBrowser->addProperty (joint_group);
-	propertiesBrowser->addProperty (visuals_group);
-*/
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
@@ -445,60 +368,23 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 
 	// property browser: properties
 	QtProperty *frame_name_property = stringManager->addProperty ("Name");
+	propertiesBrowser->addProperty (frame_name_property);
 
-	// world position and orientation
-
-	// joints
-	QtProperty *joint_group = groupManager->addProperty("Joint");
-
-	// joints: position
+	// global position
+	QtProperty *position_property = vector3DPropertyManager->addProperty("Position");
 	Vector3f position = scene->getObject(object_id).transformation.translation;
+	vector3DPropertyManager->setValue (position_property, QVector3D (position[0], position[1], position[2]));
+	registerProperty (position_property, "object_position");
+	propertiesBrowser->addProperty (position_property);
 
-	QtProperty *joint_position_group = groupManager->addProperty("Position");
-	QtProperty *position_x = doubleManager->addProperty("X");
-	QtProperty *position_y = doubleManager->addProperty("Y");
-	QtProperty *position_z = doubleManager->addProperty("Z");
-
-	joint_position_group->addSubProperty (position_x);
-	joint_position_group->addSubProperty (position_y);
-	joint_position_group->addSubProperty (position_z);
-
-	registerProperty (position_x, "joint_position_x");
-	registerProperty (position_y, "joint_position_y");
-	registerProperty (position_z, "joint_position_z");
-
-	doubleManager->setValue (position_x, position[0]);
-	doubleManager->setValue (position_y, position[1]);
-	doubleManager->setValue (position_z, position[2]);
-
-	joint_group->addSubProperty (joint_position_group);
-
-	// joints: orientation
-	QtProperty *joint_orientation_group = groupManager->addProperty("Orientation");
-	QtProperty *orientation_x = doubleManager->addProperty("X");
-	QtProperty *orientation_y = doubleManager->addProperty("Y");
-	QtProperty *orientation_z = doubleManager->addProperty("Z");
-
-	joint_orientation_group->addSubProperty (orientation_y);
-	joint_orientation_group->addSubProperty (orientation_x);
-	joint_orientation_group->addSubProperty (orientation_z);
-
-	registerProperty (orientation_x, "joint_orientation_x");
-	registerProperty (orientation_y, "joint_orientation_y");
-	registerProperty (orientation_z, "joint_orientation_z");
-
+	// global orientation
+	QtProperty *orientation_property = vector3DYXZPropertyManager->addProperty("Orientation");
 	Vector3f yxz_rotation = scene->getObject(object_id).transformation.rotation.toEulerYXZ() * 180.f / static_cast<float>(M_PI);
-	doubleManager->setValue(orientation_y, yxz_rotation[0]);
-	doubleManager->setValue(orientation_x, yxz_rotation[1]);
-	doubleManager->setValue(orientation_z, yxz_rotation[2]);
-
-	joint_group->addSubProperty (joint_orientation_group);
-
-	QtProperty *visuals_group = groupManager->addProperty("Visuals");
+	vector3DYXZPropertyManager->setValue (orientation_property, QVector3D (yxz_rotation[0], yxz_rotation[1], yxz_rotation[2]));
+	registerProperty (orientation_property, "object_orientation");
+	propertiesBrowser->addProperty (orientation_property);
 
 	propertiesBrowser->addProperty (frame_name_property);
-	propertiesBrowser->addProperty (joint_group);
-	propertiesBrowser->addProperty (visuals_group);
 
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
@@ -525,6 +411,24 @@ void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
 		position[2] = doubleManager->value(nameToProperty["joint_position_z"]);
 
 		scene->getObject(scene->selectedObjectId).transformation.translation = position;
+	} else {
+		qDebug() << "Warning! Unhandled value change of property " << property_name;
+	}
+}
+
+void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
+	if (!propertyToName.contains(property))
+		return;
+
+	QString property_name = propertyToName[property];
+
+	if (property_name.startsWith ("object_position")) {
+		Vector3f position (value.x(), value.y(), value.z());
+		scene->getObject(scene->selectedObjectId).transformation.translation = position;
+	} else if (property_name.startsWith ("object_orientation")) {
+		Vector3f yxz_rotation (value.x(), value.y(), value.z());
+		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
+		scene->getObject(scene->selectedObjectId).transformation.rotation = rotation;
 	} else {
 		qDebug() << "Warning! Unhandled value change of property " << property_name;
 	}
