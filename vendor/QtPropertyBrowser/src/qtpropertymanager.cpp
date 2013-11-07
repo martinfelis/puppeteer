@@ -6837,6 +6837,14 @@ void QtVector3DPropertyManager::setValue(QtProperty *property, const QVector3D &
     emit valueChanged(property, val);
 }
 
+void QtVector3DPropertyManager::setSingleStep(QtProperty *property, double step) {
+		d_ptr->m_doublePropertyManager->setSingleStep (d_ptr->m_propertyToX[property], step);
+		d_ptr->m_doublePropertyManager->setSingleStep (d_ptr->m_propertyToY[property], step);
+		d_ptr->m_doublePropertyManager->setSingleStep (d_ptr->m_propertyToZ[property], step);
+
+		emit singleStepChanged (property, step);
+}
+
 /*!
     \reimp
 */

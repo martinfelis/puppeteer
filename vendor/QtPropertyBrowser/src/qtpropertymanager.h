@@ -779,8 +779,10 @@ public:
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QVector3D &val);
+    void setSingleStep(QtProperty *property, double step);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QVector3D &val);
+    void singleStepChanged(QtProperty *property, double step);
 protected:
     QString valueText(const QtProperty *property) const;
     virtual void initializeProperty(QtProperty *property);

@@ -328,13 +328,15 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	QtProperty *joint_location_local_property = vector3DPropertyManager->addProperty("Position");
 	Vector3f joint_location_local = markerModel->getJointLocationLocal (frame_id);
 	vector3DPropertyManager->setValue (joint_location_local_property, QVector3D (joint_location_local[0], joint_location_local[1], joint_location_local[2]));
+	vector3DPropertyManager->setSingleStep (joint_location_local_property, 0.01);
 	registerProperty (joint_location_local_property, "joint_location_local");
 	joint_group->addSubProperty (joint_location_local_property);
 
 	// joint local orientation
 	QtProperty *joint_orientation_local_property = vector3DYXZPropertyManager->addProperty("Orientation");
-	Vector3f joint_orientation_local = markerModel->getJointOrientationLocalEulerYXZ (frame_id) * static_cast<float>(180. / M_PI);
+	Vector3f joint_orientation_local = markerModel->getJointOrientationLocalEulerYXZ (frame_id);
 	vector3DYXZPropertyManager->setValue (joint_orientation_local_property, QVector3D (joint_orientation_local[0], joint_orientation_local[1], joint_orientation_local[2]));
+	vector3DYXZPropertyManager->setSingleStep (joint_orientation_local_property, 0.01);
 	registerProperty (joint_orientation_local_property, "joint_orientation_local");
 	joint_group->addSubProperty (joint_orientation_local_property);
 
@@ -357,7 +359,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 		return;
 	}
 
-	Vector3f zyx_rotation = scene->getObject(object_id).transformation.rotation.toEulerZYX() * 180.f / static_cast<float>(M_PI);
+	Vector3f zyx_rotation = scene->getObject(object_id).transformation.rotation.toEulerZYX();
 
 	updateExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 
@@ -377,7 +379,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 
 	// global orientation
 	QtProperty *orientation_property = vector3DYXZPropertyManager->addProperty("Orientation");
-	Vector3f yxz_rotation = scene->getObject(object_id).transformation.rotation.toEulerYXZ() * 180.f / static_cast<float>(M_PI);
+	Vector3f yxz_rotation = scene->getObject(object_id).transformation.rotation.toEulerYXZ();
 	vector3DYXZPropertyManager->setValue (orientation_property, QVector3D (yxz_rotation[0], yxz_rotation[1], yxz_rotation[2]));
 	registerProperty (orientation_property, "object_orientation");
 	propertiesBrowser->addProperty (orientation_property);
@@ -399,7 +401,7 @@ void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
 		yxz_rotation[1] = doubleManager->value(nameToProperty["joint_orientation_x"]);
 		yxz_rotation[2] = doubleManager->value(nameToProperty["joint_orientation_z"]);
 
-		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
+		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
 
 		scene->getObject(scene->selectedObjectId).transformation.rotation = rotation;
 	} else if (property_name.startsWith ("joint_position")) {
@@ -425,7 +427,7 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 		scene->getObject(scene->selectedObjectId).transformation.translation = position;
 	} else if (property_name.startsWith ("object_orientation")) {
 		Vector3f yxz_rotation (value.x(), value.y(), value.z());
-		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
+		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
 		scene->getObject(scene->selectedObjectId).transformation.rotation = rotation;
 	} else if (property_name.startsWith ("joint_location_local")) {
 		Vector3f position (value.x(), value.y(), value.z());
@@ -433,7 +435,7 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 		markerModel->setJointLocationLocal (frame_id, position);
 	} else if (property_name.startsWith ("joint_orientation_local")) {
 		Vector3f yxz_rotation (value.x(), value.y(), value.z());
-		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
+		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
 		unsigned int frame_id = markerModel->getFrameIdFromObjectId (scene->selectedObjectId);
 		markerModel->setJointOrientationLocalEulerYXZ (frame_id, rotation.toEulerYXZ());
 	} else {
