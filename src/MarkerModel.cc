@@ -130,13 +130,8 @@ Vector3f MarkerModel::getJointLocationLocal (int frame_id) {
 
 Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
 	SpatialTransform transform = rbdlModel->GetJointFrame (luaToRbdlId[frame_id]);
-	Matrix33f orientation;
+	Matrix33f orientation = ConvertToSimpleMathMat3 (transform.E.transpose());
 	
-	for (size_t i = 0; i < 3; i++) {
-		for (size_t j = 0; j < 3; j++) {
-			orientation(i,j) = transform.E(i,j);
-		}
-	}
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
 }
 
@@ -147,7 +142,7 @@ void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location)
 }
 
 void MarkerModel::setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler) {
-	Matrix33f matrix = SimpleMath::GL::Quaternion::fromEulerYXZ(yxz_euler).toMatrix();
+	Matrix33f matrix = SimpleMath::GL::Quaternion::fromEulerYXZ(yxz_euler).toMatrix().transpose();
 	(*luaTable)["frames"][frame_id]["joint_frame"]["E"] = matrix;
 
 	updateFromLua();

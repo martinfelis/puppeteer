@@ -333,7 +333,7 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 	// joint local orientation
 	QtProperty *joint_orientation_local_property = vector3DYXZPropertyManager->addProperty("Orientation");
-	Vector3f joint_orientation_local = markerModel->getJointOrientationLocalEulerYXZ (frame_id);
+	Vector3f joint_orientation_local = markerModel->getJointOrientationLocalEulerYXZ (frame_id) * static_cast<float>(180. / M_PI);
 	vector3DYXZPropertyManager->setValue (joint_orientation_local_property, QVector3D (joint_orientation_local[0], joint_orientation_local[1], joint_orientation_local[2]));
 	registerProperty (joint_orientation_local_property, "joint_orientation_local");
 	joint_group->addSubProperty (joint_orientation_local_property);
