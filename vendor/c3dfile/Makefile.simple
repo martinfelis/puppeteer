@@ -1,0 +1,6 @@
+c3dexport: src/c3dexport.cc src/c3dtypes.h src/c3dutils.h src/c3dloader.h src/c3dloader.cc
+	g++ -g src/c3dloader.cc src/c3dexport.cc -o c3dexport
+
+clean:
+	rm -f *.o
+	rm c3dexport

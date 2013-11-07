@@ -1,0 +1,9 @@
+Name: c3dread
+Version: 0.0.1
+Date: 2010-09-09
+Author: Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Maintainer: Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Title: c3dread - Octave package to read C3D files
+Description: To come.
+License: MIT License
+
