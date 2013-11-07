@@ -38,6 +38,7 @@ protected:
 		MarkerModel *markerModel;
 		MarkerData *markerData;
 
+		QtDoublePropertyManager *doubleReadOnlyManager;
 		QtDoublePropertyManager *doubleManager;
 		QtStringPropertyManager *stringManager;
 		QtColorPropertyManager *colorManager;
@@ -66,6 +67,7 @@ public slots:
 
 		void collapseProperties();
 		void updateWidgetsFromObject (int object_id);
+		void updatePropertiesForFrame (unsigned int frame_id);
 
 		void valueChanged(QtProperty *property, double value);
 		void captureFrameSliderChanged (int value);

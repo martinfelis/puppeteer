@@ -13,29 +13,13 @@ namespace RigidBodyDynamics {
 
 struct JointObject {
 	int sceneObjectId;
-	unsigned int rbdlJointId;
-};
-
-struct JointTransformObject {
-	int sceneObjectId;
-	unsigned int rbdlJointTransformId;
-
-	Vector3f translation;
-	SimpleMath::GL::Quaternion rotation;
-};
-
-struct BodyObject {
-	int sceneObjectId;
-	unsigned int rbdlBodyId;
-
-	float mass;
-	Vector3f com;
-	Matrix33f inertia;
+	unsigned int rbdlFrameId;
 };
 
 struct VisualsObject {
 	VisualsObject() :
 		sceneObjectId(-1),
+		rbdlFrameId(0),
 		scale (-1.f, -1.f, -1.f),
 		dimensions (1.f, 1.f, 1.f),
 		color (1.f, 1.f, 1.f),
@@ -45,6 +29,7 @@ struct VisualsObject {
 	{}
 
 	int sceneObjectId;
+	unsigned int rbdlFrameId;
 	Vector3f scale;
 	Vector3f dimensions;
 	Vector3f color;
@@ -68,10 +53,10 @@ struct MarkerModel {
 
 	Scene *scene;
 	RigidBodyDynamics::Model *rbdlModel;
+	SimpleMath::Dynamic::Matrix<double> generalizedPositions;
 
-	std::vector<BodyObject> bodies;
 	std::vector<JointObject> joints;
-	std::vector<JointTransformObject> jointTransforms;
+	std::vector<VisualsObject> visuals;
 
 	bool isJointObject (int objectid) {
 		for (size_t i = 0; i < joints.size(); i++) {
@@ -81,8 +66,33 @@ struct MarkerModel {
 		return false;
 	}
 
+	bool isVisualsObject (int objectid) {
+		for (size_t i = 0; i < visuals.size(); i++) {
+			if (visuals[i].sceneObjectId == objectid)
+				return true;
+		}
+		return false;
+	}
+
+	bool isModelObject (int objectid) {
+		if (isVisualsObject(objectid))
+			return true;
+
+		return isJointObject(objectid);
+	}
+
+	void updateModelState();
+
+	unsigned int getFrameIdFromObjectId (int object_id);
+	std::string getFrameName (unsigned int frame_id);
+	Vector3f getFrameLocationGlobal (unsigned int frame_id);
+	Vector3f getFrameOrientationGlobalEulerYXZ (unsigned int frame_id);
+	Vector3f getJointLocationLocal (unsigned int frame_id);
+	Vector3f getJointOrientationLocalEulerYXZ (unsigned int frame_id);
+	void setJointLocation (unsigned int frame_id, const Vector3f &location);
+	void setJointOrientationEulerYXZ (unsigned int frame_id, const Vector3f &yxz_euler);
+
 	bool loadFromFile (const char* filename);
-	bool saveToFile (const char* filename);
 };
 
 /* MARKER_MODEL_H */
