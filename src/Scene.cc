@@ -210,9 +210,32 @@ int Scene::registerSceneObject (const SceneObject &object) {
 	return lastObjectId;
 }
 
+void Scene::unregisterSceneObject (const int id) {
+	std::vector<SceneObject>::iterator obj_iter = objects.begin();
+
+	if (selectedObjectId == id) 
+		selectedObjectId = -1;
+
+	if (mouseOverObjectId == id)
+		selectedObjectId = -1;
+
+	do {
+		if (obj_iter->id == id)  {
+			objects.erase (obj_iter); 
+			return;
+		}
+
+		obj_iter++;
+	} while (obj_iter != objects.end());
+
+	cerr << "Error deleting object with id " << id << ": object not found." << endl;
+	abort();
+}
+
+
 SceneObject& Scene::getObject (int id) {
 	for (size_t i = 0; i < objects.size(); i++) {
-		if (objects[i].id == id)
+		if (objects[i].id == id) 
 			return objects[i];
 	}
 

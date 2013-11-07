@@ -27,7 +27,35 @@ template<> SimpleMath::Fixed::Matrix<float, 3, 1> LuaTableNode::getDefault<Simpl
 	return result;
 };
 
+template<>
+void LuaTableNode::set<SimpleMath::Fixed::Matrix<float, 3, 1> >(const SimpleMath::Fixed::Matrix<float, 3, 1> &value) {
+	LuaTable custom_table = stackCreateLuaTable();
 
+	custom_table[1] = static_cast<double>(value[0]);
+	custom_table[2] = static_cast<double>(value[1]);
+	custom_table[3] = static_cast<double>(value[2]);
+
+	stackRestore();
+};
+
+template<>
+void LuaTableNode::set<SimpleMath::Fixed::Matrix<float, 3, 3> >(const SimpleMath::Fixed::Matrix<float, 3, 3> &value) {
+	LuaTable custom_table = stackCreateLuaTable();
+
+	custom_table[1][1] = static_cast<double>(value(0,0));
+	custom_table[1][2] = static_cast<double>(value(0,1));
+	custom_table[1][3] = static_cast<double>(value(0,2));
+
+	custom_table[2][1] = static_cast<double>(value(1,0));
+	custom_table[2][2] = static_cast<double>(value(1,1));
+	custom_table[2][3] = static_cast<double>(value(1,2));
+
+	custom_table[3][1] = static_cast<double>(value(2,0));
+	custom_table[3][2] = static_cast<double>(value(2,1));
+	custom_table[3][3] = static_cast<double>(value(2,2));
+
+	stackRestore();
+};
 template<> RigidBodyDynamics::Math::Vector3d LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(const RigidBodyDynamics::Math::Vector3d &default_value) { 
 	RigidBodyDynamics::Math::Vector3d result = default_value;
 
@@ -222,8 +250,6 @@ template<> VisualsObject LuaTableNode::getDefault<VisualsObject>(const VisualsOb
 
 	return result;
 }
-
-
 
 /* MARKER_MODEL_LUA_TYPES */
 #endif

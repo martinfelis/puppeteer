@@ -343,7 +343,6 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 //	QtProperty *visuals_group = groupManager->addProperty("Visuals");
 //	propertiesBrowser->addProperty (visuals_group);
 
-
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
@@ -354,7 +353,6 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 
 	if (markerModel && markerModel->isModelObject(object_id)) {
 		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
-		qDebug() << "clicked on joint of frame " << frame_id << "!";
 		updatePropertiesForFrame (frame_id);
 		return;
 	}
@@ -429,6 +427,15 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 		Vector3f yxz_rotation (value.x(), value.y(), value.z());
 		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
 		scene->getObject(scene->selectedObjectId).transformation.rotation = rotation;
+	} else if (property_name.startsWith ("joint_location_local")) {
+		Vector3f position (value.x(), value.y(), value.z());
+		unsigned int frame_id = markerModel->getFrameIdFromObjectId (scene->selectedObjectId);
+		markerModel->setJointLocationLocal (frame_id, position);
+	} else if (property_name.startsWith ("joint_orientation_local")) {
+		Vector3f yxz_rotation (value.x(), value.y(), value.z());
+		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation * M_PI / 180.f);
+		unsigned int frame_id = markerModel->getFrameIdFromObjectId (scene->selectedObjectId);
+		markerModel->setJointOrientationLocalEulerYXZ (frame_id, rotation.toEulerYXZ());
 	} else {
 		qDebug() << "Warning! Unhandled value change of property " << property_name;
 	}

@@ -51,6 +51,7 @@ struct Scene {
 
 	void drawSceneObjectStyled (const SceneObject &object, DrawStyle style);
 	int registerSceneObject (const SceneObject &object);
+	void unregisterSceneObject (const int id);
 
 	SceneObject &getObject (int id); 
 

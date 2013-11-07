@@ -2,6 +2,7 @@
 #define MARKER_MODEL_H
 
 #include <vector>
+#include <map>
 
 #include "SimpleMath/SimpleMath.h"
 #include "SimpleMath/SimpleMathGL.h"
@@ -11,15 +12,17 @@ namespace RigidBodyDynamics {
 	struct Model;
 }
 
+struct LuaTable;
+
 struct JointObject {
 	int sceneObjectId;
-	unsigned int rbdlFrameId;
+	int luaFrameId;
 };
 
 struct VisualsObject {
 	VisualsObject() :
 		sceneObjectId(-1),
-		rbdlFrameId(0),
+		luaFrameId(0),
 		scale (-1.f, -1.f, -1.f),
 		dimensions (1.f, 1.f, 1.f),
 		color (1.f, 1.f, 1.f),
@@ -29,7 +32,7 @@ struct VisualsObject {
 	{}
 
 	int sceneObjectId;
-	unsigned int rbdlFrameId;
+	int luaFrameId;
 	Vector3f scale;
 	Vector3f dimensions;
 	Vector3f color;
@@ -41,22 +44,25 @@ struct VisualsObject {
 struct MarkerModel {
 	MarkerModel():
 		scene(NULL),
+		luaTable(NULL),
 		rbdlModel(NULL)
 	{}
 	MarkerModel(Scene* scene_) :
 		scene (scene_),
+		luaTable (NULL),
 		rbdlModel (NULL)
 	{}
 	~MarkerModel();
-	MarkerModel(const MarkerModel &model);
-	MarkerModel& operator=(const MarkerModel &model);
 
 	Scene *scene;
 	RigidBodyDynamics::Model *rbdlModel;
+	LuaTable *luaTable;
 	SimpleMath::Dynamic::Matrix<double> generalizedPositions;
 
 	std::vector<JointObject> joints;
 	std::vector<VisualsObject> visuals;
+	std::map<unsigned int, int> luaToRbdlId;
+	std::map<int, unsigned int> rbdlToLuaId;
 
 	bool isJointObject (int objectid) {
 		for (size_t i = 0; i < joints.size(); i++) {
@@ -83,16 +89,24 @@ struct MarkerModel {
 
 	void updateModelState();
 
-	unsigned int getFrameIdFromObjectId (int object_id);
-	std::string getFrameName (unsigned int frame_id);
-	Vector3f getFrameLocationGlobal (unsigned int frame_id);
-	Vector3f getFrameOrientationGlobalEulerYXZ (unsigned int frame_id);
-	Vector3f getJointLocationLocal (unsigned int frame_id);
-	Vector3f getJointOrientationLocalEulerYXZ (unsigned int frame_id);
-	void setJointLocation (unsigned int frame_id, const Vector3f &location);
-	void setJointOrientationEulerYXZ (unsigned int frame_id, const Vector3f &yxz_euler);
+	int getObjectIdFromFrameId (int frame_id);
+	int getFrameIdFromObjectId (int object_id);
+	std::string getFrameName (int frame_id);
+	Vector3f getFrameLocationGlobal (int frame_id);
+	Vector3f getFrameOrientationGlobalEulerYXZ (int frame_id);
+	Vector3f getJointLocationLocal (int frame_id);
+	Vector3f getJointOrientationLocalEulerYXZ (int frame_id);
+	void setJointLocationLocal (int frame_id, const Vector3f &location);
+	void setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler);
 
 	bool loadFromFile (const char* filename);
+	void clearModel();
+	void updateFromLua ();
+
+	private:
+		MarkerModel(const MarkerModel &model) {}
+		MarkerModel& operator=(const MarkerModel &model) {}
+
 };
 
 /* MARKER_MODEL_H */
