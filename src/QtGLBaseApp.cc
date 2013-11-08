@@ -75,7 +75,6 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// create Scene
 	scene = new Scene;	
-	scene->init();
 	glWidget->setScene (scene);
 
 	// marker model and data

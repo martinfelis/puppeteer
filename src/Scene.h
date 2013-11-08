@@ -44,7 +44,6 @@ struct Scene {
 	int selectedObjectId;
 	int mouseOverObjectId;
 
-	void init();
 	void draw();
 	void drawForColorPicking();
 

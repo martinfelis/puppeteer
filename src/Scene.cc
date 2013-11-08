@@ -40,41 +40,6 @@ int vector4_to_object_id (const Vector4f &color) {
 	return result - 1;
 }
 
-void Scene::init() {
-	SceneObject* monkeyobject = createObject<SceneObject>();
-	MeshVBO monkey_obj;
-	load_obj (monkey_obj, "monkeyhead.obj");
-	Matrix44f rot_mat = SimpleMath::GL::RotateMat44 (90.f, 1.f, 0.f, 0.f);
-	monkeyobject->mesh.join (rot_mat, monkey_obj);
-	monkeyobject->transformation.translation = Vector3f (2.f, 0.f, 0.f);
-	monkeyobject->transformation.rotation = SimpleMath::GL::Quaternion::fromGLRotate (45.f, 1.f, 0.f, 0.f);
-	monkeyobject->transformation.scaling = Vector3f (1.f, 1.f, 1.f);
-
-	SceneObject* boxobject2 = createObject<SceneObject>();
-	boxobject2->mesh = CreateCuboid (1.f, 1.f, 1.f);
-	boxobject2->transformation.translation.set(0., 2., 2.);
-
-	return;
-
-	int box_count_x = 10;
-	int box_count_y = 5;
-	int box_count_z = 10;
-
-	for (int i = 0; i < box_count_x; i++) {
-		for (int j = 0; j < box_count_y; j++) {
-			for (int k = 0; k < box_count_z; k++) {
-				SceneObject* boxobject = createObject<SceneObject>();
-				boxobject->mesh = CreateCuboid (0.2, 0.2, 0.2);
-				boxobject->transformation.translation.set (
-						float (i - box_count_x / 2.f),
-						float (j),
-						float (k - box_count_z / 2.f)
-						);
-			}
-		}
-	}
-}
-
 void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 	if (style == DrawStyleHidden)
 		return;
