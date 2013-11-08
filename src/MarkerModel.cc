@@ -87,12 +87,12 @@ void MarkerModel::updateSceneObjects() {
 
 int MarkerModel::getFrameIdFromObjectId (int object_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
-		if (visuals[i].sceneObjectId == object_id)
+		if (visuals[i].id == object_id)
 			return visuals[i].luaFrameId;
 	}
 
 	for (size_t i = 0; i < joints.size(); i++) {
-		if (joints[i].sceneObjectId == object_id)
+		if (joints[i].id == object_id)
 			return joints[i].luaFrameId;
 	}
 
@@ -118,12 +118,12 @@ int MarkerModel::getParentFrameId(int frame_id) {
 int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
 		if (visuals[i].luaFrameId == frame_id)
-			return visuals[i].sceneObjectId;
+			return visuals[i].id;
 	}
 
 	for (size_t i = 0; i < joints.size(); i++) {
 		if (joints[i].luaFrameId == frame_id)
-			return joints[i].sceneObjectId;
+			return joints[i].id;
 	}
 
 	cerr << "Could not find object id for frame id " << frame_id << endl;
@@ -216,12 +216,12 @@ void MarkerModel::clearModel() {
 	rbdlModel = new RigidBodyDynamics::Model();
 
 	for (size_t i = 0; i < joints.size(); i++) {
-		scene->unregisterSceneObject (joints[i].sceneObjectId);
+		scene->unregisterSceneObject (joints[i].id);
 	}
 	joints.clear();
 
 	for (size_t i = 0; i < visuals.size(); i++) {
-		scene->unregisterSceneObject (visuals[i].sceneObjectId);
+		scene->unregisterSceneObject (visuals[i].id);
 	}
 	visuals.clear();
 
@@ -268,10 +268,9 @@ void MarkerModel::updateFromLua() {
 		rbdlToLuaId[rbdl_id] = i;
 
 		// Add joint scene object
-		SceneObject joint_scene_object;
+		SceneObject *joint_scene_object = scene->createObject<SceneObject>();
 
-		joint_scene_object.name = body_name + "_joint";
-		joint_scene_object.color = Vector3f (0.9f, 0.9f, 0.9f);
+		joint_scene_object->color = Vector3f (0.9f, 0.9f, 0.9f);
 	
 		RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
 		RBDLVector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, rbdl_id, RigidBodyDynamics::Math::Vector3d (0., 0., 0.));
@@ -279,14 +278,13 @@ void MarkerModel::updateFromLua() {
 		Matrix33f rot_mat = ConvertToSimpleMathMat3 (rbdl_mat3.transpose());
 
 		Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
-		joint_scene_object.transformation.rotation = SimpleMath::GL::Quaternion::fromMatrix(rot_mat);
-		joint_scene_object.transformation.translation = joint_position;
-		joint_scene_object.transformation.scaling = Vector3f (0.03, 0.03, 0.03);
-		joint_scene_object.mesh = CreateUVSphere (8, 16);
-		joint_scene_object.noDepthTest = true;
+		joint_scene_object->transformation.rotation = SimpleMath::GL::Quaternion::fromMatrix(rot_mat);
+		joint_scene_object->transformation.translation = joint_position;
+		joint_scene_object->transformation.scaling = Vector3f (0.03, 0.03, 0.03);
+		joint_scene_object->mesh = CreateUVSphere (8, 16);
+		joint_scene_object->noDepthTest = true;
 
 		JointObject joint_object;
-		joint_object.sceneObjectId = scene->registerSceneObject (joint_scene_object);
 		joint_object.luaFrameId = i;
 
 		joints.push_back (joint_object);
@@ -300,15 +298,15 @@ void MarkerModel::updateFromLua() {
 			assert ((visual_object.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
 
 			// setup of the scene object
-			SceneObject visual_scene_object;
-			visual_scene_object.color = visual_object.color;
+			SceneObject* visual_scene_object = scene->createObject<SceneObject>();
+			visual_scene_object->color = visual_object.color;
 
 			MeshVBO mesh;
 			load_obj (mesh, visual_object.src.c_str());	
-			visual_scene_object.mesh = mesh;
+			visual_scene_object->mesh = mesh;
 
 			// setup of the transformation
-			Transformation object_transformation = joint_scene_object.transformation;
+			Transformation object_transformation = joint_scene_object->transformation;
 			Vector3f bbox_size (mesh.bbox_max - mesh.bbox_min);
 			Vector3f scale (
 					fabs(visual_object.dimensions[0]) / bbox_size[0],
@@ -320,10 +318,9 @@ void MarkerModel::updateFromLua() {
 
 			object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_object.mesh_center);
 	
-			visual_scene_object.transformation = object_transformation;
+			visual_scene_object->transformation = object_transformation;
 
 			// register scene object
-			visual_object.sceneObjectId = scene->registerSceneObject (visual_scene_object);
 			visuals.push_back(visual_object);
 		}
 	}

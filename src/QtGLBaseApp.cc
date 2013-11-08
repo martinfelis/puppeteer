@@ -322,7 +322,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 		return;
 	}
 
-	Vector3f zyx_rotation = scene->getObject(object_id).transformation.rotation.toEulerZYX();
+	Vector3f zyx_rotation = scene->getObject<SceneObject>(object_id)->transformation.rotation.toEulerZYX();
 
 	updateExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 
@@ -332,7 +332,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 
 	// global position
 	QtProperty *position_property = vector3DPropertyManager->addProperty("Position");
-	Vector3f position = scene->getObject(object_id).transformation.translation;
+	Vector3f position = scene->getObject<SceneObject>(object_id)->transformation.translation;
 	vector3DPropertyManager->setValue (position_property, QVector3D (position[0], position[1], position[2]));
 	registerProperty (position_property, "object_position");
 	item = propertiesBrowser->addProperty (position_property);
@@ -340,7 +340,7 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 
 	// global orientation
 	QtProperty *orientation_property = vector3DYXZPropertyManager->addProperty("Orientation");
-	Vector3f yxz_rotation = scene->getObject(object_id).transformation.rotation.toEulerYXZ();
+	Vector3f yxz_rotation = scene->getObject<SceneObject>(object_id)->transformation.rotation.toEulerYXZ();
 	vector3DYXZPropertyManager->setValue (orientation_property, QVector3D (yxz_rotation[0], yxz_rotation[1], yxz_rotation[2]));
 	registerProperty (orientation_property, "object_orientation");
 	item = propertiesBrowser->addProperty (orientation_property);
@@ -380,11 +380,11 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 
 	if (property_name.startsWith ("object_position")) {
 		Vector3f position (value.x(), value.y(), value.z());
-		scene->getObject(scene->selectedObjectId).transformation.translation = position;
+		scene->getObject<SceneObject>(scene->selectedObjectId)->transformation.translation = position;
 	} else if (property_name.startsWith ("object_orientation")) {
 		Vector3f yxz_rotation (value.x(), value.y(), value.z());
 		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
-		scene->getObject(scene->selectedObjectId).transformation.rotation = rotation;
+		scene->getObject<SceneObject>(scene->selectedObjectId)->transformation.rotation = rotation;
 	} else if (property_name.startsWith ("joint_location_local")) {
 		Vector3f position (value.x(), value.y(), value.z());
 		unsigned int frame_id = markerModel->getFrameIdFromObjectId (scene->selectedObjectId);

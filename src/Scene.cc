@@ -41,22 +41,18 @@ int vector4_to_object_id (const Vector4f &color) {
 }
 
 void Scene::init() {
-	SceneObject monkeyobject;
+	SceneObject* monkeyobject = createObject<SceneObject>();
 	MeshVBO monkey_obj;
 	load_obj (monkey_obj, "monkeyhead.obj");
 	Matrix44f rot_mat = SimpleMath::GL::RotateMat44 (90.f, 1.f, 0.f, 0.f);
-	monkeyobject.mesh.join (rot_mat, monkey_obj);
-	monkeyobject.name = "monkeyhead";
-	monkeyobject.transformation.translation = Vector3f (2.f, 0.f, 0.f);
-	monkeyobject.transformation.rotation = SimpleMath::GL::Quaternion::fromGLRotate (45.f, 1.f, 0.f, 0.f);
-	monkeyobject.transformation.scaling = Vector3f (1.f, 1.f, 1.f);
-	registerSceneObject (monkeyobject);
+	monkeyobject->mesh.join (rot_mat, monkey_obj);
+	monkeyobject->transformation.translation = Vector3f (2.f, 0.f, 0.f);
+	monkeyobject->transformation.rotation = SimpleMath::GL::Quaternion::fromGLRotate (45.f, 1.f, 0.f, 0.f);
+	monkeyobject->transformation.scaling = Vector3f (1.f, 1.f, 1.f);
 
-	SceneObject boxobject2;
-	boxobject2.mesh = CreateCuboid (1.f, 1.f, 1.f);
-	boxobject2.name = "box2";
-	boxobject2.transformation.translation.set(0., 2., 2.);
-	registerSceneObject (boxobject2);
+	SceneObject* boxobject2 = createObject<SceneObject>();
+	boxobject2->mesh = CreateCuboid (1.f, 1.f, 1.f);
+	boxobject2->transformation.translation.set(0., 2., 2.);
 
 	return;
 
@@ -67,25 +63,24 @@ void Scene::init() {
 	for (int i = 0; i < box_count_x; i++) {
 		for (int j = 0; j < box_count_y; j++) {
 			for (int k = 0; k < box_count_z; k++) {
-				SceneObject boxobject;
-				boxobject.mesh = CreateCuboid (0.2, 0.2, 0.2);
-				boxobject.transformation.translation.set (
+				SceneObject* boxobject = createObject<SceneObject>();
+				boxobject->mesh = CreateCuboid (0.2, 0.2, 0.2);
+				boxobject->transformation.translation.set (
 						float (i - box_count_x / 2.f),
 						float (j),
 						float (k - box_count_z / 2.f)
 						);
-				registerSceneObject (boxobject);
 			}
 		}
 	}
 }
 
-void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
+void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 	if (style == DrawStyleHidden)
 		return;
 
 	glPushMatrix();
-	glMultMatrixf (object.transformation.toGLMatrix().data());
+	glMultMatrixf (object->transformation.toGLMatrix().data());
 
 	glEnable (GL_DEPTH_TEST);
 
@@ -96,16 +91,16 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 		glPushMatrix();
 		glScalef (1.03f, 1.03f, 1.03f);
 		glColor3f (1.f, 0.f, 0.f);
-		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
+		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 		glPopMatrix();
 		glCullFace(GL_BACK);
 		glDisable(GL_CULL_FACE);
 
-		if (!object.noLighting)
+		if (!object->noLighting)
 			glEnable(GL_LIGHTING);
 
 		glColor3f (0.f, 0.8f, 0.8f);
-		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
+		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 	} else if (style == DrawStyleHighlighted) {
 		glDisable(GL_LIGHTING);
 		glEnable(GL_CULL_FACE);
@@ -113,24 +108,24 @@ void Scene::drawSceneObjectStyled (const SceneObject &object, DrawStyle style) {
 		glPushMatrix();
 		glScalef (1.03f, 1.03f, 1.03f);
 		glColor3f (0.9, 0.9, 0.3);
-		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
+		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 		glPopMatrix();
 		glCullFace(GL_BACK);
 		glDisable(GL_CULL_FACE);
 		
-		if (!object.noLighting)
+		if (!object->noLighting)
 			glEnable(GL_LIGHTING);
 
 		glColor3f (0.8, 0.8, 0.2);
-		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
+		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 	} else {
-		if (object.noLighting)
+		if (object->noLighting)
 			glDisable(GL_LIGHTING);
 		else
 			glEnable(GL_LIGHTING);
 
-		glColor3fv (object.color.data());
-		const_cast<MeshVBO*>(&(object.mesh))->draw(GL_TRIANGLES);
+		glColor3fv (object->color.data());
+		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 	}
 
 	glPopMatrix();
@@ -140,13 +135,13 @@ void Scene::draw() {
 	std::vector<SceneObject*> depth_ignoring_objects;
 
 	for (int i = 0; i < objects.size(); i++) {
-		if (objects[i].noDepthTest) {
-			depth_ignoring_objects.push_back (&objects[i]);
+		if (objects[i]->noDepthTest) {
+			depth_ignoring_objects.push_back (objects[i]);
 			continue;
 		}
-		if (objects[i].id == selectedObjectId) {
+		if (objects[i]->id == selectedObjectId) {
 			drawSceneObjectStyled (objects[i], DrawStyleSelected);
-		} else if (objects[i].id == mouseOverObjectId) {
+		} else if (objects[i]->id == mouseOverObjectId) {
 			drawSceneObjectStyled (objects[i], DrawStyleHighlighted);
 		} else {
 			drawSceneObjectStyled (objects[i], DrawStyleNormal);
@@ -156,13 +151,13 @@ void Scene::draw() {
 	glClear (GL_DEPTH_BUFFER_BIT);
 
 	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
-		drawSceneObjectStyled (*(depth_ignoring_objects[i]), DrawStyleNormal);
+		drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleNormal);
 		if (depth_ignoring_objects[i]->id == selectedObjectId) {
-			drawSceneObjectStyled (*depth_ignoring_objects[i], DrawStyleSelected);
+			drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleSelected);
 		} else if (depth_ignoring_objects[i]->id == mouseOverObjectId) {
-			drawSceneObjectStyled (*depth_ignoring_objects[i], DrawStyleHighlighted);
+			drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleHighlighted);
 		} else {
-			drawSceneObjectStyled (*depth_ignoring_objects[i], DrawStyleNormal);
+			drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleNormal);
 		}
 	}
 }
@@ -173,16 +168,16 @@ void Scene::drawForColorPicking() {
 	std::vector<SceneObject*> depth_ignoring_objects;
 
 	for (int i = 0; i < objects.size(); i++) {
-		if (objects[i].noDepthTest) {
-			depth_ignoring_objects.push_back (&objects[i]);
+		if (objects[i]->noDepthTest) {
+			depth_ignoring_objects.push_back (objects[i]);
 			continue;
 		}
 
 		glPushMatrix();
-		glMultMatrixf (objects[i].transformation.toGLMatrix().data());
+		glMultMatrixf (objects[i]->transformation.toGLMatrix().data());
 
-		glColor4fv (object_id_to_vector4 (objects[i].id).data());
-		const_cast<MeshVBO*>(&(objects[i].mesh))->draw(GL_TRIANGLES);
+		glColor4fv (object_id_to_vector4 (objects[i]->id).data());
+		const_cast<MeshVBO*>(&(objects[i]->mesh))->draw(GL_TRIANGLES);
 
 		glPopMatrix();
 	}
@@ -200,31 +195,8 @@ void Scene::drawForColorPicking() {
 	}
 }
 
-int Scene::registerSceneObject (const SceneObject &object) {
-	assert (object.id == -1);
-
-	lastObjectId = lastObjectId + 1;
-	objects.push_back (object);
-	objects[objects.size() - 1].id = lastObjectId;
-
-	return lastObjectId;
-}
-
-void Scene::updateSceneObject (const int id, const SceneObject& object) {
-	for (unsigned int i = 0; i < objects.size(); i++) {
-		if (objects[i].id == id) {
-			objects[i] = object;
-			objects[i].id = id;
-			return;
-		}
-	}
-
-	cerr << "Error: could not update scene object with id '" << id << "'. Object not found!" << endl;
-	abort();
-}
-
 void Scene::unregisterSceneObject (const int id) {
-	std::vector<SceneObject>::iterator obj_iter = objects.begin();
+	std::vector<SceneObject*>::iterator obj_iter = objects.begin();
 
 	if (selectedObjectId == id) 
 		selectedObjectId = -1;
@@ -233,7 +205,7 @@ void Scene::unregisterSceneObject (const int id) {
 		selectedObjectId = -1;
 
 	do {
-		if (obj_iter->id == id)  {
+		if ((*obj_iter)->id == id)  {
 			objects.erase (obj_iter); 
 			return;
 		}
@@ -244,25 +216,3 @@ void Scene::unregisterSceneObject (const int id) {
 	cerr << "Error deleting object with id " << id << ": object not found." << endl;
 	abort();
 }
-
-bool Scene::isSceneObject (int id) {
-	for (size_t i = 0; i < objects.size(); i++) {
-		if (objects[i].id == id) 
-			return true;
-	}
-
-	return false;
-}
-
-SceneObject& Scene::getObject (int id) {
-	for (size_t i = 0; i < objects.size(); i++) {
-		if (objects[i].id == id) 
-			return objects[i];
-	}
-
-	std::cerr << "Error: could not find object with id " << id << "." << std::endl;
-	abort();
-
-	return objects[0];
-}
-

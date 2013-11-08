@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 
+#include "Scene.h"
 #include "SimpleMath/SimpleMath.h"
 #include "SimpleMath/SimpleMathGL.h"
 
@@ -13,21 +14,18 @@
  * exist.
  */
 
-struct Scene;
 namespace RigidBodyDynamics {
 	struct Model;
 }
 
 struct LuaTable;
 
-struct JointObject {
-	int sceneObjectId;
+struct JointObject : public SceneObject {
 	int luaFrameId;
 };
 
-struct VisualsObject {
-	VisualsObject() :
-		sceneObjectId(-1),
+struct VisualsObject: public SceneObject {
+	VisualsObject(): 
 		luaFrameId(0),
 		scale (-1.f, -1.f, -1.f),
 		dimensions (1.f, 1.f, 1.f),
@@ -37,7 +35,6 @@ struct VisualsObject {
 		src ("")
 	{}
 
-	int sceneObjectId;
 	int luaFrameId;
 	Vector3f scale;
 	Vector3f dimensions;
@@ -73,7 +70,8 @@ struct MarkerModel {
 
 	bool isJointObject (int objectid) {
 		for (size_t i = 0; i < joints.size(); i++) {
-			if (joints[i].sceneObjectId == objectid)
+			abort();
+			if (joints[i].id == objectid)
 				return true;
 		}
 		return false;
@@ -81,7 +79,7 @@ struct MarkerModel {
 
 	bool isVisualsObject (int objectid) {
 		for (size_t i = 0; i < visuals.size(); i++) {
-			if (visuals[i].sceneObjectId == objectid)
+			if (visuals[i].id == objectid)
 				return true;
 		}
 		return false;

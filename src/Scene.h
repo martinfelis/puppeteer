@@ -20,14 +20,13 @@ enum DrawStyle {
 struct SceneObject {
 	SceneObject () :
 		id (-1),
-		name ("unnamed"),
 		color (1.f, 1.f, 1.f),
 		noDepthTest(false),
 		noLighting(false)
 	{ }
+	virtual ~SceneObject() {}
 
 	int id;
-	std::string name;
 	Vector3f color;
 	bool noDepthTest;
 	bool noLighting;
@@ -49,17 +48,42 @@ struct Scene {
 	void draw();
 	void drawForColorPicking();
 
-	void drawSceneObjectStyled (const SceneObject &object, DrawStyle style);
-	int registerSceneObject (const SceneObject &object);
-	void updateSceneObject (const int i, const SceneObject &object);
+	void drawSceneObjectStyled (const SceneObject *object, DrawStyle style);
 	void unregisterSceneObject (const int id);
-	bool isSceneObject (const int id);
 
-	SceneObject &getObject (int id); 
+	template <typename T> T* createObject();
+	template <typename T> void destroyObject(T* object);
+	template <typename T> T* getObject(const int id);
 
 	private:
-		std::vector<SceneObject> objects;
+		std::vector<SceneObject*> objects;
 };
+
+template<> inline SceneObject* Scene::createObject<SceneObject>() {
+	SceneObject* result = new SceneObject();
+	result->id = lastObjectId;
+	lastObjectId++;
+	objects.push_back(result);
+	return result;
+}
+
+template<> inline void Scene::destroyObject<SceneObject>(SceneObject* object) {
+	unregisterSceneObject (object->id);
+	delete object;
+}
+
+template<> inline SceneObject* Scene::getObject<SceneObject>(const int id) {
+	std::vector<SceneObject*>::iterator obj_iter = objects.begin();
+
+	do {
+		if ((*obj_iter)->id == id)  {
+			return (*obj_iter);
+		}
+		obj_iter++;
+	} while (obj_iter != objects.end());
+
+	return NULL;
+}
 
 /* _SCENE_H */
 #endif
