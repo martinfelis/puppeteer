@@ -301,6 +301,10 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	QtBrowserItem *item = NULL;
 
 	// property browser: properties
+	QtProperty *frame_parent_property = stringManager->addProperty ("Parent");
+	stringManager->setValue (frame_parent_property, markerModel->getParentName (frame_id).c_str());
+	propertiesBrowser->insertProperty (frame_parent_property, 0);
+
 	QtProperty *frame_name_property = stringManager->addProperty ("Name");
 	stringManager->setValue (frame_name_property, markerModel->getFrameName (frame_id).c_str());
 	propertiesBrowser->insertProperty (frame_name_property, 0);

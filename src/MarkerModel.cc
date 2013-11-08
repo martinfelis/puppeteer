@@ -71,6 +71,22 @@ int MarkerModel::getFrameIdFromObjectId (int object_id) {
 	return 0;
 }
 
+int MarkerModel::getParentFrameId(int frame_id) {
+	if (frame_id == 0)
+		return 0;
+
+	string parent_frame_name = (*luaTable)["frames"][frame_id]["parent"].getDefault<string>("ROOT");
+
+	for (int i = 0; i < (*luaTable)["frames"].length(); i++) {
+		if ( parent_frame_name == (*luaTable)["frames"][i]["name"].getDefault<string>("ROOT")) {
+			return i;
+		}
+	}
+
+	cerr << "Error: could not determine parent for frame with id '" << frame_id << "'." << endl;
+	abort();
+}
+
 int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
 		if (visuals[i].luaFrameId == frame_id)
@@ -91,6 +107,10 @@ int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 
 std::string MarkerModel::getFrameName (int frame_id) {
 	return rbdlModel->GetBodyName(luaToRbdlId[frame_id]);
+}
+
+std::string MarkerModel::getParentName (int frame_id) {
+	return (*luaTable)["frames"][frame_id]["parent"].getDefault<string>("ROOT");
 }
 
 Vector3f MarkerModel::getFrameLocationGlobal (int frame_id) {
@@ -121,19 +141,37 @@ Vector3f MarkerModel::getFrameOrientationGlobalEulerYXZ (int frame_id) {
 }
 
 Vector3f MarkerModel::getJointLocationLocal (int frame_id) {
-	SpatialTransform transform = rbdlModel->GetJointFrame (luaToRbdlId[frame_id]);
-	return Vector3f (transform.r[0], transform.r[1], transform.r[2]);
+	return (*luaTable)["frames"][frame_id]["joint_frame"]["r"].getDefault<Vector3f>(Vector3f::Zero());
 }
 
 Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
 	SpatialTransform transform = rbdlModel->GetJointFrame (luaToRbdlId[frame_id]);
-	Matrix33f orientation = ConvertToSimpleMathMat3 (transform.E.transpose());
+	Matrix33f orientation = (*luaTable)["frames"][frame_id]["joint_frame"]["E"].getDefault<Matrix33f>(Matrix33f::Identity(3,3));
 	
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
 }
 
+void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &delta_r) {
+	int parent_id = getParentFrameId (frame_id);
+	
+	if (parent_id == 0)
+		return;
+
+	for (int i = 0; i < (*luaTable)["frames"][parent_id]["visuals"].length(); i++) {
+		Vector3f dimensions = (*luaTable)["frames"][parent_id]["visuals"][i + 1]["dimensions"];
+		Vector3f mesh_center = (*luaTable)["frames"][parent_id]["visuals"][i + 1]["mesh_center"];
+		mesh_center = mesh_center + delta_r * 0.5f;
+		dimensions = dimensions + delta_r;
+		(*luaTable)["frames"][parent_id]["visuals"][i + 1]["dimensions"] = dimensions;
+		(*luaTable)["frames"][parent_id]["visuals"][i + 1]["mesh_center"] = mesh_center;
+	}
+}
+
 void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location) {
+	Vector3f old_location = (*luaTable)["frames"][frame_id]["joint_frame"]["r"];
 	(*luaTable)["frames"][frame_id]["joint_frame"]["r"] = location;
+
+	adjustParentVisualsScale (frame_id, location - old_location);
 	
 	updateFromLua();
 }

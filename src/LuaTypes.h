@@ -38,6 +38,43 @@ void LuaTableNode::set<SimpleMath::Fixed::Matrix<float, 3, 1> >(const SimpleMath
 	stackRestore();
 };
 
+// SimpleMath Matrix33f
+template<> SimpleMath::Fixed::Matrix<float, 3, 3> LuaTableNode::getDefault<SimpleMath::Fixed::Matrix<float, 3, 3> >(const SimpleMath::Fixed::Matrix<float, 3, 3> &default_value) { 
+	SimpleMath::Fixed::Matrix<float, 3, 3> result = default_value;
+
+	if (stackQueryValue()) {
+		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+		
+		if (vector_table.length() != 3) {
+			std::cerr << "LuaModel Error: invalid 3d matrix!" << std::endl;
+			abort();
+		}
+
+		if (vector_table[1].length() != 3
+				|| vector_table[2].length() != 3
+				|| vector_table[3].length() != 3) {
+			std::cerr << "LuaModel Error: invalid 3d matrix!" << std::endl;
+			abort();
+		}
+
+		result(0,0) = static_cast<float>(vector_table[1][1].get<double>());
+		result(0,1) = static_cast<float>(vector_table[1][2].get<double>());
+		result(0,2) = static_cast<float>(vector_table[1][3].get<double>());
+
+		result(1,0) = static_cast<float>(vector_table[2][1].get<double>());
+		result(1,1) = static_cast<float>(vector_table[2][2].get<double>());
+		result(1,2) = static_cast<float>(vector_table[2][3].get<double>());
+
+		result(2,0) = static_cast<float>(vector_table[3][1].get<double>());
+		result(2,1) = static_cast<float>(vector_table[3][2].get<double>());
+		result(2,2) = static_cast<float>(vector_table[3][3].get<double>());
+	}
+
+	stackRestore();
+
+	return result;
+};
+
 template<>
 void LuaTableNode::set<SimpleMath::Fixed::Matrix<float, 3, 3> >(const SimpleMath::Fixed::Matrix<float, 3, 3> &value) {
 	LuaTable custom_table = stackCreateLuaTable();
