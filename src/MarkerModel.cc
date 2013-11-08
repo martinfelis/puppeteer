@@ -49,12 +49,40 @@ MarkerModel::~MarkerModel() {
 	}
 }
 
+VectorNd MarkerModel::getModelState() {
+	return modelStateQ;
+}
+
+std::vector<std::string> MarkerModel::getModelStateNames () {
+	std::vector<std::string> result (rbdlModel->q_size, "unnamed");
+
+	return result;
+}
+
 void MarkerModel::updateModelState() {
 	RBDLVectorNd Q (rbdlModel->q_size);
 	for (size_t i = 0; i < rbdlModel->q_size; i++) {
-		Q[i] = generalizedPositions[i];
+		Q[i] = modelStateQ[i];
 	}
 	RigidBodyDynamics::UpdateKinematicsCustom (*rbdlModel, &Q, NULL, NULL);
+}
+
+void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
+	assert (state_index < rbdlModel->q_size);
+
+	cout << "setting value " << state_index << endl;
+
+	modelStateQ[state_index] = value;
+
+	updateModelState();
+	updateSceneObjects();
+}
+
+void MarkerModel::updateSceneObjects() {
+	for (size_t i = 0; i < visuals.size(); i++) {
+		unsigned int rbdl_id = luaToRbdlId[visuals[i].luaFrameId];
+		
+	}
 }
 
 int MarkerModel::getFrameIdFromObjectId (int object_id) {
@@ -300,7 +328,7 @@ void MarkerModel::updateFromLua() {
 		}
 	}
 
-	generalizedPositions = SimpleMath::Dynamic::Matrix<double>::Zero (rbdlModel->q_size);
+	modelStateQ = VectorNd::Zero (rbdlModel->q_size);
 
 	// restore selected frame
 	if (selected_frame != -1) {

@@ -63,7 +63,7 @@ struct MarkerModel {
 	Scene *scene;
 	RigidBodyDynamics::Model *rbdlModel;
 	LuaTable *luaTable;
-	SimpleMath::Dynamic::Matrix<double> generalizedPositions;
+	VectorNd modelStateQ;
 
 	std::vector<JointObject> joints;
 	std::vector<VisualsObject> visuals;
@@ -94,7 +94,11 @@ struct MarkerModel {
 		return isJointObject(objectid);
 	}
 
+	VectorNd getModelState();
+	std::vector<std::string> getModelStateNames();
+
 	void updateModelState();
+	void setModelStateValue (unsigned int state_index, double value);
 
 	int getParentFrameId (int frame_id);
 	int getObjectIdFromFrameId (int frame_id);
@@ -112,11 +116,11 @@ struct MarkerModel {
 	bool loadFromFile (const char* filename);
 	void clearModel();
 	void updateFromLua ();
+	void updateSceneObjects();
 
 	private:
 		MarkerModel(const MarkerModel &model) {}
 		MarkerModel& operator=(const MarkerModel &model) {}
-
 };
 
 /* MARKER_MODEL_H */

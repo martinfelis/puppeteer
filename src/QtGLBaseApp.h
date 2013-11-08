@@ -44,13 +44,14 @@ protected:
 		QtVector3DPropertyManager *vector3DYXZPropertyManager;
 		QtVector3DPropertyManager *vector3DYXZReadOnlyPropertyManager;
 		QtDoublePropertyManager *doubleReadOnlyManager;
-		QtDoublePropertyManager *doubleManager;
 		QtStringPropertyManager *stringManager;
 		QtColorPropertyManager *colorManager;
+		QtDoublePropertyManager *doubleManagerModelStateEditor;
 
 		QtVector3DEditorFactory *vector3DEditorFactory;
 		QtVector3DEditorFactory *vector3DYXZEditorFactory;
 		QtDoubleSpinBoxFactory *doubleSpinBoxFactory;
+		QtDoubleSpinBoxFactory *doubleSpinBoxFactoryModelStateEditor;
 		QtLineEditFactory *lineEditFactory;
 		QtColorEditorFactory *colorEditFactory;
 		QtGroupPropertyManager *groupManager;
@@ -59,6 +60,7 @@ protected:
 		QMap<QString, QtProperty *> nameToProperty;
 		QMap<QString, QtBrowserItem *> idToItem;
 		QMap<QString, bool> idToExpanded;
+		QMap<QtProperty *, unsigned int> propertyToStateIndex;
 
 		void updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
 		void restoreExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
@@ -68,15 +70,14 @@ protected:
 		}
 
 public slots:
-		void cameraChanged ();
-		void updateCamera ();
 		void quitApplication();
 
 		void collapseProperties();
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
+		void updateModelStateEditor ();
 
-		void valueChanged(QtProperty *property, double value);
+		void modelStateValueChanged (QtProperty *property, double value);
 		void valueChanged(QtProperty *property, QVector3D value);
 		void captureFrameSliderChanged (int value);
 };

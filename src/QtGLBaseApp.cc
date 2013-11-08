@@ -86,26 +86,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	drawTimer->setSingleShot(false);
 	drawTimer->start(20);
 
-	dockCameraControls->setVisible(false);
-	dockRenderSettings->setVisible(false);
+	dockModelStateEditor->setVisible(false);
 	dockWidgetSlider->setVisible(false);
-
-	checkBoxDrawBaseAxes->setChecked (glWidget->draw_base_axes);
-	checkBoxDrawGrid->setChecked (glWidget->draw_grid);
-
-	// camera controls
-	QRegExp	vector3_expr ("^\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*,\\s*-?\\d*(\\.|\\.\\d+)?\\s*$");
-	QRegExpValidator *coord_validator_eye = new QRegExpValidator (vector3_expr, lineEditCameraEye);
-	QRegExpValidator *coord_validator_center = new QRegExpValidator (vector3_expr, lineEditCameraCenter);
-	lineEditCameraEye->setValidator (coord_validator_eye);
-	lineEditCameraCenter->setValidator (coord_validator_center);
-
-	dockCameraControls->setVisible(false);
-
-	// view stettings
-	connect (checkBoxDrawBaseAxes, SIGNAL (toggled(bool)), glWidget, SLOT (toggle_draw_base_axes(bool)));
-	connect (checkBoxDrawGrid, SIGNAL (toggled(bool)), glWidget, SLOT (toggle_draw_grid(bool)));
-	//connect (checkBoxDrawShadows, SIGNAL (toggled(bool)), glWidget, SLOT (toggle_draw_shadows(bool)));
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
 	connect (actionSideView, SIGNAL (triggered()), glWidget, SLOT (set_side_view()));
@@ -114,7 +96,6 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// actionQuit() makes sure to set the settings before we quit
 	connect (actionQuit, SIGNAL( triggered() ), this, SLOT( quitApplication() ));
-	connect (pushButtonUpdateCamera, SIGNAL (clicked()), this, SLOT (updateCamera()));
 
 	// call the drawing function
 	connect (drawTimer, SIGNAL(timeout()), glWidget, SLOT (updateGL()));
@@ -124,7 +105,6 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// property browser: managers
 	doubleReadOnlyManager = new QtDoublePropertyManager(propertiesBrowser);
-	doubleManager = new QtDoublePropertyManager(propertiesBrowser);
 	stringManager = new QtStringPropertyManager(propertiesBrowser);
 	colorManager = new QtColorPropertyManager(propertiesBrowser);
 	groupManager = new QtGroupPropertyManager(propertiesBrowser);
@@ -142,7 +122,6 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	vector3DYXZEditorFactory = new QtVector3DEditorFactory(propertiesBrowser);
 
 	// property browser: manager <-> editor
-	propertiesBrowser->setFactoryForManager (doubleManager, doubleSpinBoxFactory);
 	propertiesBrowser->setFactoryForManager (stringManager, lineEditFactory);
 	propertiesBrowser->setFactoryForManager (colorManager, colorEditFactory);
 	propertiesBrowser->setFactoryForManager (vector3DPropertyManager, vector3DEditorFactory);
@@ -150,11 +129,15 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager, vector3DEditorFactory);
 	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
+	// model state editor
+	doubleManagerModelStateEditor = new QtDoublePropertyManager(modelStateEditor);
+	doubleSpinBoxFactoryModelStateEditor = new QtDoubleSpinBoxFactory(modelStateEditor);
+	modelStateEditor->setFactoryForManager (doubleManagerModelStateEditor, doubleSpinBoxFactoryModelStateEditor);
+
 	// signals
-	connect (doubleManager, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (valueChanged (QtProperty *, double)));
+	connect (doubleManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (modelStateValueChanged (QtProperty *, double)));
 	connect (vector3DPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
-
 }
 
 void print_usage(const char* execname) {
@@ -206,22 +189,6 @@ bool QtGLBaseApp::loadMocapFile (const char* filename) {
 	return true;
 }
 
-void QtGLBaseApp::cameraChanged() {
-	Vector3f center = glWidget->getCameraPoi();	
-	Vector3f eye = glWidget->getCameraEye();	
-
-	unsigned int digits = 2;
-
-	stringstream center_stream ("");
-	center_stream << std::fixed << std::setprecision(digits) << center[0] << ", " << center[1] << ", " << center[2];
-
-	stringstream eye_stream ("");
-	eye_stream << std::fixed << std::setprecision(digits) << eye[0] << ", " << eye[1] << ", " << eye[2];
-
-	lineEditCameraEye->setText (eye_stream.str().c_str());
-	lineEditCameraCenter->setText (center_stream.str().c_str());
-}
-
 Vector3f parse_vec3_string (const std::string vec3_string) {
 	Vector3f result;
 
@@ -239,17 +206,6 @@ Vector3f parse_vec3_string (const std::string vec3_string) {
 //	cout << "Parsed '" << vec3_string << "' to " << result.transpose() << endl;
 
 	return result;
-}
-
-void QtGLBaseApp::updateCamera() {
-	string center_string = lineEditCameraCenter->text().toStdString();
-	Vector3f poi = parse_vec3_string (center_string);
-
-	string eye_string = lineEditCameraEye->text().toStdString();
-	Vector3f eye = parse_vec3_string (eye_string);
-
-	glWidget->setCameraPoi(poi);
-	glWidget->setCameraEye(eye);
 }
 
 void QtGLBaseApp::quitApplication() {
@@ -294,6 +250,23 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 
 		if ( idToExpanded.contains(property_id))
 			propertiesBrowser->setExpanded(item, idToExpanded[property_id]);
+	}
+}
+
+void QtGLBaseApp::updateModelStateEditor () {
+	assert (markerModel);
+
+	VectorNd model_state = markerModel->getModelState();
+	vector<string> state_names = markerModel->getModelStateNames();
+
+	assert (model_state.size() == state_names.size());
+
+	for (size_t i = 0; i < model_state.size(); i++) {
+		QtProperty *dof_property = doubleManagerModelStateEditor->addProperty (state_names[i].c_str());
+		doubleManagerModelStateEditor->setValue (dof_property, model_state[i]);
+		doubleManagerModelStateEditor->setSingleStep (dof_property, 0.01);
+		modelStateEditor->addProperty (dof_property);
+		propertyToStateIndex[dof_property] = i;
 	}
 }
 
@@ -374,39 +347,29 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	propertiesBrowser->setExpanded (item, false);
 
 	if (markerModel && markerModel->isModelObject(object_id)) {
+		dockModelStateEditor->setVisible(true);
 		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
 		updatePropertiesForFrame (frame_id);
+		updateModelStateEditor();
 		return;
+	} else {
+		dockModelStateEditor->setVisible(false);
 	}
 
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
-void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
-	if (!propertyToName.contains(property))
-		return;
+void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
+	assert (markerModel);
 
-	QString property_name = propertyToName[property];
-
-	if (property_name.startsWith ("joint_orientation")) {
-		Vector3f yxz_rotation;
-		yxz_rotation[0] = doubleManager->value(nameToProperty["joint_orientation_y"]);
-		yxz_rotation[1] = doubleManager->value(nameToProperty["joint_orientation_x"]);
-		yxz_rotation[2] = doubleManager->value(nameToProperty["joint_orientation_z"]);
-
-		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
-
-		scene->getObject(scene->selectedObjectId).transformation.rotation = rotation;
-	} else if (property_name.startsWith ("joint_position")) {
-		Vector3f position;
-		position[0] = doubleManager->value(nameToProperty["joint_position_x"]);
-		position[1] = doubleManager->value(nameToProperty["joint_position_y"]);
-		position[2] = doubleManager->value(nameToProperty["joint_position_z"]);
-
-		scene->getObject(scene->selectedObjectId).transformation.translation = position;
-	} else {
-		qDebug() << "Warning! Unhandled value change of property " << property_name;
+	if (!propertyToStateIndex.contains(property)) {
+		cerr << "Invalid model state property!" << endl;
+		abort();
 	}
+
+	unsigned int state_index = propertyToStateIndex[property];
+
+	markerModel->setModelStateValue (state_index, value);	
 }
 
 void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
