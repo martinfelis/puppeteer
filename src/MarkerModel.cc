@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <sstream>
 
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
@@ -56,6 +57,11 @@ VectorNd MarkerModel::getModelState() {
 std::vector<std::string> MarkerModel::getModelStateNames () {
 	std::vector<std::string> result (rbdlModel->q_size, "unnamed");
 
+	for (unsigned int i = 0; i < rbdlModel->q_size; i++) {
+		ostringstream num_stream ("");
+		num_stream << i;
+		result[i] = num_stream.str();
+	}
 	return result;
 }
 
@@ -70,8 +76,6 @@ void MarkerModel::updateModelState() {
 void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
 	assert (state_index < rbdlModel->q_size);
 
-	cout << "setting value " << state_index << endl;
-
 	modelStateQ[state_index] = value;
 
 	updateModelState();
@@ -79,8 +83,31 @@ void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
 }
 
 void MarkerModel::updateSceneObjects() {
+	RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
+
+	// first update joints as we can reuse its transformations for the
+	// visuals!
+	for (size_t i = 0; i < joints.size(); i++) {
+		int rbdl_id = joints[i]->rbdlBodyId;
+
+		RBDLVector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, rbdl_id, RigidBodyDynamics::Math::Vector3d (0., 0., 0.), false);
+		RBDLMatrix3d rbdl_mat3 = CalcBodyWorldOrientation (*rbdlModel, q, rbdl_id, false);
+		Matrix33f rot_mat = ConvertToSimpleMathMat3 (rbdl_mat3.transpose());
+
+		Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
+
+		joints[i]->transformation.rotation = SimpleMath::GL::Quaternion::fromMatrix(rot_mat);
+		joints[i]->transformation.translation = joint_position;
+	}
+
 	for (size_t i = 0; i < visuals.size(); i++) {
-		unsigned int rbdl_id = luaToRbdlId[visuals[i]->luaFrameId];
+		Transformation joint_transformation = visuals[i]->jointObject->transformation;
+		Vector3f mesh_center = (*luaTable)["frames"][visuals[i]->luaFrameId]["visuals"][visuals[i]->visualIndex]["mesh_center"].getDefault<Vector3f>(Vector3f (0.f, 0.f, 0.f));
+
+		joint_transformation.translation = joint_transformation.translation + joint_transformation.rotation.rotate (mesh_center);
+
+		visuals[i]->transformation.translation = joint_transformation.translation;
+		visuals[i]->transformation.rotation = joint_transformation.rotation;
 	}
 }
 
@@ -268,6 +295,7 @@ void MarkerModel::updateFromLua() {
 
 		// Add joint scene object
 		JointObject *joint_scene_object = scene->createObject<JointObject>();
+		joint_scene_object->rbdlBodyId = rbdl_id;
 
 		joint_scene_object->color = Vector3f (0.9f, 0.9f, 0.9f);
 	
@@ -296,6 +324,8 @@ void MarkerModel::updateFromLua() {
 			// setup of the scene object
 			VisualsObject* visual_scene_object = scene->createObject<VisualsObject>();
 			visual_scene_object->luaFrameId = i;
+			visual_scene_object->jointObject = joint_scene_object;
+			visual_scene_object->visualIndex = vi + 1;
 			visual_scene_object->color = visual_data.color;
 
 			MeshVBO mesh;

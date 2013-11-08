@@ -86,7 +86,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	drawTimer->setSingleShot(false);
 	drawTimer->start(20);
 
-	dockModelStateEditor->setVisible(false);
+	dockModelStateEditor->setEnabled(false);
 	dockWidgetSlider->setVisible(false);
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
@@ -102,6 +102,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// object selection
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
+	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateModelStateEditor(int)));
 
 	// property browser: managers
 	doubleReadOnlyManager = new QtDoublePropertyManager(propertiesBrowser);
@@ -253,8 +254,15 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 	}
 }
 
-void QtGLBaseApp::updateModelStateEditor () {
+void QtGLBaseApp::updateModelStateEditor (int object_id) {
+	if (object_id < 0) {
+		modelStateEditor->setEnabled(false);
+		return;
+	}
+
 	assert (markerModel);
+
+	modelStateEditor->setEnabled(true);
 
 	modelStateEditor->clear();
 
@@ -349,15 +357,11 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	propertiesBrowser->setExpanded (item, false);
 
 	if (markerModel && markerModel->isModelObject(object_id)) {
-		dockModelStateEditor->setVisible(true);
+		dockModelStateEditor->setEnabled(true);
 		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
 		updatePropertiesForFrame (frame_id);
-		updateModelStateEditor();
 		return;
-	} else {
-		dockModelStateEditor->setVisible(false);
-	}
-
+	} 
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
@@ -371,6 +375,7 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	unsigned int state_index = propertyToStateIndex[property];
 
 	markerModel->setModelStateValue (state_index, value);	
+	updateWidgetsFromObject (scene->selectedObjectId);
 }
 
 void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {

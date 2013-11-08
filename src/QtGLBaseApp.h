@@ -73,9 +73,9 @@ public slots:
 		void quitApplication();
 
 		void collapseProperties();
+		void updateModelStateEditor(int object_id);
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
-		void updateModelStateEditor ();
 
 		void modelStateValueChanged (QtProperty *property, double value);
 		void valueChanged(QtProperty *property, QVector3D value);

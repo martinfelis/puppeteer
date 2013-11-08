@@ -22,6 +22,7 @@ struct LuaTable;
 
 struct JointObject : public SceneObject {
 	int luaFrameId;
+	unsigned int rbdlBodyId;
 };
 
 struct VisualsObject: public SceneObject {
@@ -30,6 +31,8 @@ struct VisualsObject: public SceneObject {
 	{}
 
 	int luaFrameId;
+	int visualIndex;
+	JointObject* jointObject;
 };
 
 struct VisualsData {
