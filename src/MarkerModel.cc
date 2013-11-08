@@ -352,7 +352,11 @@ void MarkerModel::updateFromLua() {
 		}
 	}
 
-	modelStateQ = VectorNd::Zero (rbdlModel->q_size);
+	if (modelStateQ.size() != rbdlModel->q_size)
+		modelStateQ = VectorNd::Zero (rbdlModel->q_size);
+
+	updateModelState();
+	updateSceneObjects();
 
 	// restore selected frame
 	if (selected_frame != -1) {
