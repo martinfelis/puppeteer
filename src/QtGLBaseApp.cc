@@ -256,6 +256,8 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 void QtGLBaseApp::updateModelStateEditor () {
 	assert (markerModel);
 
+	modelStateEditor->clear();
+
 	VectorNd model_state = markerModel->getModelState();
 	vector<string> state_names = markerModel->getModelStateNames();
 
@@ -363,8 +365,7 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	assert (markerModel);
 
 	if (!propertyToStateIndex.contains(property)) {
-		cerr << "Invalid model state property!" << endl;
-		abort();
+		return;
 	}
 
 	unsigned int state_index = propertyToStateIndex[property];

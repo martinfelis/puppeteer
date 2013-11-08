@@ -269,8 +269,8 @@ template<> RigidBodyDynamics::Body LuaTableNode::getDefault<RigidBodyDynamics::B
 	return result;
 }
 
-template<> VisualsObject LuaTableNode::getDefault<VisualsObject>(const VisualsObject &default_value) {
-	VisualsObject result = default_value;
+template<> VisualsData LuaTableNode::getDefault<VisualsData>(const VisualsData &default_value) {
+	VisualsData result = default_value;
 
 	if (stackQueryValue()) {
 		LuaTable visuals_table = LuaTable::fromLuaState (luaTable->L);

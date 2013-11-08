@@ -59,15 +59,15 @@ struct Scene {
 		std::vector<SceneObject*> objects;
 };
 
-template<> inline SceneObject* Scene::createObject<SceneObject>() {
-	SceneObject* result = new SceneObject();
+template<typename T> inline T* Scene::createObject() {
+	T* result = new T();
 	result->id = lastObjectId;
 	lastObjectId++;
 	objects.push_back(result);
 	return result;
 }
 
-template<> inline void Scene::destroyObject<SceneObject>(SceneObject* object) {
+template<typename T> inline void Scene::destroyObject(T* object) {
 	unregisterSceneObject (object->id);
 	delete object;
 }
@@ -81,6 +81,9 @@ template<> inline SceneObject* Scene::getObject<SceneObject>(const int id) {
 		}
 		obj_iter++;
 	} while (obj_iter != objects.end());
+
+	std::cerr << "Error: could not find object with id " << id << std::endl;
+	abort();
 
 	return NULL;
 }

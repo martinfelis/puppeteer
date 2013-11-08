@@ -80,20 +80,19 @@ void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
 
 void MarkerModel::updateSceneObjects() {
 	for (size_t i = 0; i < visuals.size(); i++) {
-		unsigned int rbdl_id = luaToRbdlId[visuals[i].luaFrameId];
-		
+		unsigned int rbdl_id = luaToRbdlId[visuals[i]->luaFrameId];
 	}
 }
 
 int MarkerModel::getFrameIdFromObjectId (int object_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
-		if (visuals[i].id == object_id)
-			return visuals[i].luaFrameId;
+		if (visuals[i]->id == object_id)
+			return visuals[i]->luaFrameId;
 	}
 
 	for (size_t i = 0; i < joints.size(); i++) {
-		if (joints[i].id == object_id)
-			return joints[i].luaFrameId;
+		if (joints[i]->id == object_id)
+			return joints[i]->luaFrameId;
 	}
 
 	return 0;
@@ -117,13 +116,13 @@ int MarkerModel::getParentFrameId(int frame_id) {
 
 int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
-		if (visuals[i].luaFrameId == frame_id)
-			return visuals[i].id;
+		if (visuals[i]->luaFrameId == frame_id)
+			return visuals[i]->id;
 	}
 
 	for (size_t i = 0; i < joints.size(); i++) {
-		if (joints[i].luaFrameId == frame_id)
-			return joints[i].id;
+		if (joints[i]->luaFrameId == frame_id)
+			return joints[i]->id;
 	}
 
 	cerr << "Could not find object id for frame id " << frame_id << endl;
@@ -216,12 +215,12 @@ void MarkerModel::clearModel() {
 	rbdlModel = new RigidBodyDynamics::Model();
 
 	for (size_t i = 0; i < joints.size(); i++) {
-		scene->unregisterSceneObject (joints[i].id);
+		scene->unregisterSceneObject (joints[i]->id);
 	}
 	joints.clear();
 
 	for (size_t i = 0; i < visuals.size(); i++) {
-		scene->unregisterSceneObject (visuals[i].id);
+		scene->unregisterSceneObject (visuals[i]->id);
 	}
 	visuals.clear();
 
@@ -268,7 +267,7 @@ void MarkerModel::updateFromLua() {
 		rbdlToLuaId[rbdl_id] = i;
 
 		// Add joint scene object
-		SceneObject *joint_scene_object = scene->createObject<SceneObject>();
+		JointObject *joint_scene_object = scene->createObject<JointObject>();
 
 		joint_scene_object->color = Vector3f (0.9f, 0.9f, 0.9f);
 	
@@ -284,44 +283,42 @@ void MarkerModel::updateFromLua() {
 		joint_scene_object->mesh = CreateUVSphere (8, 16);
 		joint_scene_object->noDepthTest = true;
 
-		JointObject joint_object;
-		joint_object.luaFrameId = i;
-
-		joints.push_back (joint_object);
+		joint_scene_object->luaFrameId = i;
+		joints.push_back (joint_scene_object);
 
 		// add visuals
 		for (size_t vi = 0; vi < (*luaTable)["frames"][i]["visuals"].length(); vi++) {
-			VisualsObject visual_object = (*luaTable)["frames"][i]["visuals"][vi + 1];
-			visual_object.luaFrameId = i;
+			VisualsData visual_data = (*luaTable)["frames"][i]["visuals"][vi + 1];
 
-			assert ((visual_object.scale - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.scale not (yet) supported!");
-			assert ((visual_object.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
+			assert ((visual_data.scale - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.scale not (yet) supported!");
+			assert ((visual_data.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
 
 			// setup of the scene object
-			SceneObject* visual_scene_object = scene->createObject<SceneObject>();
-			visual_scene_object->color = visual_object.color;
+			VisualsObject* visual_scene_object = scene->createObject<VisualsObject>();
+			visual_scene_object->luaFrameId = i;
+			visual_scene_object->color = visual_data.color;
 
 			MeshVBO mesh;
-			load_obj (mesh, visual_object.src.c_str());	
+			load_obj (mesh, visual_data.src.c_str());	
 			visual_scene_object->mesh = mesh;
 
 			// setup of the transformation
 			Transformation object_transformation = joint_scene_object->transformation;
 			Vector3f bbox_size (mesh.bbox_max - mesh.bbox_min);
 			Vector3f scale (
-					fabs(visual_object.dimensions[0]) / bbox_size[0],
-					fabs(visual_object.dimensions[1]) / bbox_size[1],
-					fabs(visual_object.dimensions[2]) / bbox_size[2]
+					fabs(visual_data.dimensions[0]) / bbox_size[0],
+					fabs(visual_data.dimensions[1]) / bbox_size[1],
+					fabs(visual_data.dimensions[2]) / bbox_size[2]
 					);
 
 			object_transformation.scaling = scale;
 
-			object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_object.mesh_center);
+			object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_data.mesh_center);
 	
 			visual_scene_object->transformation = object_transformation;
 
 			// register scene object
-			visuals.push_back(visual_object);
+			visuals.push_back(visual_scene_object);
 		}
 	}
 

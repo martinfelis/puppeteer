@@ -26,7 +26,14 @@ struct JointObject : public SceneObject {
 
 struct VisualsObject: public SceneObject {
 	VisualsObject(): 
-		luaFrameId(0),
+		luaFrameId(0)
+	{}
+
+	int luaFrameId;
+};
+
+struct VisualsData {
+	VisualsData(): 
 		scale (-1.f, -1.f, -1.f),
 		dimensions (1.f, 1.f, 1.f),
 		color (1.f, 1.f, 1.f),
@@ -35,7 +42,6 @@ struct VisualsObject: public SceneObject {
 		src ("")
 	{}
 
-	int luaFrameId;
 	Vector3f scale;
 	Vector3f dimensions;
 	Vector3f color;
@@ -62,16 +68,15 @@ struct MarkerModel {
 	LuaTable *luaTable;
 	VectorNd modelStateQ;
 
-	std::vector<JointObject> joints;
-	std::vector<VisualsObject> visuals;
+	std::vector<JointObject*> joints;
+	std::vector<VisualsObject*> visuals;
 	std::map<unsigned int, int> luaToRbdlId;
 	std::map<int, int> luaToSceneId;
 	std::map<int, unsigned int> rbdlToLuaId;
 
 	bool isJointObject (int objectid) {
 		for (size_t i = 0; i < joints.size(); i++) {
-			abort();
-			if (joints[i].id == objectid)
+			if (joints[i]->id == objectid)
 				return true;
 		}
 		return false;
@@ -79,7 +84,7 @@ struct MarkerModel {
 
 	bool isVisualsObject (int objectid) {
 		for (size_t i = 0; i < visuals.size(); i++) {
-			if (visuals[i].id == objectid)
+			if (visuals[i]->id == objectid)
 				return true;
 		}
 		return false;
