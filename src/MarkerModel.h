@@ -7,6 +7,12 @@
 #include "SimpleMath/SimpleMath.h"
 #include "SimpleMath/SimpleMathGL.h"
 
+/* General Notes:
+ *
+ * Frame ids are positive numbers. 0 is used to mark frames that do not
+ * exist.
+ */
+
 struct Scene;
 namespace RigidBodyDynamics {
 	struct Model;
@@ -62,6 +68,7 @@ struct MarkerModel {
 	std::vector<JointObject> joints;
 	std::vector<VisualsObject> visuals;
 	std::map<unsigned int, int> luaToRbdlId;
+	std::map<int, int> luaToSceneId;
 	std::map<int, unsigned int> rbdlToLuaId;
 
 	bool isJointObject (int objectid) {

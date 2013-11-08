@@ -298,31 +298,15 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 }
 
 void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
-
-	updateExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
-
-	// update properties browser
-	propertiesBrowser->clear();
+	QtBrowserItem *item = NULL;
 
 	// property browser: properties
 	QtProperty *frame_name_property = stringManager->addProperty ("Name");
 	stringManager->setValue (frame_name_property, markerModel->getFrameName (frame_id).c_str());
-	propertiesBrowser->addProperty (frame_name_property);
-
-	// global position
-	QtProperty *position_property = vector3DReadOnlyPropertyManager->addProperty("Position");
-	Vector3f pos = markerModel->getFrameLocationGlobal (frame_id);
-	vector3DReadOnlyPropertyManager->setValue (position_property, QVector3D (pos[0], pos[1], pos[2]));
-	propertiesBrowser->addProperty (position_property);
-
-	// global orientation
-	QtProperty *orientation_property = vector3DYXZReadOnlyPropertyManager->addProperty("Orientation");
-	Vector3f rot = markerModel->getFrameOrientationGlobalEulerYXZ (frame_id);
-	vector3DYXZReadOnlyPropertyManager->setValue (orientation_property, QVector3D (rot[0], rot[1], rot[2]));
-	propertiesBrowser->addProperty (orientation_property);
+	propertiesBrowser->insertProperty (frame_name_property, 0);
 
 	// joints
-	QtProperty *joint_group = groupManager->addProperty("Joint");
+	QtProperty *joint_group = groupManager->addProperty("Joint Frame");
 
 	// joint local position
 	QtProperty *joint_location_local_property = vector3DPropertyManager->addProperty("Position");
@@ -340,7 +324,14 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	registerProperty (joint_orientation_local_property, "joint_orientation_local");
 	joint_group->addSubProperty (joint_orientation_local_property);
 
-	propertiesBrowser->addProperty (joint_group);
+	item = propertiesBrowser->addProperty (joint_group);
+//	propertiesBrowser->setExpanded (item, false);
+
+	if (item->children().size() > 0) {
+		for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {
+			propertiesBrowser->setExpanded ((*iter), false);
+		}
+	}
 
 //	QtProperty *visuals_group = groupManager->addProperty("Visuals");
 //	propertiesBrowser->addProperty (visuals_group);
@@ -350,12 +341,7 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (object_id < 0) {
-		return;
-	}
-
-	if (markerModel && markerModel->isModelObject(object_id)) {
-		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
-		updatePropertiesForFrame (frame_id);
+		propertiesBrowser->clear();
 		return;
 	}
 
@@ -365,26 +351,29 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 
 	// update properties browser
 	propertiesBrowser->clear();
-
-	// property browser: properties
-	QtProperty *frame_name_property = stringManager->addProperty ("Name");
-	propertiesBrowser->addProperty (frame_name_property);
+	QtBrowserItem* item = NULL;
 
 	// global position
 	QtProperty *position_property = vector3DPropertyManager->addProperty("Position");
 	Vector3f position = scene->getObject(object_id).transformation.translation;
 	vector3DPropertyManager->setValue (position_property, QVector3D (position[0], position[1], position[2]));
 	registerProperty (position_property, "object_position");
-	propertiesBrowser->addProperty (position_property);
+	item = propertiesBrowser->addProperty (position_property);
+	propertiesBrowser->setExpanded (item, false);
 
 	// global orientation
 	QtProperty *orientation_property = vector3DYXZPropertyManager->addProperty("Orientation");
 	Vector3f yxz_rotation = scene->getObject(object_id).transformation.rotation.toEulerYXZ();
 	vector3DYXZPropertyManager->setValue (orientation_property, QVector3D (yxz_rotation[0], yxz_rotation[1], yxz_rotation[2]));
 	registerProperty (orientation_property, "object_orientation");
-	propertiesBrowser->addProperty (orientation_property);
+	item = propertiesBrowser->addProperty (orientation_property);
+	propertiesBrowser->setExpanded (item, false);
 
-	propertiesBrowser->addProperty (frame_name_property);
+	if (markerModel && markerModel->isModelObject(object_id)) {
+		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
+		updatePropertiesForFrame (frame_id);
+		return;
+	}
 
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }

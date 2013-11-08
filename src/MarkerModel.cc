@@ -68,9 +68,6 @@ int MarkerModel::getFrameIdFromObjectId (int object_id) {
 			return joints[i].luaFrameId;
 	}
 
-	cerr << "Could not find frame id for object id " << object_id << endl;
-	abort();
-	
 	return 0;
 }
 

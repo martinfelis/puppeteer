@@ -210,6 +210,19 @@ int Scene::registerSceneObject (const SceneObject &object) {
 	return lastObjectId;
 }
 
+void Scene::updateSceneObject (const int id, const SceneObject& object) {
+	for (unsigned int i = 0; i < objects.size(); i++) {
+		if (objects[i].id == id) {
+			objects[i] = object;
+			objects[i].id = id;
+			return;
+		}
+	}
+
+	cerr << "Error: could not update scene object with id '" << id << "'. Object not found!" << endl;
+	abort();
+}
+
 void Scene::unregisterSceneObject (const int id) {
 	std::vector<SceneObject>::iterator obj_iter = objects.begin();
 
@@ -232,6 +245,14 @@ void Scene::unregisterSceneObject (const int id) {
 	abort();
 }
 
+bool Scene::isSceneObject (int id) {
+	for (size_t i = 0; i < objects.size(); i++) {
+		if (objects[i].id == id) 
+			return true;
+	}
+
+	return false;
+}
 
 SceneObject& Scene::getObject (int id) {
 	for (size_t i = 0; i < objects.size(); i++) {
