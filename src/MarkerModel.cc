@@ -82,6 +82,31 @@ void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
 	updateSceneObjects();
 }
 
+JointObject* MarkerModel::getJointObject (int frame_id) {
+	for (size_t i = 0; i < joints.size(); i++) {
+		if (joints[i]->frameId == frame_id)
+			return joints[i];
+	}
+
+	JointObject *joint_object = scene->createObject<JointObject>();
+	joint_object->frameId = frame_id;
+	joints.push_back (joint_object);
+	return joint_object;
+}
+
+VisualsObject* MarkerModel::getVisualsObject (int frame_id, int visual_index) {
+	for (size_t i = 0; i < visuals.size(); i++) {
+		if (visuals[i]->frameId == frame_id && visuals[i]->visualIndex == visual_index)
+			return visuals[i];
+	}
+
+	VisualsObject *visual_object = scene->createObject<VisualsObject>();
+	visual_object->frameId = frame_id;
+	visual_object->visualIndex = visual_index;
+	visuals.push_back (visual_object);
+
+	return visual_object;
+}
 void MarkerModel::updateSceneObjects() {
 	RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
 
@@ -102,7 +127,7 @@ void MarkerModel::updateSceneObjects() {
 
 	for (size_t i = 0; i < visuals.size(); i++) {
 		Transformation joint_transformation = visuals[i]->jointObject->transformation;
-		Vector3f mesh_center = (*luaTable)["frames"][visuals[i]->luaFrameId]["visuals"][visuals[i]->visualIndex]["mesh_center"].getDefault<Vector3f>(Vector3f (0.f, 0.f, 0.f));
+		Vector3f mesh_center = (*luaTable)["frames"][visuals[i]->frameId]["visuals"][visuals[i]->visualIndex]["mesh_center"].getDefault<Vector3f>(Vector3f (0.f, 0.f, 0.f));
 
 		joint_transformation.translation = joint_transformation.translation + joint_transformation.rotation.rotate (mesh_center);
 
@@ -114,12 +139,12 @@ void MarkerModel::updateSceneObjects() {
 int MarkerModel::getFrameIdFromObjectId (int object_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
 		if (visuals[i]->id == object_id)
-			return visuals[i]->luaFrameId;
+			return visuals[i]->frameId;
 	}
 
 	for (size_t i = 0; i < joints.size(); i++) {
 		if (joints[i]->id == object_id)
-			return joints[i]->luaFrameId;
+			return joints[i]->frameId;
 	}
 
 	return 0;
@@ -159,12 +184,12 @@ VisualsData MarkerModel::getVisualsData (int frame_id, int visuals_index) {
 
 int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
-		if (visuals[i]->luaFrameId == frame_id)
+		if (visuals[i]->frameId == frame_id)
 			return visuals[i]->id;
 	}
 
 	for (size_t i = 0; i < joints.size(); i++) {
-		if (joints[i]->luaFrameId == frame_id)
+		if (joints[i]->frameId == frame_id)
 			return joints[i]->id;
 	}
 
@@ -222,6 +247,7 @@ Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
 }
 
 void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r) {
+	/// \todo adjusting of parent visuals fails when mesh_center moves out of the bounding box of the original bbox.
 	Vector3f delta_r = new_r - old_r;
 	int parent_id = getParentFrameId (frame_id);
 	
@@ -267,26 +293,11 @@ void MarkerModel::clearModel() {
 	delete rbdlModel;
 	rbdlModel = new RigidBodyDynamics::Model();
 
-	for (size_t i = 0; i < joints.size(); i++) {
-		scene->unregisterSceneObject (joints[i]->id);
-	}
-	joints.clear();
-
-	for (size_t i = 0; i < visuals.size(); i++) {
-		scene->unregisterSceneObject (visuals[i]->id);
-	}
-	visuals.clear();
-
 	rbdlToLuaId.clear();
 	luaToRbdlId.clear();
 }
 
 void MarkerModel::updateFromLua() {
-	int selected_frame = -1;
-	if (isModelObject (scene->selectedObjectId)) {
-		selected_frame = getFrameIdFromObjectId (scene->selectedObjectId);
-	}
-
 	clearModel();
 
 	assert (luaTable->L);
@@ -320,7 +331,7 @@ void MarkerModel::updateFromLua() {
 		rbdlToLuaId[rbdl_id] = i;
 
 		// Add joint scene object
-		JointObject *joint_scene_object = scene->createObject<JointObject>();
+		JointObject *joint_scene_object = getJointObject(i);
 		joint_scene_object->rbdlBodyId = rbdl_id;
 
 		joint_scene_object->color = Vector3f (0.9f, 0.9f, 0.9f);
@@ -337,8 +348,7 @@ void MarkerModel::updateFromLua() {
 		joint_scene_object->mesh = CreateUVSphere (8, 16);
 		joint_scene_object->noDepthTest = true;
 
-		joint_scene_object->luaFrameId = i;
-		joints.push_back (joint_scene_object);
+		joint_scene_object->frameId = i;
 
 		// add visuals
 		for (size_t vi = 0; vi < (*luaTable)["frames"][i]["visuals"].length(); vi++) {
@@ -348,8 +358,8 @@ void MarkerModel::updateFromLua() {
 			assert ((visual_data.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
 
 			// setup of the scene object
-			VisualsObject* visual_scene_object = scene->createObject<VisualsObject>();
-			visual_scene_object->luaFrameId = i;
+			VisualsObject* visual_scene_object = getVisualsObject (i, vi + 1);
+			visual_scene_object->frameId = i;
 			visual_scene_object->jointObject = joint_scene_object;
 			visual_scene_object->visualIndex = vi + 1;
 			visual_scene_object->color = visual_data.color;
@@ -372,9 +382,6 @@ void MarkerModel::updateFromLua() {
 			object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_data.mesh_center);
 	
 			visual_scene_object->transformation = object_transformation;
-
-			// register scene object
-			visuals.push_back(visual_scene_object);
 		}
 	}
 
@@ -383,11 +390,6 @@ void MarkerModel::updateFromLua() {
 
 	updateModelState();
 	updateSceneObjects();
-
-	// restore selected frame
-	if (selected_frame != -1) {
-		scene->selectedObjectId = getObjectIdFromFrameId (selected_frame);
-	}
 }
 
 bool MarkerModel::loadFromFile(const char* filename) {

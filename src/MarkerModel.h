@@ -21,16 +21,16 @@ namespace RigidBodyDynamics {
 struct LuaTable;
 
 struct JointObject : public SceneObject {
-	int luaFrameId;
+	int frameId;
 	unsigned int rbdlBodyId;
 };
 
 struct VisualsObject: public SceneObject {
 	VisualsObject(): 
-		luaFrameId(0)
+		frameId(0)
 	{}
 
-	int luaFrameId;
+	int frameId;
 	int visualIndex;
 	JointObject* jointObject;
 };
@@ -53,6 +53,11 @@ struct VisualsData {
 	std::string src;
 };
 
+/**
+ *
+ * \todo add support for the deletion of joints and visuals. Currently it
+ * is assumed that the number of joints and visuals is constant.
+ */
 struct MarkerModel {
 	MarkerModel():
 		scene(NULL),
@@ -105,6 +110,9 @@ struct MarkerModel {
 
 	void updateModelState();
 	void setModelStateValue (unsigned int state_index, double value);
+
+	JointObject* getJointObject (int frame_id);
+	VisualsObject* getVisualsObject (int frame_id, int visual_index);
 
 	int getParentFrameId (int frame_id);
 	int getObjectIdFromFrameId (int frame_id);
