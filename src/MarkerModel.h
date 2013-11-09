@@ -109,6 +109,8 @@ struct MarkerModel {
 	int getParentFrameId (int frame_id);
 	int getObjectIdFromFrameId (int frame_id);
 	int getFrameIdFromObjectId (int object_id);
+	int getVisualsCount (int frame_id);
+	VisualsData getVisualsData (int frame_id, int visuals_index);
 	std::string getFrameName (int frame_id);
 	std::string getParentName (int frame_id);
 	Vector3f getFrameLocationGlobal (int frame_id);
@@ -117,7 +119,7 @@ struct MarkerModel {
 	Vector3f getJointOrientationLocalEulerYXZ (int frame_id);
 	void setJointLocationLocal (int frame_id, const Vector3f &location);
 	void setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler);
-	void adjustParentVisualsScale (int frame_id, const Vector3f &delta_r);
+	void adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r);
 
 	bool loadFromFile (const char* filename);
 	void clearModel();

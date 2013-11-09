@@ -141,6 +141,22 @@ int MarkerModel::getParentFrameId(int frame_id) {
 	abort();
 }
 
+int MarkerModel::getVisualsCount (int frame_id) {
+	if (frame_id == 0)
+		return 0;
+
+	assert (luaTable);
+
+	return (*luaTable)["frames"][frame_id]["visuals"].length();
+}
+
+VisualsData MarkerModel::getVisualsData (int frame_id, int visuals_index) {
+	assert (frame_id > 0);
+	assert (visuals_index > 0 && visuals_index <= getVisualsCount (frame_id));
+
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index];
+}
+
 int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
 		if (visuals[i]->luaFrameId == frame_id)
@@ -205,7 +221,8 @@ Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
 }
 
-void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &delta_r) {
+void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r) {
+	Vector3f delta_r = new_r - old_r;
 	int parent_id = getParentFrameId (frame_id);
 	
 	if (parent_id == 0)
@@ -214,8 +231,17 @@ void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &delta_
 	for (int i = 0; i < (*luaTable)["frames"][parent_id]["visuals"].length(); i++) {
 		Vector3f dimensions = (*luaTable)["frames"][parent_id]["visuals"][i + 1]["dimensions"];
 		Vector3f mesh_center = (*luaTable)["frames"][parent_id]["visuals"][i + 1]["mesh_center"];
+
+		Vector3f center_to_r = old_r - mesh_center;
+		Vector3f delta_dim (
+				copysign(delta_r[0], center_to_r[0] * delta_r[0]),
+				copysign(delta_r[1], center_to_r[1] * delta_r[1]),
+				copysign(delta_r[2], center_to_r[2] * delta_r[2])
+				);
+
 		mesh_center = mesh_center + delta_r * 0.5f;
-		dimensions = dimensions + delta_r;
+		dimensions = dimensions + delta_dim;
+
 		(*luaTable)["frames"][parent_id]["visuals"][i + 1]["dimensions"] = dimensions;
 		(*luaTable)["frames"][parent_id]["visuals"][i + 1]["mesh_center"] = mesh_center;
 	}
@@ -225,7 +251,7 @@ void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location)
 	Vector3f old_location = (*luaTable)["frames"][frame_id]["joint_frame"]["r"];
 	(*luaTable)["frames"][frame_id]["joint_frame"]["r"] = location;
 
-	adjustParentVisualsScale (frame_id, location - old_location);
+	adjustParentVisualsScale (frame_id, old_location, location);
 	
 	updateFromLua();
 }
