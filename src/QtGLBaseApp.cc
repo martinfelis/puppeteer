@@ -80,6 +80,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	// marker model and data
 	markerModel = NULL;
 	markerData = NULL;
+	activeModelFrame = 0;
+	activeObject = 0;
 
 	drawTimer = new QTimer (this);
 	drawTimer->setSingleShot(false);
@@ -100,8 +102,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (drawTimer, SIGNAL(timeout()), glWidget, SLOT (updateGL()));
 
 	// object selection
-	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
-	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateModelStateEditor(int)));
+	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (objectSelected(int)));
+//	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
+//	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateModelStateEditor(int)));
 
 	// property browser: managers
 	doubleReadOnlyManager = new QtDoublePropertyManager(propertiesBrowser);
@@ -220,6 +223,17 @@ void QtGLBaseApp::collapseProperties() {
 		propertiesBrowser->setExpanded (*prop_iter, false);
 		prop_iter++;
 	}
+}
+
+void QtGLBaseApp::objectSelected (int object_id) {
+	activeModelFrame = 0;
+	activeObject = object_id;
+
+	if (markerModel && markerModel->isModelObject(object_id)) {
+		activeModelFrame = markerModel->getFrameIdFromObjectId (object_id);
+	}
+
+	updateWidgetsFromObject (object_id);
 }
 
 void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
@@ -374,7 +388,7 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	unsigned int state_index = propertyToStateIndex[property];
 
 	markerModel->setModelStateValue (state_index, value);	
-	updateWidgetsFromObject (scene->selectedObjectId);
+	updateWidgetsFromObject ((*scene->selectedObjectIds.end()));
 }
 
 void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
@@ -385,20 +399,18 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 
 	if (property_name.startsWith ("object_position")) {
 		Vector3f position (value.x(), value.y(), value.z());
-		scene->getObject<SceneObject>(scene->selectedObjectId)->transformation.translation = position;
+		scene->getObject<SceneObject>(activeObject)->transformation.translation = position;
 	} else if (property_name.startsWith ("object_orientation")) {
 		Vector3f yxz_rotation (value.x(), value.y(), value.z());
 		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
-		scene->getObject<SceneObject>(scene->selectedObjectId)->transformation.rotation = rotation;
+		scene->getObject<SceneObject>(activeObject)->transformation.rotation = rotation;
 	} else if (property_name.startsWith ("joint_location_local")) {
 		Vector3f position (value.x(), value.y(), value.z());
-		unsigned int frame_id = markerModel->getFrameIdFromObjectId (scene->selectedObjectId);
-		markerModel->setJointLocationLocal (frame_id, position);
+		markerModel->setJointLocationLocal (activeModelFrame, position);
 	} else if (property_name.startsWith ("joint_orientation_local")) {
 		Vector3f yxz_rotation (value.x(), value.y(), value.z());
 		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
-		unsigned int frame_id = markerModel->getFrameIdFromObjectId (scene->selectedObjectId);
-		markerModel->setJointOrientationLocalEulerYXZ (frame_id, rotation.toEulerYXZ());
+		markerModel->setJointOrientationLocalEulerYXZ (activeModelFrame, rotation.toEulerYXZ());
 	} else {
 		qDebug() << "Warning! Unhandled value change of property " << property_name;
 	}

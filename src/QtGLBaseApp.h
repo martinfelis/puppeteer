@@ -38,6 +38,8 @@ protected:
 		Scene *scene;
 		MarkerModel *markerModel;
 		MarkerData *markerData;
+		int activeModelFrame;
+		int activeObject;
 
 		QtVector3DPropertyManager *vector3DPropertyManager;
 		QtVector3DPropertyManager *vector3DReadOnlyPropertyManager;
@@ -73,6 +75,7 @@ public slots:
 		void quitApplication();
 
 		void collapseProperties();
+		void objectSelected(int object_id);
 		void updateModelStateEditor(int object_id);
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);

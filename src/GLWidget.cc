@@ -252,17 +252,30 @@ void GLWidget::resizeGL(int width, int height)
 void GLWidget::keyPressEvent(QKeyEvent* event) {
 }
 
+void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
+	if ((lastMousePos == event->pos()) 
+//			&& (event->buttons().testFlag(Qt::LeftButton)) 
+		  && (!event->modifiers().testFlag(Qt::ControlModifier))) {
+			scene->clearSelection();
+	}
+}
+	
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
 	lastMousePos = event->pos();
+	isDragging = false;
 
-	if (scene->mouseOverObjectId >= 0) {
-		scene->selectedObjectId = scene->mouseOverObjectId;
-	} else {
-		scene->selectedObjectId = -1;
+	if (event->buttons().testFlag(Qt::LeftButton)) {
+		if (!event->modifiers().testFlag(Qt::ControlModifier)) {
+			scene->clearSelection();
+		}
+		if (scene->objectIsSelected (scene->mouseOverObjectId)) {
+			scene->unselectObject (scene->mouseOverObjectId);
+		} else {
+			scene->selectObject (scene->mouseOverObjectId);
+			emit object_selected (scene->mouseOverObjectId);
+		}
 	}
-
-	emit object_selected (scene->selectedObjectId);
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -272,14 +285,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if (event->buttons().testFlag(Qt::MiddleButton)
 			|| ( event->buttons().testFlag(Qt::LeftButton) && event->buttons().testFlag(Qt::RightButton))) {
+		isDragging = true;
 		camera.move (dx, dy);
 		emit camera_changed();
 	} else if (event->buttons().testFlag(Qt::LeftButton)) {
 		// rotate
+		isDragging = true;
 		camera.rotate (dx, dy);
 		emit camera_changed();
 	} else if (event->buttons().testFlag(Qt::RightButton)) {
 		// zoom
+		isDragging = true;
 		camera.zoom (dy);
 		emit camera_changed();
 	}

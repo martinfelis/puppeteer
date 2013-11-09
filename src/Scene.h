@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <list>
 
 #include "MeshVBO.h"
 #include "Transformation.h"
@@ -37,15 +38,19 @@ struct SceneObject {
 struct Scene {
 	Scene() : 
 		lastObjectId (0),
-		selectedObjectId(-1),
 		mouseOverObjectId(-1) {	}
 
 	int lastObjectId;
-	int selectedObjectId;
+	std::list<int> selectedObjectIds;
 	int mouseOverObjectId;
 
 	void draw();
 	void drawForColorPicking();
+
+	void selectObject (const int id);
+	void unselectObject (const int id);
+	void clearSelection () { selectedObjectIds.clear(); }
+	bool objectIsSelected (const int id) const;
 
 	void drawSceneObjectStyled (const SceneObject *object, DrawStyle style);
 	void unregisterSceneObject (const int id);

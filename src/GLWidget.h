@@ -36,6 +36,7 @@ class GLWidget : public QGLWidget
 
 		void setScene (Scene* scene_ptr) { scene = scene_ptr; };
 
+		bool isDragging;
 		bool draw_base_axes;
 		bool draw_grid;
 
@@ -55,6 +56,7 @@ class GLWidget : public QGLWidget
 
 		void keyPressEvent (QKeyEvent* event);
 		void mousePressEvent(QMouseEvent *event);
+		void mouseReleaseEvent(QMouseEvent *event);
 		void mouseMoveEvent(QMouseEvent *event);
 
 	private:

@@ -104,7 +104,7 @@ void Scene::draw() {
 			depth_ignoring_objects.push_back (objects[i]);
 			continue;
 		}
-		if (objects[i]->id == selectedObjectId) {
+		if (objectIsSelected(objects[i]->id)) {
 			drawSceneObjectStyled (objects[i], DrawStyleSelected);
 		} else if (objects[i]->id == mouseOverObjectId) {
 			drawSceneObjectStyled (objects[i], DrawStyleHighlighted);
@@ -117,7 +117,7 @@ void Scene::draw() {
 
 	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
 		drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleNormal);
-		if (depth_ignoring_objects[i]->id == selectedObjectId) {
+		if (objectIsSelected(depth_ignoring_objects[i]->id)) {
 			drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleSelected);
 		} else if (depth_ignoring_objects[i]->id == mouseOverObjectId) {
 			drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleHighlighted);
@@ -160,14 +160,39 @@ void Scene::drawForColorPicking() {
 	}
 }
 
+void Scene::selectObject (const int id) {
+	if (objectIsSelected(id))
+		return;
+
+	selectedObjectIds.push_back(id);
+}
+
+void Scene::unselectObject (const int id) {
+	list<int>::iterator iter = selectedObjectIds.begin();
+	do {
+		if (*iter == id) {
+			selectedObjectIds.erase(iter);
+			return;
+		}
+		iter++;
+	} while (iter != selectedObjectIds.end());
+}
+
+bool Scene::objectIsSelected (const int id) const {
+	list<int>::const_iterator iter = selectedObjectIds.begin();
+	for (iter; iter != selectedObjectIds.end(); iter++) {
+		if (*iter == id) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void Scene::unregisterSceneObject (const int id) {
 	std::vector<SceneObject*>::iterator obj_iter = objects.begin();
 
-	if (selectedObjectId == id) 
-		selectedObjectId = -1;
-
-	if (mouseOverObjectId == id)
-		selectedObjectId = -1;
+	unselectObject (id);
 
 	do {
 		if ((*obj_iter)->id == id)  {
