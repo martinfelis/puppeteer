@@ -91,6 +91,15 @@ void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
 	updateSceneObjects();
 }
 
+bool MarkerModel::stateIndexIsFrameJointVariable (unsigned int state_index, int frame_id) {
+	unsigned int rbdl_id = frameIdToRbdlId[frame_id];
+	if (dofIndexToFrameId[state_index] == frame_id) {
+		return true;	
+	}
+
+	return false;
+}
+
 JointObject* MarkerModel::getJointObject (int frame_id) {
 	for (size_t i = 0; i < joints.size(); i++) {
 		if (joints[i]->frameId == frame_id)
@@ -210,7 +219,7 @@ int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 
 
 std::string MarkerModel::getFrameName (int frame_id) {
-	return rbdlModel->GetBodyName(luaToRbdlId[frame_id]);
+	return rbdlModel->GetBodyName(frameIdToRbdlId[frame_id]);
 }
 
 std::string MarkerModel::getParentName (int frame_id) {
@@ -222,7 +231,7 @@ Vector3f MarkerModel::getFrameLocationGlobal (int frame_id) {
 
 	RBDLVectorNd Q (rbdlModel->q_size);
 
-	RBDLVector3d position = RigidBodyDynamics::CalcBodyToBaseCoordinates (*rbdlModel, Q, luaToRbdlId[frame_id], RBDLVector3d( 0., 0., 0.), false);
+	RBDLVector3d position = RigidBodyDynamics::CalcBodyToBaseCoordinates (*rbdlModel, Q, frameIdToRbdlId[frame_id], RBDLVector3d( 0., 0., 0.), false);
 
 	return Vector3f (position[0], position[1], position[2]);
 }
@@ -231,7 +240,7 @@ Vector3f MarkerModel::getFrameOrientationGlobalEulerYXZ (int frame_id) {
 	updateModelState();
 
 	RBDLVectorNd Q (rbdlModel->q_size);
-	RBDLMatrix3d rbdl_orientation = RigidBodyDynamics::CalcBodyWorldOrientation (*rbdlModel, Q, luaToRbdlId[frame_id], false);
+	RBDLMatrix3d rbdl_orientation = RigidBodyDynamics::CalcBodyWorldOrientation (*rbdlModel, Q, frameIdToRbdlId[frame_id], false);
 
 	Matrix33f orientation;
 	
@@ -249,7 +258,7 @@ Vector3f MarkerModel::getJointLocationLocal (int frame_id) {
 }
 
 Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
-	SpatialTransform transform = rbdlModel->GetJointFrame (luaToRbdlId[frame_id]);
+	SpatialTransform transform = rbdlModel->GetJointFrame (frameIdToRbdlId[frame_id]);
 	Matrix33f orientation = (*luaTable)["frames"][frame_id]["joint_frame"]["E"].getDefault<Matrix33f>(Matrix33f::Identity(3,3));
 	
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
@@ -302,8 +311,8 @@ void MarkerModel::clearModel() {
 	delete rbdlModel;
 	rbdlModel = new RigidBodyDynamics::Model();
 
-	rbdlToLuaId.clear();
-	luaToRbdlId.clear();
+	rbdlToFrameId.clear();
+	frameIdToRbdlId.clear();
 }
 
 void MarkerModel::updateFromLua() {
@@ -335,9 +344,12 @@ void MarkerModel::updateFromLua() {
 		Joint joint = (*luaTable)["frames"][i]["joint"].getDefault(Joint(JointTypeFixed));
 		Body body = (*luaTable)["frames"][i]["body"];
 
+		for (int di = 0; di < joint.mDoFCount; di++) {
+			dofIndexToFrameId[rbdlModel->q_size + di] = i;
+		}
 		unsigned int rbdl_id = rbdlModel->AddBody (parent_id, joint_frame, joint, body, body_name);
-		luaToRbdlId[i] = rbdl_id;
-		rbdlToLuaId[rbdl_id] = i;
+		frameIdToRbdlId[i] = rbdl_id;
+		rbdlToFrameId[rbdl_id] = i;
 
 		// Add joint scene object
 		JointObject *joint_scene_object = getJointObject(i);

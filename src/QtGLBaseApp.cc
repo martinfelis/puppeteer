@@ -299,7 +299,10 @@ void QtGLBaseApp::updateModelStateEditor () {
 		QtProperty *dof_property = doubleManagerModelStateEditor->addProperty (state_names[i].c_str());
 		doubleManagerModelStateEditor->setValue (dof_property, model_state[i]);
 		doubleManagerModelStateEditor->setSingleStep (dof_property, 0.01);
-		modelStateEditor->addProperty (dof_property);
+		QtBrowserItem* item = modelStateEditor->addProperty (dof_property);
+		if (markerModel->stateIndexIsFrameJointVariable(i, activeModelFrame)) {
+			modelStateEditor->setBackgroundColor (item, QColor (180., 255., 180.));
+		}
 		propertyToStateIndex[dof_property] = i;
 	}
 }

@@ -78,9 +78,9 @@ struct MarkerModel {
 
 	std::vector<JointObject*> joints;
 	std::vector<VisualsObject*> visuals;
-	std::map<unsigned int, int> luaToRbdlId;
-	std::map<int, int> luaToSceneId;
-	std::map<int, unsigned int> rbdlToLuaId;
+	std::map<unsigned int, int> dofIndexToFrameId;
+	std::map<unsigned int, int> frameIdToRbdlId;
+	std::map<int, unsigned int> rbdlToFrameId;
 
 	bool isJointObject (int objectid) {
 		for (size_t i = 0; i < joints.size(); i++) {
@@ -110,6 +110,7 @@ struct MarkerModel {
 
 	void updateModelState();
 	void setModelStateValue (unsigned int state_index, double value);
+	bool stateIndexIsFrameJointVariable (unsigned int state_index, int frame_id);
 
 	JointObject* getJointObject (int frame_id);
 	VisualsObject* getVisualsObject (int frame_id, int visual_index);
