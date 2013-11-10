@@ -139,6 +139,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (doubleManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (modelStateValueChanged (QtProperty *, double)));
 	connect (vector3DPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
+	connect (saveModelStateButton, SIGNAL (clicked()), this, SLOT (saveModelState()));
+	connect (loadModelStateButton, SIGNAL (clicked()), this, SLOT (loadModelState()));
 }
 
 void print_usage(const char* execname) {
@@ -213,6 +215,17 @@ Vector3f parse_vec3_string (const std::string vec3_string) {
 
 void QtGLBaseApp::quitApplication() {
 	qApp->quit();
+}
+
+void QtGLBaseApp::loadModelState() {
+	assert (markerModel);	
+	markerModel->loadStateFromFile ("model_state.lua");
+	updateModelStateEditor();
+}
+
+void QtGLBaseApp::saveModelState() {
+	assert (markerModel);	
+	markerModel->saveStateToFile ("model_state.lua");
 }
 
 void QtGLBaseApp::collapseProperties() {

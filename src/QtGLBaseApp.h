@@ -75,6 +75,8 @@ protected:
 public slots:
 		void quitApplication();
 
+		void loadModelState();
+		void saveModelState();
 		void collapseProperties();
 		void objectSelected(int object_id);
 		void updateWidgetsFromObject (int object_id);

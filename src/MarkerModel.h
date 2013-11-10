@@ -130,6 +130,8 @@ struct MarkerModel {
 	void adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r);
 
 	bool loadFromFile (const char* filename);
+	void loadStateFromFile (const char* filename);
+	void saveStateToFile (const char* filename);
 	void clearModel();
 	void updateFromLua ();
 	void updateSceneObjects();

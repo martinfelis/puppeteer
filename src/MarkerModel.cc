@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
@@ -363,7 +364,7 @@ void MarkerModel::updateFromLua() {
 			visual_scene_object->jointObject = joint_scene_object;
 			visual_scene_object->visualIndex = vi + 1;
 			visual_scene_object->color = visual_data.color;
-			visual_scene_object->color[3] = 0.5;
+			visual_scene_object->color[3] = 0.8;
 
 			MeshVBO mesh;
 			load_obj (mesh, visual_data.src.c_str());	
@@ -391,6 +392,26 @@ void MarkerModel::updateFromLua() {
 
 	updateModelState();
 	updateSceneObjects();
+}
+
+void MarkerModel::loadStateFromFile (const char* filename) {
+	LuaTable state_table = LuaTable::fromFile (filename);
+	for (int i = 0; i < modelStateQ.size(); i++) {
+		modelStateQ[i] = state_table[i + 1];
+	}
+	updateModelState();
+	updateSceneObjects();
+}
+
+void MarkerModel::saveStateToFile (const char* filename) {
+	LuaTable state_table = LuaTable::fromLuaExpression ("return {}");
+	for (int i = 0; i < modelStateQ.size(); i++) {
+		state_table[i + 1] = modelStateQ[i];
+	}
+	string table_str = state_table.serialize();
+	ofstream outfile (filename);
+	outfile << table_str;
+	outfile.close();
 }
 
 bool MarkerModel::loadFromFile(const char* filename) {
