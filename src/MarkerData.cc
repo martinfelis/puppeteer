@@ -9,6 +9,9 @@ MarkerData::~MarkerData() {
 		delete c3dfile;
 		c3dfile = NULL;
 	}
+	for (int i = 0; i < markers.size(); i++) {
+		scene->destroyObject<MarkerObject>(markers[i]);
+	}
 }
 
 bool MarkerData::loadFromFile(const char *filename) {
@@ -74,7 +77,7 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	assert (c3dfile);
 	assert (scene);
 
-	SceneObject* scene_marker = scene->createObject<SceneObject>();
+	MarkerObject* scene_marker = scene->createObject<MarkerObject>();
 	scene_marker->color.block<3,1>(0,0) = color;
 
 	Vector3f position = getMarkerCurrentPosition(marker_name);
@@ -82,12 +85,9 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	scene_marker->mesh = CreateUVSphere (4, 8);
 	scene_marker->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
 	scene_marker->noDepthTest = true;
+	scene_marker->markerName = marker_name;
 
-	MarkerObject marker_object;
-	marker_object.sceneObjectId = scene_marker->id;
-	marker_object.markerName = marker_name;
-
-	markers.push_back (marker_object);
+	markers.push_back (scene_marker);
 }
 
 Vector3f MarkerData::getMarkerCurrentPosition(const char * marker_name) {
@@ -121,8 +121,7 @@ void MarkerData::setCurrentFrameNumber (int frame_number) {
 
 void MarkerData::updateMarkerSceneObjects() {
 	for (size_t i = 0; i < markers.size(); i++) {
-		Vector3f position = getMarkerCurrentPosition(markers[i].markerName.c_str());
-		SceneObject* marker_object = scene->getObject<SceneObject>(markers[i].sceneObjectId);
-		marker_object->transformation.translation = position;
+		Vector3f position = getMarkerCurrentPosition(markers[i]->markerName.c_str());
+		markers[i]->transformation.translation = position;
 	}
 }

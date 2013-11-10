@@ -49,6 +49,14 @@ MarkerModel::~MarkerModel() {
 		delete luaTable;
 		luaTable = NULL;
 	}
+
+	for (size_t i = 0; i < visuals.size(); i++) {
+		scene->destroyObject<VisualsObject>(visuals[i]);
+	}
+
+	for (size_t i = 0; i < joints.size(); i++) {
+		scene->destroyObject<JointObject>(joints[i]);
+	}
 }
 
 VectorNd MarkerModel::getModelState() {

@@ -10,8 +10,7 @@
 struct C3DFile;
 struct Scene;
 
-struct MarkerObject {
-	int sceneObjectId;
+struct MarkerObject : public SceneObject {
 	std::string markerName;
 };
 
@@ -31,8 +30,16 @@ struct MarkerData {
 	Scene *scene;
 	C3DFile *c3dfile;
 	int currentFrame;
-	std::vector<MarkerObject> markers;
+	std::vector<MarkerObject*> markers;
 
+	bool isMarkerObject(int objectid) {
+		for (size_t i = 0; i < markers.size(); i++) {
+			if (markers[i]->id == objectid) {
+				return true;
+			}
+		}
+		return false;
+	}
 	void enableMarker (const char* marker_name, const Vector3f &color);
 	bool loadFromFile (const char* filename);
 	Vector3f getMarkerCurrentPosition (const char*);
