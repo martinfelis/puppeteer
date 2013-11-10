@@ -75,7 +75,7 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	assert (scene);
 
 	SceneObject* scene_marker = scene->createObject<SceneObject>();
-	scene_marker->color = color;
+	scene_marker->color.block<3,1>(0,0) = color;
 
 	Vector3f position = getMarkerCurrentPosition(marker_name);
 	scene_marker->transformation.translation = position;
