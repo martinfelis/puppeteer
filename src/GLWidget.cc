@@ -151,6 +151,9 @@ void GLWidget::initializeGL()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
+	if (scene)
+		scene->initShaders();
+
 	opengl_initialized = true;
 }
 

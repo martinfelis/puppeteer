@@ -26,17 +26,32 @@ joint_base = {
 	{ 0., 0., 0., 0., 0., 1.},
 	{ 0., 1., 0., 0., 0., 0.},
 }
+joint_rot_yxz = {
+	{ 0., 1., 0., 0., 0., 0.},
+	{ 1., 0., 0., 0., 0., 0.},
+	{ 0., 0., 1., 0., 0., 0.},
+}
+joint_floatingbase = {
+	{ 0., 0., 0., 1., 0., 0.},
+	{ 0., 0., 0., 0., 1., 0.},
+	{ 0., 0., 0., 0., 0., 1.},
+	{ 0., 1., 0., 0., 0., 0.},
+	{ 1., 0., 0., 0., 0., 0.},
+	{ 0., 0., 1., 0., 0., 0.},
+}
+
 
 joints = {
-	hip = joint_rot_y,
+	pelvis = joint_floatingbase,
+	hip = joint_rot_yxz,
 	knee = joint_rot_y,
-	ankle = joint_rot_y,
+	ankle = joint_rot_yxz,
 	lumbar = joint_fixed,
 	thorax = joint_fixed,
-	shoulder= joint_rot_y,
+	shoulder= joint_rot_yxz,
 	elbow = joint_rot_y,
 	wrist = joint_fixed,
-	neck = joint_rot_y
+	neck = joint_rot_yxz
 }
 
 points = {
@@ -91,7 +106,7 @@ model = {
 			name = "pelvis",
 			parent = "ROOT",
 			body = bodies.pelvis,
-			joint = joint_base,
+			joint = joints.pelvis,
 			joint_frame = {
 				r = heiman:get_joint_origin ("pelvis")
 			},

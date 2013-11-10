@@ -334,7 +334,7 @@ void MarkerModel::updateFromLua() {
 		JointObject *joint_scene_object = getJointObject(i);
 		joint_scene_object->rbdlBodyId = rbdl_id;
 
-		joint_scene_object->color = Vector3f (0.9f, 0.9f, 0.9f);
+		joint_scene_object->color = Vector4f (0.9f, 0.9f, 0.9f, 1.f);
 	
 		RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
 		RBDLVector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, rbdl_id, RigidBodyDynamics::Math::Vector3d (0., 0., 0.));
@@ -344,7 +344,7 @@ void MarkerModel::updateFromLua() {
 		Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
 		joint_scene_object->transformation.rotation = SimpleMath::GL::Quaternion::fromMatrix(rot_mat);
 		joint_scene_object->transformation.translation = joint_position;
-		joint_scene_object->transformation.scaling = Vector3f (0.03, 0.03, 0.03);
+		joint_scene_object->transformation.scaling = Vector3f (0.025, 0.025, 0.025);
 		joint_scene_object->mesh = CreateUVSphere (8, 16);
 		joint_scene_object->noDepthTest = true;
 
@@ -363,6 +363,7 @@ void MarkerModel::updateFromLua() {
 			visual_scene_object->jointObject = joint_scene_object;
 			visual_scene_object->visualIndex = vi + 1;
 			visual_scene_object->color = visual_data.color;
+			visual_scene_object->color[3] = 0.5;
 
 			MeshVBO mesh;
 			load_obj (mesh, visual_data.src.c_str());	

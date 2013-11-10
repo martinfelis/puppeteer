@@ -7,6 +7,7 @@
 
 #include "MeshVBO.h"
 #include "Transformation.h"
+#include "Shader.h"
 
 Vector4f object_id_to_vector4 (int id);
 int vector4_to_object_id (const Vector4f &color);
@@ -21,29 +22,38 @@ enum DrawStyle {
 struct SceneObject {
 	SceneObject () :
 		id (-1),
-		color (1.f, 1.f, 1.f),
+		color (1.f, 1.f, 1.f, 1.f),
 		noDepthTest(false),
 		noLighting(false)
 	{ }
 	virtual ~SceneObject() {}
 
 	int id;
-	Vector3f color;
+	Vector4f color;
 	bool noDepthTest;
 	bool noLighting;
 	Transformation transformation;
 	MeshVBO mesh;
 };
 
+struct Light {
+	Vector4f ambient;
+	Vector4f diffuse;
+	Vector4f specular;
+	Vector4f position;
+};
+
 struct Scene {
-	Scene() : 
+	Scene() :
 		lastObjectId (0),
-		mouseOverObjectId(-1) {	}
+		mouseOverObjectId (-1)
+	{}
 
 	int lastObjectId;
 	std::list<int> selectedObjectIds;
 	int mouseOverObjectId;
 
+	void initShaders();
 	void draw();
 	void drawForColorPicking();
 
@@ -58,6 +68,8 @@ struct Scene {
 	template <typename T> T* createObject();
 	template <typename T> void destroyObject(T* object);
 	template <typename T> T* getObject(const int id);
+
+	ShaderProgram defaultShader;
 
 	private:
 		std::vector<SceneObject*> objects;

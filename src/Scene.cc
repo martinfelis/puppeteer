@@ -5,6 +5,7 @@
 #include <GL/glu.h>
 
 #include "Scene.h"
+#include "Shader.h"
 #include "objloader.h"
 
 using namespace std;
@@ -40,9 +41,20 @@ int vector4_to_object_id (const Vector4f &color) {
 	return result - 1;
 }
 
+void Scene::initShaders() {
+	defaultShader = ShaderProgram::createFromFiles ("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
+}
+
 void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 	if (style == DrawStyleHidden)
 		return;
+
+//	defaultShader.printLog();
+//	glUseProgram(defaultShader.program_id);
+//	defaultShader.setUniformFloat("alpha", 1.0);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPushMatrix();
 	glMultMatrixf (object->transformation.toGLMatrix().data());
@@ -64,7 +76,7 @@ void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 		if (!object->noLighting)
 			glEnable(GL_LIGHTING);
 
-		glColor3f (0.f, 0.8f, 0.8f);
+		glColor4f (0.f, 0.8f, 0.8f, 1.f);
 		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 	} else if (style == DrawStyleHighlighted) {
 		glDisable(GL_LIGHTING);
@@ -72,7 +84,7 @@ void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 		glCullFace(GL_FRONT);
 		glPushMatrix();
 		glScalef (1.03f, 1.03f, 1.03f);
-		glColor3f (0.9, 0.9, 0.3);
+		glColor4f (0.9, 0.9, 0.3, object->color[3]);
 		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 		glPopMatrix();
 		glCullFace(GL_BACK);
@@ -81,7 +93,7 @@ void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 		if (!object->noLighting)
 			glEnable(GL_LIGHTING);
 
-		glColor3f (0.8, 0.8, 0.2);
+		glColor4f (0.8, 0.8, 0.2, object->color[3]);
 		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 	} else {
 		if (object->noLighting)
@@ -89,9 +101,10 @@ void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 		else
 			glEnable(GL_LIGHTING);
 
-		glColor3fv (object->color.data());
+		glColor4fv (object->color.data());
 		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 	}
+	glDisable(GL_BLEND);
 
 	glPopMatrix();
 }

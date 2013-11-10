@@ -39,7 +39,7 @@ struct VisualsData {
 	VisualsData(): 
 		scale (-1.f, -1.f, -1.f),
 		dimensions (1.f, 1.f, 1.f),
-		color (1.f, 1.f, 1.f),
+		color (1.f, 1.f, 1.f, 1.f),
 		mesh_center (-1.f, -1.f, -1.f),
 		translate (-1.f, -1.f, -1.f),
 		src ("")
@@ -47,7 +47,7 @@ struct VisualsData {
 
 	Vector3f scale;
 	Vector3f dimensions;
-	Vector3f color;
+	Vector4f color;
 	Vector3f mesh_center;
 	Vector3f translate;
 	std::string src;

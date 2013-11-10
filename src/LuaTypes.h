@@ -6,8 +6,8 @@
 #include <rbdl/addons/luamodel/luatables.h>
 
 // SimpleMath Vector3f
-template<> SimpleMath::Fixed::Matrix<float, 3, 1> LuaTableNode::getDefault<SimpleMath::Fixed::Matrix<float, 3, 1> >(const SimpleMath::Fixed::Matrix<float, 3, 1> &default_value) { 
-	SimpleMath::Fixed::Matrix<float, 3, 1> result = default_value;
+template<> Vector3f LuaTableNode::getDefault<Vector3f>(const Vector3f &default_value) { 
+	Vector3f result = default_value;
 
 	if (stackQueryValue()) {
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
@@ -28,7 +28,7 @@ template<> SimpleMath::Fixed::Matrix<float, 3, 1> LuaTableNode::getDefault<Simpl
 };
 
 template<>
-void LuaTableNode::set<SimpleMath::Fixed::Matrix<float, 3, 1> >(const SimpleMath::Fixed::Matrix<float, 3, 1> &value) {
+void LuaTableNode::set<Vector3f>(const Vector3f &value) {
 	LuaTable custom_table = stackCreateLuaTable();
 
 	custom_table[1] = static_cast<double>(value[0]);
@@ -37,6 +37,31 @@ void LuaTableNode::set<SimpleMath::Fixed::Matrix<float, 3, 1> >(const SimpleMath
 
 	stackRestore();
 };
+
+// SimpleMath Vector4f
+template<> Vector4f LuaTableNode::getDefault<Vector4f>(const Vector4f &default_value) { 
+	Vector4f result = default_value;
+
+	if (stackQueryValue()) {
+		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+
+		if (vector_table.length() != 4) {
+			std::cerr << "LuaModel Error: invalid 4d vector!" << std::endl;
+			abort();
+		}
+		
+		result[0] = static_cast<float>(vector_table[1].get<double>());
+		result[1] = static_cast<float>(vector_table[2].get<double>());
+		result[2] = static_cast<float>(vector_table[3].get<double>());
+		result[3] = static_cast<float>(vector_table[4].get<double>());
+	}
+
+	stackRestore();
+
+	return result;
+};
+
+
 
 // SimpleMath Matrix33f
 template<> SimpleMath::Fixed::Matrix<float, 3, 3> LuaTableNode::getDefault<SimpleMath::Fixed::Matrix<float, 3, 3> >(const SimpleMath::Fixed::Matrix<float, 3, 3> &default_value) { 
@@ -277,7 +302,12 @@ template<> VisualsData LuaTableNode::getDefault<VisualsData>(const VisualsData &
 
 		result.scale = visuals_table["scale"].getDefault(Vector3f (-1.f, -1.f, -1.f));
 		result.dimensions = visuals_table["dimensions"].getDefault(Vector3f (-1.f, -1.f, -1.f));
-		result.color = visuals_table["color"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+		if (visuals_table["color"].length() == 4) 
+			result.color = visuals_table["color"].getDefault(Vector4f (-1.f, -1.f, -1.f, 1.f));
+		else {
+			Vector3f vec3_color = visuals_table["color"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+			result.color = Vector4f (vec3_color[0], vec3_color[1], vec3_color[2], 1.f);
+		}
 		result.mesh_center = visuals_table["mesh_center"].getDefault(Vector3f (-1.f, -1.f, -1.f));
 		result.translate = visuals_table["translate"].getDefault(Vector3f (-1.f, -1.f, -1.f));
 		result.src = visuals_table["src"].get<std::string>();
