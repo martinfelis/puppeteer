@@ -87,6 +87,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	drawTimer->setSingleShot(false);
 	drawTimer->start(20);
 
+	dockModelStateEditor->setVisible(false);
 	dockWidgetSlider->setVisible(false);
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
@@ -269,11 +270,10 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 
 void QtGLBaseApp::updateModelStateEditor () {
 	if (!markerModel) {
-		modelStateEditor->setEnabled(false);
+		modelStateEditor->setVisible(false);
 		return;
 	}
-
-	modelStateEditor->setEnabled(true);
+	dockModelStateEditor->setVisible(true);
 
 	modelStateEditor->clear();
 
