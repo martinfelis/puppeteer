@@ -64,6 +64,7 @@ protected:
 		QMap<QString, bool> idToExpanded;
 		QMap<QtProperty *, unsigned int> propertyToStateIndex;
 
+		void updateModelStateEditor();
 		void updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
 		void restoreExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
 		void registerProperty (QtProperty *property, const QString &name) {
@@ -76,7 +77,6 @@ public slots:
 
 		void collapseProperties();
 		void objectSelected(int object_id);
-		void updateModelStateEditor(int object_id);
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
 

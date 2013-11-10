@@ -87,7 +87,6 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	drawTimer->setSingleShot(false);
 	drawTimer->start(20);
 
-	dockModelStateEditor->setEnabled(false);
 	dockWidgetSlider->setVisible(false);
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
@@ -103,8 +102,6 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// object selection
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (objectSelected(int)));
-//	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateWidgetsFromObject(int)));
-//	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (updateModelStateEditor(int)));
 
 	// property browser: managers
 	doubleReadOnlyManager = new QtDoublePropertyManager(propertiesBrowser);
@@ -171,7 +168,9 @@ bool QtGLBaseApp::loadModelFile (const char* filename) {
 		delete markerModel;
 	markerModel = new MarkerModel (scene);
 	assert (markerModel);
-	return markerModel->loadFromFile (filename);
+	bool result = markerModel->loadFromFile (filename);
+	updateModelStateEditor();
+	return result;
 }
 
 bool QtGLBaseApp::loadMocapFile (const char* filename) {
@@ -234,6 +233,7 @@ void QtGLBaseApp::objectSelected (int object_id) {
 	}
 
 	updateWidgetsFromObject (object_id);
+	updateModelStateEditor();
 }
 
 void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
@@ -267,13 +267,11 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 	}
 }
 
-void QtGLBaseApp::updateModelStateEditor (int object_id) {
-	if (object_id < 0) {
+void QtGLBaseApp::updateModelStateEditor () {
+	if (!markerModel) {
 		modelStateEditor->setEnabled(false);
 		return;
 	}
-
-	assert (markerModel);
 
 	modelStateEditor->setEnabled(true);
 
