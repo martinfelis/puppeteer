@@ -81,6 +81,7 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	scene_marker->transformation.translation = position;
 	scene_marker->mesh = CreateUVSphere (4, 8);
 	scene_marker->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
+	scene_marker->noDepthTest = true;
 
 	MarkerObject marker_object;
 	marker_object.sceneObjectId = scene_marker->id;
