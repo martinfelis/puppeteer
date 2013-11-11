@@ -154,6 +154,10 @@ std::vector<Vector3f> MarkerModel::getFrameMarkerCoords (int frame_id) {
 	return result;
 }
 
+void MarkerModel::setFrameMarkerCoord (int frame_id, const char* marker_name, const Vector3f &coord) {
+	(*luaTable)["frames"][frame_id]["markers"][marker_name] = coord;
+}
+
 void MarkerModel::updateSceneObjects() {
 	RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
 

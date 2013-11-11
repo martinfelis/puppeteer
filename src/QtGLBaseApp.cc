@@ -449,6 +449,9 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 		Vector3f yxz_rotation (value.x(), value.y(), value.z());
 		Quaternion rotation = Quaternion::fromEulerYXZ (yxz_rotation);
 		markerModel->setJointOrientationLocalEulerYXZ (activeModelFrame, rotation.toEulerYXZ());
+	} else if (property_name.startsWith("marker_coordinates")) {
+		Vector3f coord (value.x(), value.y(), value.z());
+		markerModel->setFrameMarkerCoord (activeModelFrame, property->propertyName().toAscii(), coord);
 	} else {
 		qDebug() << "Warning! Unhandled value change of property " << property_name;
 	}
