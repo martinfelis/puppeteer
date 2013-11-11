@@ -139,8 +139,11 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (doubleManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (modelStateValueChanged (QtProperty *, double)));
 	connect (vector3DPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
+
 	connect (saveModelStateButton, SIGNAL (clicked()), this, SLOT (saveModelState()));
 	connect (loadModelStateButton, SIGNAL (clicked()), this, SLOT (loadModelState()));
+	connect (saveModelButton, SIGNAL (clicked()), this, SLOT(saveModel()));
+	connect (loadModelButton, SIGNAL (clicked()), this, SLOT(loadModel()));
 }
 
 void print_usage(const char* execname) {
@@ -226,6 +229,15 @@ void QtGLBaseApp::loadModelState() {
 void QtGLBaseApp::saveModelState() {
 	assert (markerModel);	
 	markerModel->saveStateToFile ("model_state.lua");
+}
+
+void QtGLBaseApp::loadModel() {
+	markerModel->loadFromFile ("model.lua");
+	objectSelected (activeObject);
+}
+
+void QtGLBaseApp::saveModel() {
+	markerModel->saveToFile ("model.lua");
 }
 
 void QtGLBaseApp::collapseProperties() {
@@ -340,6 +352,18 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 	item = propertiesBrowser->addProperty (joint_group);
 //	propertiesBrowser->setExpanded (item, false);
+
+	// markers
+	QtProperty *marker_group = groupManager->addProperty("Markers");
+	vector<string> marker_names = markerModel->getFrameMarkerNames(frame_id);
+	vector<Vector3f> marker_coords = markerModel->getFrameMarkerCoords(frame_id);
+	for (size_t i = 0; i < marker_names.size(); i++) {
+		QtProperty *marker_coordinates_property = vector3DPropertyManager->addProperty(marker_names[i].c_str());
+		vector3DPropertyManager->setValue (marker_coordinates_property, QVector3D (marker_coords[i][0], marker_coords[i][1], marker_coords[i][2])); 
+		registerProperty (marker_coordinates_property, "marker_coordinates");
+		marker_group->addSubProperty (marker_coordinates_property);
+	}
+	item = propertiesBrowser->addProperty (marker_group);
 
 	if (item->children().size() > 0) {
 		for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {

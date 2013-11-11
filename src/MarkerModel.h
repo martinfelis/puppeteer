@@ -115,6 +115,9 @@ struct MarkerModel {
 	JointObject* getJointObject (int frame_id);
 	VisualsObject* getVisualsObject (int frame_id, int visual_index);
 
+	int getFrameMarkerCount (int frame_id);
+	std::vector<Vector3f> getFrameMarkerCoords (int frame_id);
+	std::vector<std::string> getFrameMarkerNames(int frame_id);
 	int getParentFrameId (int frame_id);
 	int getObjectIdFromFrameId (int frame_id);
 	int getFrameIdFromObjectId (int object_id);
@@ -131,6 +134,7 @@ struct MarkerModel {
 	void adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r);
 
 	bool loadFromFile (const char* filename);
+	void saveToFile (const char* filename);
 	void loadStateFromFile (const char* filename);
 	void saveStateToFile (const char* filename);
 	void clearModel();

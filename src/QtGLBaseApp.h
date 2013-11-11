@@ -77,6 +77,8 @@ public slots:
 
 		void loadModelState();
 		void saveModelState();
+		void loadModel();
+		void saveModel();
 		void collapseProperties();
 		void objectSelected(int object_id);
 		void updateWidgetsFromObject (int object_id);

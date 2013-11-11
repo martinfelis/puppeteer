@@ -125,6 +125,35 @@ VisualsObject* MarkerModel::getVisualsObject (int frame_id, int visual_index) {
 
 	return visual_object;
 }
+
+int MarkerModel::getFrameMarkerCount(int frame_id) {
+	return (*luaTable)["frames"][frame_id]["markers"].length();
+}
+
+std::vector<std::string> MarkerModel::getFrameMarkerNames(int frame_id) {
+	vector<string> result;
+	vector<LuaKey> keys = (*luaTable)["frames"][frame_id]["markers"].keys();
+
+	for (size_t i = 0; i < keys.size(); i++) {
+		if (keys[i].type == LuaKey::String) {
+			result.push_back (keys[i].string_value);
+		}
+	}
+
+	return result;
+}
+
+std::vector<Vector3f> MarkerModel::getFrameMarkerCoords (int frame_id) {
+	vector<Vector3f> result;
+	vector<string> names = getFrameMarkerNames(frame_id);
+
+	for (size_t i = 0; i < names.size(); i++) {
+		result.push_back ((*luaTable)["frames"][frame_id]["markers"][names[i].c_str()].getDefault<Vector3f>(Vector3f (0.f, 0.f, 0.f)));
+	}
+
+	return result;
+}
+
 void MarkerModel::updateSceneObjects() {
 	RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
 
@@ -435,7 +464,9 @@ void MarkerModel::saveStateToFile (const char* filename) {
 }
 
 bool MarkerModel::loadFromFile(const char* filename) {
-	assert (rbdlModel == NULL);
+	if (rbdlModel) {
+		delete rbdlModel;
+	}
 	rbdlModel = new RigidBodyDynamics::Model;
 
 	luaTable = new LuaTable();
@@ -449,4 +480,14 @@ bool MarkerModel::loadFromFile(const char* filename) {
 	updateFromLua();
 	
 	return true;
+}
+
+void MarkerModel::saveToFile(const char* filename) {
+	assert (luaTable);
+	assert (rbdlModel);
+
+	string table_str = luaTable->serialize();
+	ofstream outfile (filename);
+	outfile << table_str;
+	outfile.close();
 }
