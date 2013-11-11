@@ -81,6 +81,7 @@ public slots:
 		void saveModel();
 		void collapseProperties();
 		void objectSelected(int object_id);
+		void assignMarkers();
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
 

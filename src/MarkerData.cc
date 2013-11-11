@@ -99,6 +99,18 @@ Vector3f MarkerData::getMarkerCurrentPosition(const char * marker_name) {
 	return Vector3f (marker_traj.x[index], marker_traj.y[index], marker_traj.z[index]) * 1.0e-3;
 }
 
+std::string MarkerData::getMarkerName (int object_id) {
+	for (size_t i = 0; i < markers.size(); i++) {
+		if (markers[i]->id == object_id) 
+			return markers[i]->markerName;
+	}
+
+	cerr << "Error: could not find marker with object id " << object_id << "!" << endl;
+	abort();
+
+	return "Error";
+}
+
 int MarkerData::getFirstFrame () {
 	assert (c3dfile);
 

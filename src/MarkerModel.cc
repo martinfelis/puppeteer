@@ -154,8 +154,20 @@ std::vector<Vector3f> MarkerModel::getFrameMarkerCoords (int frame_id) {
 	return result;
 }
 
+Vector3f MarkerModel::getLocalCoords (int frame_id, const Vector3f &coord) {
+	updateModelState();
+	RBDLVector3d rbdl_coords (coord[0], coord[1], coord[2]);
+	unsigned int body_id = frameIdToRbdlId[frame_id];
+
+	RBDLVectorNd Q (rbdlModel->q_size);
+	RBDLVector3d rbdl_local = CalcBaseToBodyCoordinates (*rbdlModel, Q, body_id, rbdl_coords, false);
+
+	return ConvertToSimpleMathVec3 (rbdl_local);
+}
+
 void MarkerModel::setFrameMarkerCoord (int frame_id, const char* marker_name, const Vector3f &coord) {
 	(*luaTable)["frames"][frame_id]["markers"][marker_name] = coord;
+	updateFromLua();
 }
 
 void MarkerModel::updateSceneObjects() {

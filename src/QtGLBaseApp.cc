@@ -144,6 +144,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (loadModelStateButton, SIGNAL (clicked()), this, SLOT (loadModelState()));
 	connect (saveModelButton, SIGNAL (clicked()), this, SLOT(saveModel()));
 	connect (loadModelButton, SIGNAL (clicked()), this, SLOT(loadModel()));
+	
+	connect (assignMarkersToFrame, SIGNAL (clicked()), this, SLOT (assignMarkers()));
 }
 
 void print_usage(const char* execname) {
@@ -260,6 +262,32 @@ void QtGLBaseApp::objectSelected (int object_id) {
 
 	updateWidgetsFromObject (object_id);
 	updateModelStateEditor();
+}
+
+void QtGLBaseApp::assignMarkers() {
+	assert (markerData);
+	assert (markerModel);
+	
+	int active_frame;
+	std::vector<string> selected_marker_names;
+
+	std::list<int>::iterator selected_iter;
+
+	for (selected_iter = scene->selectedObjectIds.begin(); selected_iter != scene->selectedObjectIds.end(); selected_iter++) {
+		if (markerData->isMarkerObject (*selected_iter)) {
+			selected_marker_names.push_back (markerData->getMarkerName (*selected_iter));
+		} else if (markerModel->isModelObject(*selected_iter)) {
+			active_frame = markerModel->getFrameIdFromObjectId(*selected_iter);
+		}
+	}
+
+	for (size_t i = 0; i < selected_marker_names.size(); i++) {
+		Vector3f marker_position = markerData->getMarkerCurrentPosition (selected_marker_names[i].c_str());	
+		Vector3f local_coords = markerModel->getLocalCoords (active_frame, marker_position);
+		markerModel->setFrameMarkerCoord (active_frame, selected_marker_names[i].c_str(), local_coords);
+	}
+
+	updateWidgetsFromObject (markerModel->getObjectIdFromFrameId (active_frame));
 }
 
 void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
@@ -412,7 +440,12 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
 		updatePropertiesForFrame (frame_id);
 		return;
-	} 
+	} else if (markerData && markerData->isMarkerObject(object_id)) {
+		QtProperty *marker_name_property = stringManager->addProperty ("Name");
+		stringManager->setValue (marker_name_property, markerData->getMarkerName (object_id).c_str());
+		propertiesBrowser->insertProperty (marker_name_property, 0);
+	}
+
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 

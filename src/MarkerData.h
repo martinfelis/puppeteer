@@ -43,8 +43,7 @@ struct MarkerData {
 	void enableMarker (const char* marker_name, const Vector3f &color);
 	bool loadFromFile (const char* filename);
 	Vector3f getMarkerCurrentPosition (const char*);
-	int getMarkerIndex (const char* marker_name);
-	std::string getMarkerName (int markerIndex);
+	std::string getMarkerName (int objectid);
 	int getFirstFrame ();
 	int getLastFrame ();
 	void setCurrentFrameNumber (int frame_number);
