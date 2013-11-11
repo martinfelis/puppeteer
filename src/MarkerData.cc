@@ -43,6 +43,7 @@ bool MarkerData::loadFromFile(const char *filename) {
 	enableMarker ("C7",   Vector3f (0.f, 0.f, 1.f));
 	enableMarker ("STRN", Vector3f (0.f, 0.f, 1.f));
 	enableMarker ("T10",  Vector3f (0.f, 0.f, 1.f));
+	enableMarker ("CLAV",  Vector3f (0.f, 0.f, 1.f));
 	
 	enableMarker ("RSHO", Vector3f (1.f, 0.f, 0.f));
 	enableMarker ("RUPA", Vector3f (1.f, 0.f, 0.f));
