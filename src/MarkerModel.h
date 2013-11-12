@@ -126,6 +126,8 @@ struct MarkerModel {
 	int getObjectIdFromFrameId (int frame_id);
 	int getFrameIdFromObjectId (int object_id);
 	int getVisualsCount (int frame_id);
+	int getFrameCount ();
+
 	VisualsData getVisualsData (int frame_id, int visuals_index);
 	std::string getFrameName (int frame_id);
 	std::string getParentName (int frame_id);

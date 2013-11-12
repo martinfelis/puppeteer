@@ -113,11 +113,22 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="assignMarkersToFrame">
-       <property name="text">
-        <string>Assign Markers</string>
-       </property>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="assignMarkersButton">
+         <property name="text">
+          <string>Assign Markers</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="fitModelButton">
+         <property name="text">
+          <string>Fit Model</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>

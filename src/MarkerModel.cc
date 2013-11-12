@@ -238,6 +238,10 @@ int MarkerModel::getVisualsCount (int frame_id) {
 	return (*luaTable)["frames"][frame_id]["visuals"].length();
 }
 
+int MarkerModel::getFrameCount() {
+	return (*luaTable)["frames"].length();
+}
+
 VisualsData MarkerModel::getVisualsData (int frame_id, int visuals_index) {
 	assert (frame_id > 0);
 	assert (visuals_index > 0 && visuals_index <= getVisualsCount (frame_id));

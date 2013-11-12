@@ -20,6 +20,7 @@
 struct Scene;
 struct MarkerModel;
 struct MarkerData;
+struct ModelFitter;
 
 class QtGLBaseApp : public QMainWindow, public Ui::MainWindow
 {
@@ -38,6 +39,7 @@ protected:
 		Scene *scene;
 		MarkerModel *markerModel;
 		MarkerData *markerData;
+		ModelFitter *modelFitter;
 		int activeModelFrame;
 		int activeObject;
 
@@ -82,6 +84,7 @@ public slots:
 		void collapseProperties();
 		void objectSelected(int object_id);
 		void assignMarkers();
+		void fitModel();
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
 

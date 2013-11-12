@@ -21,6 +21,7 @@
 #include "Scene.h"
 #include "MarkerModel.h"
 #include "MarkerData.h"
+#include "ModelFitter.h"
 
 #include <sys/time.h>
 #include <ctime>
@@ -80,6 +81,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	// marker model and data
 	markerModel = NULL;
 	markerData = NULL;
+	modelFitter = NULL;
 	activeModelFrame = 0;
 	activeObject = 0;
 
@@ -89,6 +91,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	dockModelStateEditor->setVisible(false);
 	dockWidgetSlider->setVisible(false);
+	fitModelButton->setEnabled(false);
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
 	connect (actionSideView, SIGNAL (triggered()), glWidget, SLOT (set_side_view()));
@@ -145,7 +148,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (saveModelButton, SIGNAL (clicked()), this, SLOT(saveModel()));
 	connect (loadModelButton, SIGNAL (clicked()), this, SLOT(loadModel()));
 	
-	connect (assignMarkersToFrame, SIGNAL (clicked()), this, SLOT (assignMarkers()));
+	connect (assignMarkersButton, SIGNAL (clicked()), this, SLOT (assignMarkers()));
+	connect (fitModelButton, SIGNAL (clicked()), this, SLOT (fitModel()));
 }
 
 void print_usage(const char* execname) {
@@ -166,6 +170,11 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 			print_usage (argv[0]);
 			return false;
 		}
+	}
+
+	if (markerModel && markerData) {
+		modelFitter = new ModelFitter (markerModel, markerData);
+		fitModelButton->setEnabled(true);
 	}
 
 	return true;
@@ -288,6 +297,20 @@ void QtGLBaseApp::assignMarkers() {
 	}
 
 	updateWidgetsFromObject (markerModel->getObjectIdFromFrameId (active_frame));
+}
+
+void QtGLBaseApp::fitModel() {
+	assert (modelFitter);
+	bool success = modelFitter->run (markerModel->modelStateQ);
+	if (success) {
+		qDebug() << "fit successful!";
+	} else {
+		qDebug() << "fit failed!";
+	}
+	VectorNd q_fitted = modelFitter->getFittedState();
+	markerModel->modelStateQ = q_fitted;
+	markerModel->updateModelState();
+	markerModel->updateSceneObjects();
 }
 
 void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
@@ -493,4 +516,5 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	assert (markerData);
 	markerData->setCurrentFrameNumber (value);
+	fitModel();
 }
