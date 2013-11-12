@@ -154,7 +154,7 @@ std::vector<Vector3f> MarkerModel::getFrameMarkerCoords (int frame_id) {
 	return result;
 }
 
-Vector3f MarkerModel::getLocalCoords (int frame_id, const Vector3f &coord) {
+Vector3f MarkerModel::calcMarkerLocalCoords (int frame_id, const Vector3f &coord) {
 	updateModelState();
 	RBDLVector3d rbdl_coords (coord[0], coord[1], coord[2]);
 	unsigned int body_id = frameIdToRbdlId[frame_id];
@@ -163,6 +163,19 @@ Vector3f MarkerModel::getLocalCoords (int frame_id, const Vector3f &coord) {
 	RBDLVector3d rbdl_local = CalcBaseToBodyCoordinates (*rbdlModel, Q, body_id, rbdl_coords, false);
 
 	return ConvertToSimpleMathVec3 (rbdl_local);
+}
+
+Vector3f MarkerModel::getMarkerPosition (int frame_id, const char* marker_name) {
+	updateModelState();
+	Vector3f marker_local_coords ((*luaTable)["frames"][frame_id]["markers"][marker_name].getDefault<Vector3f>(Vector3f (0.f, 0.f, 0.f)));
+
+	RBDLVector3d rbdl_coords (marker_local_coords[0], marker_local_coords[1], marker_local_coords[2]);
+	unsigned int body_id = frameIdToRbdlId[frame_id];
+
+	RBDLVectorNd Q (rbdlModel->q_size);
+	RBDLVector3d rbdl_global = CalcBodyToBaseCoordinates (*rbdlModel, Q, body_id, rbdl_coords, false);
+
+	return ConvertToSimpleMathVec3 (rbdl_global);
 }
 
 void MarkerModel::setFrameMarkerCoord (int frame_id, const char* marker_name, const Vector3f &coord) {

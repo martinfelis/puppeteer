@@ -6,10 +6,10 @@
 #include <rbdl/rbdl.h>
 
 using namespace std;
-using namespace RigidBodyDynamics;
 
 typedef RigidBodyDynamics::Math::Vector3d rbdlVector3d;
 typedef RigidBodyDynamics::Math::VectorNd rbdlVectorNd;
+typedef RigidBodyDynamics::Math::MatrixNd rbdlMatrixNd;
 
 template <typename OutType, typename InType>
 OutType ConvertVector(const InType &in_vec) {
@@ -20,6 +20,104 @@ OutType ConvertVector(const InType &in_vec) {
 
 	return result;
 }
+
+bool IK (
+		RigidBodyDynamics::Model &model,
+		const rbdlVectorNd &Qinit,
+		const std::vector<unsigned int>& body_id,
+		const std::vector<rbdlVector3d>& body_point,
+		const std::vector<rbdlVector3d>& target_pos,
+		rbdlVectorNd &Qres,
+		double step_tol,
+		double lambda,
+		unsigned int max_iter
+		) {
+
+	assert (Qinit.size() == model.q_size);
+	assert (body_id.size() == body_point.size());
+	assert (body_id.size() == target_pos.size());
+
+	rbdlMatrixNd J = rbdlMatrixNd::Zero(3 * body_id.size(), model.qdot_size);
+	rbdlVectorNd e = rbdlVectorNd::Zero(3 * body_id.size());
+
+	Qres = Qinit;
+
+	for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
+
+		for (unsigned int k = 0; k < body_id.size(); k++) {
+			rbdlMatrixNd G (3, model.qdot_size);
+			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
+			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
+			LOG << "current_pos = " << point_base.transpose() << std::endl;
+
+			for (unsigned int i = 0; i < 3; i++) {
+				for (unsigned int j = 0; j < model.qdot_size; j++) {
+					unsigned int row = k * 3 + i;
+					LOG << "i = " << i << " j = " << j << " k = " << k << " row = " << row << " col = " << j << std::endl;
+					J(row, j) = G (i,j);
+				}
+
+				e[k * 3 + i] = target_pos[k][i] - point_base[i];
+			}
+
+			LOG << J << std::endl;
+
+			// abort if we are getting "close"
+			if (e.norm() < step_tol) {
+				LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+				return true;
+			}
+		}
+
+		LOG << "J = " << J << std::endl;
+		LOG << "e = " << e.transpose() << std::endl;
+
+		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
+
+		rbdlVectorNd z (body_id.size() * 3);
+#ifndef RBDL_USE_SIMPLE_MATH
+		z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
+#else
+		bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
+		assert (solve_successful);
+#endif
+
+		LOG << "z = " << z << std::endl;
+
+		rbdlVectorNd delta_theta = J.transpose() * z;
+		LOG << "change = " << delta_theta << std::endl;
+
+		Qres = Qres + delta_theta;
+		LOG << "Qres = " << Qres.transpose() << std::endl;
+
+		if (delta_theta.norm() < step_tol) {
+			LOG << "reached convergence after " << ik_iter << " steps" << std::endl;
+			cout << "IK result ||e|| = " << e.norm() << endl;
+			return true;
+		}
+
+		rbdlVectorNd test_1 (z.size());
+		rbdlVectorNd test_res (z.size());
+
+		test_1.setZero();
+
+		for (unsigned int i = 0; i < z.size(); i++) {
+			test_1[i] = 1.;
+
+			rbdlVectorNd test_delta = J.transpose() * test_1;
+
+			test_res[i] = test_delta.squaredNorm();
+
+			test_1[i] = 0.;
+		}
+
+		LOG << "test_res = " << test_res.transpose() << std::endl;
+	}
+
+	return false;
+}
+
 
 bool ModelFitter::run(const VectorNd &initialState) {
 	fittedState = initialState;
@@ -47,9 +145,41 @@ bool ModelFitter::run(const VectorNd &initialState) {
 		}
 	}
 
+//	success = IK (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-12, 0.05, 100);
 	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-12, 0.05, 100);
-
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (Qres);
+
+	model->modelStateQ = fittedState;
+
+	vector<Vector3f> marker_displacement;
+	VectorNd marker_errors (VectorNd::Zero (body_ids.size()));
+
+	int index = 0;
+	double max_error = 0.;
+	string max_error_marker_name = "";
+	for (int frame_id = 0; frame_id < frame_count; frame_id++) {
+		unsigned int body_id = model->frameIdToRbdlId[frame_id];
+		vector<string> marker_names = model->getFrameMarkerNames(frame_id);
+
+		for (size_t marker_idx = 0; marker_idx < marker_names.size(); marker_idx++) {
+			Vector3f marker_position_data = data->getMarkerCurrentPosition (marker_names[marker_idx].c_str());
+			Vector3f marker_position_model = model->getMarkerPosition (frame_id, marker_names[marker_idx].c_str());
+
+			Vector3d error = marker_position_data - marker_position_model;
+			marker_displacement.push_back (error);
+			marker_errors[index] = error.norm();
+			if (marker_errors[index] > 0.02) {
+				cout << "error: " << marker_names[marker_idx] << " " << marker_errors[index] << endl;
+			}
+			if (marker_errors[index] > max_error) {
+				max_error = marker_errors[index];
+				max_error_marker_name = marker_names[marker_idx];
+			}
+			index++;
+		}
+	}
+
+	cout << "Errors: (max = " << max_error << " " << max_error_marker_name << "): " << endl; // << marker_errors.transpose() << endl;
 
 	return success;
 }

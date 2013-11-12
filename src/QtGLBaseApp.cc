@@ -292,7 +292,7 @@ void QtGLBaseApp::assignMarkers() {
 
 	for (size_t i = 0; i < selected_marker_names.size(); i++) {
 		Vector3f marker_position = markerData->getMarkerCurrentPosition (selected_marker_names[i].c_str());	
-		Vector3f local_coords = markerModel->getLocalCoords (active_frame, marker_position);
+		Vector3f local_coords = markerModel->calcMarkerLocalCoords (active_frame, marker_position);
 		markerModel->setFrameMarkerCoord (active_frame, selected_marker_names[i].c_str(), local_coords);
 	}
 
@@ -517,4 +517,5 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	assert (markerData);
 	markerData->setCurrentFrameNumber (value);
 	fitModel();
+	updateModelStateEditor();
 }
