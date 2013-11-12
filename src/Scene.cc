@@ -42,7 +42,7 @@ int vector4_to_object_id (const Vector4f &color) {
 }
 
 void Scene::initShaders() {
-	defaultShader = ShaderProgram::createFromFiles ("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
+//	defaultShader = ShaderProgram::createFromFiles ("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
 }
 
 void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
