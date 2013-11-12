@@ -21,6 +21,7 @@ OutType ConvertVector(const InType &in_vec) {
 	return result;
 }
 
+/*
 bool IK (
 		RigidBodyDynamics::Model &model,
 		const rbdlVectorNd &Qinit,
@@ -117,7 +118,25 @@ bool IK (
 
 	return false;
 }
+*/
 
+double vec_average (const VectorNd &vec) {
+	double sum = 0.;
+	for (size_t i = 0; i < vec.size(); i++) 
+		sum += vec[i];
+
+	return sum / vec.size();
+}
+
+double vec_standard_deviation (const VectorNd &vec) {
+	double average = vec_average (vec);
+	double diff_sum = 0.;
+	for (size_t i = 0; i < vec.size(); i++) {
+		diff_sum += (vec[i] - average) * (vec[i] - average);
+	}
+
+	return sqrt (diff_sum / vec.size());
+}
 
 bool ModelFitter::run(const VectorNd &initialState) {
 	fittedState = initialState;
@@ -131,7 +150,7 @@ bool ModelFitter::run(const VectorNd &initialState) {
 	vector<rbdlVector3d> target_pos;
 
 	int frame_count = model->getFrameCount();
-	for (int frame_id = 0; frame_id < frame_count; frame_id++) {
+	for (int frame_id = 1; frame_id <= frame_count; frame_id++) {
 		unsigned int body_id = model->frameIdToRbdlId[frame_id];
 		vector<Vector3f> marker_coords = model->getFrameMarkerCoords(frame_id);
 		vector<string> marker_names = model->getFrameMarkerNames(frame_id);
@@ -153,10 +172,10 @@ bool ModelFitter::run(const VectorNd &initialState) {
 
 	vector<Vector3f> marker_displacement;
 	VectorNd marker_errors (VectorNd::Zero (body_ids.size()));
-
 	int index = 0;
 	double max_error = 0.;
 	string max_error_marker_name = "";
+	double error_norm_sum = 0.;
 	for (int frame_id = 0; frame_id < frame_count; frame_id++) {
 		unsigned int body_id = model->frameIdToRbdlId[frame_id];
 		vector<string> marker_names = model->getFrameMarkerNames(frame_id);
@@ -167,19 +186,23 @@ bool ModelFitter::run(const VectorNd &initialState) {
 
 			Vector3d error = marker_position_data - marker_position_model;
 			marker_displacement.push_back (error);
-			marker_errors[index] = error.norm();
-			if (marker_errors[index] > 0.02) {
-				cout << "error: " << marker_names[marker_idx] << " " << marker_errors[index] << endl;
+			double error_norm = error.norm();
+			marker_errors[index] = error_norm;
+			if (error_norm > 0.02) {
+				cout << "error: " << marker_names[marker_idx] << " = " << error_norm << endl;
 			}
-			if (marker_errors[index] > max_error) {
-				max_error = marker_errors[index];
+			if (error_norm > max_error) {
+				max_error = error_norm;
 				max_error_marker_name = marker_names[marker_idx];
 			}
+			error_norm_sum += error_norm * error_norm;
 			index++;
 		}
 	}
 
-	cout << "Errors: (max = " << max_error << " " << max_error_marker_name << "): " << endl; // << marker_errors.transpose() << endl;
+	double rms_error = sqrt(error_norm_sum / index);
+	cout << "Errors: max = " << max_error << " " << max_error_marker_name << " avg = " << error_norm_sum / index << " rms = " << rms_error << endl; // << marker_errors.transpose() << endl;
+	cout << "Average: " << vec_average (marker_errors) << " deviation = " << vec_standard_deviation (marker_errors) << endl;
 
 	return success;
 }
