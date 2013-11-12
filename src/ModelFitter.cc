@@ -47,7 +47,7 @@ bool ModelFitter::run(const VectorNd &initialState) {
 		}
 	}
 
-	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres);
+	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-12, 0.05, 100);
 
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (Qres);
 
