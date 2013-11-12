@@ -120,6 +120,7 @@ struct MarkerModel {
 	std::vector<std::string> getFrameMarkerNames(int frame_id);
 	Vector3f getLocalCoords (int frame_id, const Vector3f &global_coords);
 	void setFrameMarkerCoord (int frame_id, const char* marker_name, const Vector3f &coord);
+	void deleteFrameMarker (int frame_id, const char* marker_name);
 
 	int getParentFrameId (int frame_id);
 	int getObjectIdFromFrameId (int frame_id);
