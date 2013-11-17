@@ -21,8 +21,13 @@ OutType ConvertVector(const InType &in_vec) {
 	return result;
 }
 
-/*
-bool IK (
+/** Inverse Kinematics method by Sugihara
+ *
+ * Sugihara, T., "Solvability-Unconcerned Inverse Kinematics by the
+ * Levenberg–Marquardt Method," Robotics, IEEE Transactions on , vol.27, no.5,
+ * pp.984,991, Oct. 2011 doi: 10.1109/TRO.2011.2148230
+ */
+bool SugiharaIK (
 		RigidBodyDynamics::Model &model,
 		const rbdlVectorNd &Qinit,
 		const std::vector<unsigned int>& body_id,
@@ -30,7 +35,6 @@ bool IK (
 		const std::vector<rbdlVector3d>& target_pos,
 		rbdlVectorNd &Qres,
 		double step_tol,
-		double lambda,
 		unsigned int max_iter
 		) {
 
@@ -74,13 +78,16 @@ bool IK (
 		LOG << "J = " << J << std::endl;
 		LOG << "e = " << e.transpose() << std::endl;
 
-		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
+		double ek = e.squaredNorm() * 0.5;
+		double wn = 1.0e-3;
+		rbdlMatrixNd JJT_ek_wnI = J * J.transpose() + (ek + wn) * rbdlMatrixNd::Identity(e.size(), e.size());
+//		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
 
 		rbdlVectorNd z (body_id.size() * 3);
 #ifndef RBDL_USE_SIMPLE_MATH
-		z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
+		z = JJT_ek_wnI.colPivHouseholderQr().solve (e);
 #else
-		bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
+		bool solve_successful = LinSolveGaussElimPivot (JJT_ek_wnI, e, z);
 		assert (solve_successful);
 #endif
 
@@ -94,7 +101,7 @@ bool IK (
 
 		if (delta_theta.norm() < step_tol) {
 			LOG << "reached convergence after " << ik_iter << " steps" << std::endl;
-			cout << "IK result ||e|| = " << e.norm() << endl;
+			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
 			return true;
 		}
 
@@ -118,7 +125,6 @@ bool IK (
 
 	return false;
 }
-*/
 
 double vec_average (const VectorNd &vec) {
 	double sum = 0.;
@@ -164,8 +170,8 @@ bool ModelFitter::run(const VectorNd &initialState) {
 		}
 	}
 
-//	success = IK (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-12, 0.05, 100);
-	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-12, 0.05, 100);
+	success = SugiharaIK (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-8, 150);
+//	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-12, 0.05, 100);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (Qres);
 
 	model->modelStateQ = fittedState;
