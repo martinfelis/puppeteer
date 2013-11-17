@@ -300,6 +300,12 @@ void QtGLBaseApp::assignMarkers() {
 }
 
 void QtGLBaseApp::fitModel() {
+	if (!modelFitter)
+		return;
+
+	if (!markerModel)
+		return;
+
 	assert (modelFitter);
 	bool success = modelFitter->run (markerModel->modelStateQ);
 	if (success) {
