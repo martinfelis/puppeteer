@@ -68,15 +68,15 @@ std::string C3DFile::getParamString(const char* id_str) {
 }
 
 Sint8 C3DFile::getParamSint8(const char* id_str) {
-	return getParamGeneric<Sint8>(id_str);
+	return getParamGeneric<Sint8>(id_str, static_cast<Sint8>(-1));
 }
 
 Sint16 C3DFile::getParamSint16(const char* id_str) {
-	return getParamGeneric<Sint16>(id_str);
+	return getParamGeneric<Sint16>(id_str, static_cast<Sint16>(-1));
 }
 
 float C3DFile::getParamFloat(const char* id_str) {
-	return getParamGeneric<float>(id_str);
+	return getParamGeneric<float>(id_str, -1.f);
 }
 
 void C3DFile::readParameterSection (ifstream &datastream) {
@@ -144,10 +144,7 @@ GroupInfo C3DFile::readGroupInfo (ifstream &datastream) {
 	datastream.read(result.name, result.name_length);
 	result.name[result.name_length] = 0;
 
-	Sint16 next_offset;
 	datastream.read(reinterpret_cast<char *>(&result.next_offset), sizeof(Sint16));
-
-	Sint8 group_desc_length;
 	datastream.read(reinterpret_cast<char *>(&result.descr_length), sizeof(Sint8));
 
 	assert(result.description == NULL);
@@ -173,9 +170,7 @@ ParameterInfo C3DFile::readParameterInfo (ifstream &datastream) {
 	datastream.read(result.name, result.name_length);
 	result.name[result.name_length] = 0;
 
-	Sint16 next_offset;
 	datastream.read(reinterpret_cast<char *>(&result.next_offset), sizeof(Sint16));
-
 	datastream.read(reinterpret_cast<char *>(&result.data_type), sizeof(Uint8));
 	datastream.read(reinterpret_cast<char *>(&result.n_dimensions), sizeof(Uint8));
 
@@ -249,11 +244,12 @@ void C3DFile::readPointSection(ifstream &datastream) {
 	Sint16 point_count = getParamSint16("POINT:USED");
 
 	Uint16 frame_count = header.last_frame - header.first_frame;
+
+	/*
 	float video_frame_rate = header.video_sampling_rate;
 	float analog_frame_rate = header.video_sampling_rate * header.analog_channels_samples;
 	Uint16 analog_channel_count = header.analog_channels;
 
-	/*
 	cout << endl;
 	cout << "Frame Count       = " << frame_count << endl;
 	cout << "Video Frame Rate  = " << video_frame_rate << endl;
@@ -310,7 +306,7 @@ void C3DFile::fillPointLabelMap () {
 
   point_label.clear();
 
-	int i,j;
+	size_t i,j;
 	for (i = 0; i < data_matrix.GetRows(); i++) {
 		std::string row;
 		for (j = 0; j < data_matrix.GetColumns(); j++) {
@@ -335,8 +331,7 @@ ParameterInfo C3DFile::getParamInfo (const char *id_str) {
 
 //	std::cout << "group = " << group << " param = " << param << std::endl;
 
-	Sint8 group_id;
-	Sint8 param_id;
+	Sint8 group_id = -1;
 
 	// search for the group id first as we need to find the parameter with the
 	// given id
@@ -372,7 +367,7 @@ ParameterInfo C3DFile::getParamInfo (const char *id_str) {
 }
 
 template<typename T>
-T C3DFile::getParamGeneric(const char* id_str) {
+T C3DFile::getParamGeneric(const char* id_str, T default_value) {
 	ParameterInfo param_info;
 
 	param_info = getParamInfo(id_str);
@@ -406,8 +401,6 @@ T C3DFile::getParamGeneric(const char* id_str) {
 		return param_info.int_data[0];
 	if (param_info.data_type == 4)
 		return param_info.float_data[0];
-
-	T default_value;
 
 	return default_value;
 }

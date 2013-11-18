@@ -371,17 +371,17 @@ class DataMatrix {
 		void CopyFrom(T* src) {
 			memcpy (raw_data, src, sizeof(T) * rows * columns);
 		}
-		unsigned int GetRows () const {
+		size_t GetRows () const {
 			return rows;
 		}
-		unsigned int GetColumns () const {
+		size_t GetColumns () const {
 			return columns;
 		}
 
 	private:
 		T *raw_data;
-		unsigned int rows;
-		unsigned int columns;
+		size_t rows;
+		size_t columns;
 };
 
 template<typename T>
@@ -393,6 +393,8 @@ inline std::ostream& operator<<(std::ostream& output, const DataMatrix<T> &data)
 		}
 		output << std::endl;
 	}
+
+	return output;
 }
 
 #endif /* C3DTYPES */

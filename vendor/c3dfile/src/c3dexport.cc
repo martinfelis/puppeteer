@@ -22,7 +22,7 @@ int main (int argc, char* argv[]) {
 
 	if (!strcmp("list", argv[2])) {
 		std::vector<std::string> marker_list = c3dfile.point_label;
-		int i;
+		size_t i;
 
 		for (i = 0; i < marker_list.size(); i++) {
 			cout << "Label[" << i << "] = " << marker_list[i] << endl;
@@ -32,7 +32,7 @@ int main (int argc, char* argv[]) {
 		cout << "== Header ==" << endl;
 		print_c3dheaderinfo (c3dfile.header);
 		cout << "== Parameters ==" << endl;
-		int i;
+		size_t i;
 		ParameterInfo parameter_info;
 		GroupInfo group_info;
 
@@ -61,7 +61,7 @@ int main (int argc, char* argv[]) {
 	} else {
 		FloatMarkerData marker_trajs = c3dfile.getMarkerTrajectories(argv[2]);
 
-		int i;
+		size_t i;
 		for (i = 0; i < marker_trajs.x.size(); i++) {
 			cout << marker_trajs.x[i] << ",\t"
 				<< marker_trajs.y[i] << ",\t"

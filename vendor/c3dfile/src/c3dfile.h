@@ -33,7 +33,7 @@ struct C3DFile {
 	void fillPointLabelMap ();
 	ParameterInfo getParamInfo (const char *id_str);
 
-	template <typename T> T getParamGeneric(const char* id_str);
+	template <typename T> T getParamGeneric(const char* id_str, T default_value);
 };
 
 #endif /* C3D_FILE */
