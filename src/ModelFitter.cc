@@ -14,7 +14,7 @@ typedef RigidBodyDynamics::Math::MatrixNd rbdlMatrixNd;
 template <typename OutType, typename InType>
 OutType ConvertVector(const InType &in_vec) {
 	OutType result = OutType::Zero (in_vec.size());
-	for (int i = 0; i < in_vec.size(); i++) {
+	for (size_t i = 0; i < in_vec.size(); i++) {
 		result[i] = in_vec[i];
 	}
 
@@ -183,7 +183,6 @@ bool ModelFitter::run(const VectorNd &initialState) {
 	string max_error_marker_name = "";
 	double error_norm_sum = 0.;
 	for (int frame_id = 0; frame_id < frame_count; frame_id++) {
-		unsigned int body_id = model->frameIdToRbdlId[frame_id];
 		vector<string> marker_names = model->getFrameMarkerNames(frame_id);
 
 		for (size_t marker_idx = 0; marker_idx < marker_names.size(); marker_idx++) {

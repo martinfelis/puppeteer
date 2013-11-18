@@ -37,12 +37,12 @@ MeshVBO grid_mesh = CreateGrid (4, 4, Vector3f (0.f, 0.f, 1.f), Vector3f (0.1f, 
 
 GLWidget::GLWidget(QWidget *parent)
     : QGLWidget(parent),
-		opengl_initialized (false),
 		draw_base_axes (false),
 		draw_grid (true),
 		camera (Camera()),
 		scene (NULL),
-		colorPickingFrameBuffer(NULL)
+		colorPickingFrameBuffer(NULL),
+		opengl_initialized (false)
 {
 	setFocusPolicy(Qt::StrongFocus);
 	setMouseTracking(true);

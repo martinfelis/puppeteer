@@ -51,7 +51,7 @@ struct MarkerData {
 
 	private:
 	MarkerData (const MarkerData &marker_data) {};
-	MarkerData& operator= (const MarkerData &marker_data) {};
+	MarkerData& operator= (const MarkerData &marker_data) { return *this; };
 };
 
 /* MARKER_DATA_H */

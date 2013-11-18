@@ -72,8 +72,8 @@ struct MarkerModel {
 	~MarkerModel();
 
 	Scene *scene;
-	RigidBodyDynamics::Model *rbdlModel;
 	LuaTable *luaTable;
+	RigidBodyDynamics::Model *rbdlModel;
 	VectorNd modelStateQ;
 
 	std::vector<JointObject*> joints;
@@ -150,7 +150,7 @@ struct MarkerModel {
 
 	private:
 		MarkerModel(const MarkerModel &model) {}
-		MarkerModel& operator=(const MarkerModel &model) {}
+		MarkerModel& operator=(const MarkerModel &model) { return *this; }
 };
 
 /* MARKER_MODEL_H */

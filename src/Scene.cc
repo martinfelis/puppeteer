@@ -13,11 +13,11 @@ using namespace std;
 Vector4f object_id_to_vector4 (int id) {
 	Vector4f result (0.f, 0.f, 0.f, 1.f);
 
-	unsigned char byte = (id + 1 & 0x0000ff);
+	unsigned char byte = ((id + 1) & 0x0000ff);
 	result[2] = static_cast<float>(byte) / 255.f;
-	byte = (id + 1 >> 8 & 0x0000ff);
+	byte = ((id + 1) >> 8 & 0x0000ff);
 	result[1] = static_cast<float>(byte) / 255.f;
-	byte = (id + 1 >> 16 & 0x0000ff);
+	byte = ((id + 1) >> 16 & 0x0000ff);
 	result[0] = static_cast<float>(byte) / 255.f;
 	
 	return result;
@@ -112,7 +112,7 @@ void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 void Scene::draw() {
 	std::vector<SceneObject*> depth_ignoring_objects;
 
-	for (int i = 0; i < objects.size(); i++) {
+	for (size_t i = 0; i < objects.size(); i++) {
 		if (objects[i]->noDepthTest) {
 			depth_ignoring_objects.push_back (objects[i]);
 			continue;
@@ -128,7 +128,7 @@ void Scene::draw() {
 
 	glClear (GL_DEPTH_BUFFER_BIT);
 
-	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
+	for (size_t i = 0; i < depth_ignoring_objects.size(); i++) {
 		drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleNormal);
 		if (objectIsSelected(depth_ignoring_objects[i]->id)) {
 			drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleSelected);
@@ -145,7 +145,7 @@ void Scene::drawForColorPicking() {
 
 	std::vector<SceneObject*> depth_ignoring_objects;
 
-	for (int i = 0; i < objects.size(); i++) {
+	for (size_t i = 0; i < objects.size(); i++) {
 		if (objects[i]->noDepthTest) {
 			depth_ignoring_objects.push_back (objects[i]);
 			continue;
@@ -162,7 +162,7 @@ void Scene::drawForColorPicking() {
 
 	glClear (GL_DEPTH_BUFFER_BIT);
 
-	for (int i = 0; i < depth_ignoring_objects.size(); i++) {
+	for (size_t i = 0; i < depth_ignoring_objects.size(); i++) {
 		glPushMatrix();
 		glMultMatrixf (depth_ignoring_objects[i]->transformation.toGLMatrix().data());
 
@@ -192,8 +192,7 @@ void Scene::unselectObject (const int id) {
 }
 
 bool Scene::objectIsSelected (const int id) const {
-	list<int>::const_iterator iter = selectedObjectIds.begin();
-	for (iter; iter != selectedObjectIds.end(); iter++) {
+	for (list<int>::const_iterator iter = selectedObjectIds.begin(); iter != selectedObjectIds.end(); iter++) {
 		if (*iter == id) {
 			return true;
 		}

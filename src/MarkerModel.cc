@@ -92,7 +92,6 @@ void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
 }
 
 bool MarkerModel::stateIndexIsFrameJointVariable (unsigned int state_index, int frame_id) {
-	unsigned int rbdl_id = frameIdToRbdlId[frame_id];
 	if (dofIndexToFrameId[state_index] == frame_id) {
 		return true;	
 	}
@@ -232,7 +231,7 @@ int MarkerModel::getParentFrameId(int frame_id) {
 
 	string parent_frame_name = (*luaTable)["frames"][frame_id]["parent"].getDefault<string>("ROOT");
 
-	for (int i = 0; i < (*luaTable)["frames"].length(); i++) {
+	for (size_t i = 0; i < (*luaTable)["frames"].length(); i++) {
 		if ( parent_frame_name == (*luaTable)["frames"][i]["name"].getDefault<string>("ROOT")) {
 			return i;
 		}
@@ -320,7 +319,6 @@ Vector3f MarkerModel::getJointLocationLocal (int frame_id) {
 }
 
 Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
-	SpatialTransform transform = rbdlModel->GetJointFrame (frameIdToRbdlId[frame_id]);
 	Matrix33f orientation = (*luaTable)["frames"][frame_id]["joint_frame"]["E"].getDefault<Matrix33f>(Matrix33f::Identity(3,3));
 	
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
@@ -334,7 +332,7 @@ void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &old_r,
 	if (parent_id == 0)
 		return;
 
-	for (int i = 0; i < (*luaTable)["frames"][parent_id]["visuals"].length(); i++) {
+	for (size_t i = 0; i < (*luaTable)["frames"][parent_id]["visuals"].length(); i++) {
 		Vector3f dimensions = (*luaTable)["frames"][parent_id]["visuals"][i + 1]["dimensions"];
 		Vector3f mesh_center = (*luaTable)["frames"][parent_id]["visuals"][i + 1]["mesh_center"];
 
@@ -404,9 +402,9 @@ void MarkerModel::updateFromLua() {
 
 		SpatialTransform joint_frame = (*luaTable)["frames"][i]["joint_frame"].getDefault(SpatialTransform());
 		Joint joint = (*luaTable)["frames"][i]["joint"].getDefault(Joint(JointTypeFixed));
-		Body body = (*luaTable)["frames"][i]["body"];
+		Body body = (*luaTable)["frames"][i]["body"].getDefault(Body());
 
-		for (int di = 0; di < joint.mDoFCount; di++) {
+		for (size_t di = 0; di < joint.mDoFCount; di++) {
 			dofIndexToFrameId[rbdlModel->q_size + di] = i;
 		}
 		unsigned int rbdl_id = rbdlModel->AddBody (parent_id, joint_frame, joint, body, body_name);
@@ -478,7 +476,7 @@ void MarkerModel::updateFromLua() {
 
 void MarkerModel::loadStateFromFile (const char* filename) {
 	LuaTable state_table = LuaTable::fromFile (filename);
-	for (int i = 0; i < modelStateQ.size(); i++) {
+	for (size_t i = 0; i < modelStateQ.size(); i++) {
 		modelStateQ[i] = state_table[i + 1];
 	}
 	updateModelState();
@@ -487,7 +485,7 @@ void MarkerModel::loadStateFromFile (const char* filename) {
 
 void MarkerModel::saveStateToFile (const char* filename) {
 	LuaTable state_table = LuaTable::fromLuaExpression ("return {}");
-	for (int i = 0; i < modelStateQ.size(); i++) {
+	for (size_t i = 0; i < modelStateQ.size(); i++) {
 		state_table[i + 1] = modelStateQ[i];
 	}
 	string table_str = state_table.serialize();

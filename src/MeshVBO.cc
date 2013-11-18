@@ -277,7 +277,7 @@ void MeshVBO::draw(unsigned int mode) {
 		glBindBuffer (GL_ARRAY_BUFFER, 0);
 	} else {
 		glBegin (mode);
-		for (int vi = 0; vi < vertices.size(); vi++) {
+		for (size_t vi = 0; vi < vertices.size(); vi++) {
 			if (colors.size() != 0)
 				glColor3fv (colors[vi].data());
 			if (normals.size() != 0)

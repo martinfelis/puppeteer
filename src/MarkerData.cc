@@ -9,7 +9,7 @@ MarkerData::~MarkerData() {
 		delete c3dfile;
 		c3dfile = NULL;
 	}
-	for (int i = 0; i < markers.size(); i++) {
+	for (size_t i = 0; i < markers.size(); i++) {
 		scene->destroyObject<MarkerObject>(markers[i]);
 	}
 }

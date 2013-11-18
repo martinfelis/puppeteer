@@ -23,15 +23,6 @@ const string invalid_id_characters = "{}[],;: \r\n\t";
 /*
  * Helper structs that are needed for loading the OBJ file.
  */
-enum ReadState {
-	ReadStateUndefined = 0,
-	ReadStateVertices,
-	ReadStateInfo,
-	ReadStateNormals,
-	ReadStateTextureCoordinates,
-	ReadStateLast
-};
-
 struct FaceInfo {
 	FaceInfo () {
 		vertex_index[0] = -1;
@@ -69,8 +60,6 @@ bool load_obj (MeshVBO &mesh, const char *filename, const char *object_name, boo
 		return false;
 	}
 
-	ReadState read_state = ReadStateUndefined;
-	bool read_object = false;
 	string current_object_name = "";
 	string material_library = "";
 	string material_name = "";
@@ -147,7 +136,7 @@ bool load_obj (MeshVBO &mesh, const char *filename, const char *object_name, boo
 			values >> v3;
 
 			if (!(values >> v4))
-				v4 == 1.f;
+				v4 = 1.f;
 
 			vertices.push_back (Vector4f (v1, v2, v3, v4));
 
@@ -284,7 +273,7 @@ bool load_obj (MeshVBO &mesh, const char *filename, const char *object_name, boo
 
 	mesh.begin();
 	// add all vertices to the MeshVBO
-	for (int fi = 0; fi < face_infos.size(); fi++) {
+	for (size_t fi = 0; fi < face_infos.size(); fi++) {
 		for (int vi = 0; vi < 3; vi ++) {
 			Vector4f vertex = vertices.at(face_infos[fi].vertex_index[vi] - 1);
 			mesh.addVertex3f(vertex[0], vertex[1], vertex[2]);

@@ -34,7 +34,7 @@ inline std::string strip_whitespaces (const std::string &line, std::string white
 
 inline std::string tolower (const std::string &line) {
 	std::string result (line);
-	for (int i = 0; i < line.size(); i++) 
+	for (size_t i = 0; i < line.size(); i++) 
 		result[i] = tolower(result[i]);
 
 	return result;
