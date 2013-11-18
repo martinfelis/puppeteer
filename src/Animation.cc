@@ -148,6 +148,8 @@ bool Animation::loadFromFile (const char* filename) {
 	}
 
 	infile.close();
+
+	return true;
 }
 
 void Animation::saveToFile( const char* filename) {
