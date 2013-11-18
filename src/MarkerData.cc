@@ -123,6 +123,12 @@ int MarkerData::getLastFrame () {
 	return static_cast<int>(c3dfile->header.last_frame);
 }
 
+float MarkerData::getFrameRate () {
+	assert (c3dfile);
+
+	return c3dfile->header.video_sampling_rate;
+}
+
 void MarkerData::setCurrentFrameNumber (int frame_number) {
 	assert (frame_number >= getFirstFrame());
 	assert (frame_number <= getLastFrame());

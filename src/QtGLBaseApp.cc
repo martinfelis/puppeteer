@@ -22,6 +22,7 @@
 #include "MarkerModel.h"
 #include "MarkerData.h"
 #include "ModelFitter.h"
+#include "Animation.h"
 
 #include <sys/time.h>
 #include <ctime>
@@ -82,6 +83,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	markerModel = NULL;
 	markerData = NULL;
 	modelFitter = NULL;
+	animationData = NULL;
 	activeModelFrame = 0;
 	activeObject = 0;
 
@@ -92,6 +94,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	dockModelStateEditor->setVisible(false);
 	dockWidgetSlider->setVisible(false);
 	autoIKButton->setEnabled(false);
+
+	slideAnimationCheckBox->setEnabled(false);
+	slideMarkersCheckBox->setEnabled(false);
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
 	connect (actionSideView, SIGNAL (triggered()), glWidget, SLOT (set_side_view()));
@@ -153,7 +158,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 }
 
 void print_usage(const char* execname) {
-	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d>" << endl;
+	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> <animation.csv>" << endl;
 }
 
 bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
@@ -166,6 +171,8 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 			loadModelFile (arg.c_str());
 		else if (arg.substr(arg.size() - 4, 4) == ".c3d")
 			loadMocapFile (arg.c_str());
+		else if (arg.substr(arg.size() - 4, 4) == ".csv")
+			loadAnimationFile (arg.c_str());
 		else {
 			print_usage (argv[0]);
 			return false;
@@ -185,6 +192,7 @@ bool QtGLBaseApp::loadModelFile (const char* filename) {
 		delete markerModel;
 	markerModel = new MarkerModel (scene);
 	assert (markerModel);
+
 	bool result = markerModel->loadFromFile (filename);
 	updateModelStateEditor();
 	return result;
@@ -196,16 +204,45 @@ bool QtGLBaseApp::loadMocapFile (const char* filename) {
 	markerData = new MarkerData (scene);
 	assert (markerData);
 
-	if(!markerData->loadFromFile (filename))
+	if(!markerData->loadFromFile (filename)) 
 		return false;
+
+	slideMarkersCheckBox->setEnabled(true);
+	slideMarkersCheckBox->setChecked(true);
+
+	updateSliderBounds();
+
+	return true;
+}
+
+bool QtGLBaseApp::loadAnimationFile (const char* filename) {
+	if (animationData)
+		delete animationData;
+	
+	animationData = new Animation();
+	assert (animationData);
+
+	if(!animationData->loadFromFile (filename))
+		return false;
+
+	slideAnimationCheckBox->setEnabled(true);
+	slideAnimationCheckBox->setChecked(true);
+
+	updateSliderBounds();
+
+	return true;
+}
+
+void QtGLBaseApp::updateSliderBounds() {
+	if (markerData || animationData)
+		dockWidgetSlider->setVisible(true);
+	else
+		dockWidgetSlider->setVisible(false);
 
 	dockWidgetSlider->setVisible(true);
 	captureFrameSlider->setMinimum (markerData->getFirstFrame());
 	captureFrameSlider->setMaximum (markerData->getLastFrame());
-
 	connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
-
-	return true;
 }
 
 Vector3f parse_vec3_string (const std::string vec3_string) {
@@ -521,8 +558,44 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 
 void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	assert (markerData);
-	markerData->setCurrentFrameNumber (value);
+
+	if (slideMarkersCheckBox->isChecked() && slideAnimationCheckBox->isChecked()) {
+		double first_frame = static_cast<double>(markerData->getFirstFrame());
+		double last_frame = static_cast<double>(markerData->getLastFrame());
+		double frame_rate = static_cast<double>(markerData->getFrameRate());
+
+		double mocap_duration = (last_frame - first_frame) / frame_rate;
+		if (fabs(animationData->getDuration() - mocap_duration) > 1.0e-3) {
+			cerr << "Warning: duration mismatch: Animation = " << animationData->getDuration() << " Motion Capture data = " << mocap_duration << endl; 
+		}
+	}
+
+	if (slideMarkersCheckBox->isChecked()) 
+		markerData->setCurrentFrameNumber (value);
+
 	if (autoIKButton->isChecked())
 		fitModel();
+
+	if (slideAnimationCheckBox->isChecked()) {
+		double slider_min = static_cast<double> (captureFrameSlider->minimum());	
+		double slider_max = static_cast<double> (captureFrameSlider->maximum());
+		double value_d = static_cast<double>(value);
+		double slider_percentage = (value_d - slider_min) / (slider_max - slider_min);
+
+		animationData->setCurrentTime (animationData->getFirstFrameTime() + animationData->getDuration() * slider_percentage);
+
+		VectorNd state = animationData->getCurrentPose();
+		if (state.size() < markerModel->modelStateQ.size()) {
+			cerr << "Error: animation has fewer values than model has states!" << endl;
+			abort();
+		}
+		for (size_t i = 0; i < markerModel->modelStateQ.size(); i++) {
+			markerModel->modelStateQ[i] = state[i];
+		}
+
+		markerModel->updateModelState();
+		markerModel->updateSceneObjects();
+	}
+
 	updateModelStateEditor();
 }

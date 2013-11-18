@@ -80,6 +80,24 @@ VectorNd Animation::getCurrentPose() {
 	return (1. - frac) * iter->state + frac * next->state;
 }
 
+double Animation::getFirstFrameTime() {
+	if (keyFrames.size() == 0) {
+		cerr << "Error: cannot get time: no keyframes defined" << endl;
+		abort();
+	}
+
+	return keyFrames[0].time;
+}
+
+double Animation::getLastFrameTime() {
+	if (keyFrames.size() < 2) {
+		cerr << "Error: cannot get time: too few keyframes defined" << endl;
+		abort();
+	}
+
+	return keyFrames.rbegin()->time;
+}
+
 bool Animation::loadFromFile (const char* filename) {
 	ifstream infile (filename);
 	if (!infile) {

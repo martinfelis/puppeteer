@@ -26,6 +26,10 @@ struct Animation {
 	void setCurrentTime (double time);
 	VectorNd getCurrentPose ();
 
+	double getFirstFrameTime();
+	double getLastFrameTime();
+	double getDuration() { return getLastFrameTime() - getFirstFrameTime(); };
+
 	bool loadFromFile (const char* filename);
 	void saveToFile (const char* filename);
 };

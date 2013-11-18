@@ -21,6 +21,7 @@ struct Scene;
 struct MarkerModel;
 struct MarkerData;
 struct ModelFitter;
+struct Animation;
 
 class QtGLBaseApp : public QMainWindow, public Ui::MainWindow
 {
@@ -33,6 +34,7 @@ public:
 		bool parseArgs(int argc, char* argv[]);
 		bool loadModelFile (const char* filename);
 		bool loadMocapFile (const char* filename);
+		bool loadAnimationFile (const char* filename);
 
 protected:
 		QTimer *drawTimer;
@@ -40,6 +42,7 @@ protected:
 		MarkerModel *markerModel;
 		MarkerData *markerData;
 		ModelFitter *modelFitter;
+		Animation *animationData;
 		int activeModelFrame;
 		int activeObject;
 
@@ -73,6 +76,7 @@ protected:
 			propertyToName[property] = name;
 			nameToProperty[name] = property;
 		}
+		void updateSliderBounds ();
 
 public slots:
 		void quitApplication();

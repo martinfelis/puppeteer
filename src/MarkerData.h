@@ -46,6 +46,7 @@ struct MarkerData {
 	std::string getMarkerName (int objectid);
 	int getFirstFrame ();
 	int getLastFrame ();
+	float getFrameRate ();
 	void setCurrentFrameNumber (int frame_number);
 	void updateMarkerSceneObjects();
 

@@ -78,8 +78,6 @@ struct Scene {
 template<typename T> inline T* Scene::createObject() {
 	T* result = new T();
 
-	std::cout << "Scene.lastObjectId = " << lastObjectId << std::endl;
-
 	result->id = lastObjectId;
 	lastObjectId++;
 	objects.push_back(result);
