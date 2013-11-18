@@ -30,6 +30,7 @@ SET ( SCENEGL_SRCS
 	src/objloader.cc
 	src/MarkerModel.cc
 	src/MarkerData.cc
+	src/Animation.cc
 	src/ModelFitter.cc
 	)
 

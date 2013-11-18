@@ -8,6 +8,7 @@ LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake )
 SET ( TESTS_SRCS
 	main.cc
 	UtilsTests.cc	
+	AnimationTests.cc
 	)
 
 FIND_PACKAGE (UnitTest++)
