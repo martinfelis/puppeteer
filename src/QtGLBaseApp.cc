@@ -91,7 +91,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	dockModelStateEditor->setVisible(false);
 	dockWidgetSlider->setVisible(false);
-	fitModelButton->setEnabled(false);
+	autoIKButton->setEnabled(false);
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
 	connect (actionSideView, SIGNAL (triggered()), glWidget, SLOT (set_side_view()));
@@ -149,7 +149,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (loadModelButton, SIGNAL (clicked()), this, SLOT(loadModel()));
 	
 	connect (assignMarkersButton, SIGNAL (clicked()), this, SLOT (assignMarkers()));
-	connect (fitModelButton, SIGNAL (clicked()), this, SLOT (fitModel()));
+	connect (autoIKButton, SIGNAL (clicked()), this, SLOT (fitModel()));
 }
 
 void print_usage(const char* execname) {
@@ -174,7 +174,7 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 
 	if (markerModel && markerData) {
 		modelFitter = new ModelFitter (markerModel, markerData);
-		fitModelButton->setEnabled(true);
+		autoIKButton->setEnabled(true);
 	}
 
 	return true;
@@ -522,6 +522,7 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	assert (markerData);
 	markerData->setCurrentFrameNumber (value);
-	fitModel();
+	if (autoIKButton->isChecked())
+		fitModel();
 	updateModelStateEditor();
 }

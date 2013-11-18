@@ -21,6 +21,99 @@ OutType ConvertVector(const InType &in_vec) {
 	return result;
 }
 
+/** Inverse Kinematics using a Levenberg Marquardt with constant lambda
+ */
+bool LevenbergMarquardtIK (
+		RigidBodyDynamics::Model &model,
+		const rbdlVectorNd &Qinit,
+		const std::vector<unsigned int>& body_id,
+		const std::vector<rbdlVector3d>& body_point,
+		const std::vector<rbdlVector3d>& target_pos,
+		rbdlVectorNd &Qres,
+		double step_tol,
+		double lambda,
+		unsigned int max_iter
+		) {
+
+	assert (Qinit.size() == model.q_size);
+	assert (body_id.size() == body_point.size());
+	assert (body_id.size() == target_pos.size());
+
+	rbdlMatrixNd J = rbdlMatrixNd::Zero(3 * body_id.size(), model.qdot_size);
+	rbdlVectorNd e = rbdlVectorNd::Zero(3 * body_id.size());
+
+	Qres = Qinit;
+
+	for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
+
+		for (unsigned int k = 0; k < body_id.size(); k++) {
+			rbdlMatrixNd G (3, model.qdot_size);
+			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
+			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
+			LOG << "current_pos = " << point_base.transpose() << std::endl;
+
+			for (unsigned int i = 0; i < 3; i++) {
+				for (unsigned int j = 0; j < model.qdot_size; j++) {
+					unsigned int row = k * 3 + i;
+					LOG << "i = " << i << " j = " << j << " k = " << k << " row = " << row << " col = " << j << std::endl;
+					J(row, j) = G (i,j);
+				}
+
+				e[k * 3 + i] = target_pos[k][i] - point_base[i];
+			}
+
+			LOG << J << std::endl;
+
+			// abort if we are getting "close"
+			if (e.norm() < step_tol) {
+				LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+				return true;
+			}
+		}
+
+		LOG << "J = " << J << std::endl;
+		LOG << "e = " << e.transpose() << std::endl;
+
+		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
+
+		rbdlVectorNd z (body_id.size() * 3);
+#ifndef RBDL_USE_SIMPLE_MATH
+		z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
+#else
+		bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
+		assert (solve_successful);
+#endif
+
+		rbdlVectorNd delta_theta = J.transpose() * z;
+		Qres = Qres + delta_theta;
+
+		if (delta_theta.norm() < step_tol) {
+			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
+			return true;
+		}
+
+		rbdlVectorNd test_1 (z.size());
+		rbdlVectorNd test_res (z.size());
+
+		test_1.setZero();
+
+		for (unsigned int i = 0; i < z.size(); i++) {
+			test_1[i] = 1.;
+
+			rbdlVectorNd test_delta = J.transpose() * test_1;
+
+			test_res[i] = test_delta.squaredNorm();
+
+			test_1[i] = 0.;
+		}
+
+		LOG << "test_res = " << test_res.transpose() << std::endl;
+	}
+
+	return false;
+}
+
 /** Inverse Kinematics method by Sugihara
  *
  * Sugihara, T., "Solvability-Unconcerned Inverse Kinematics by the
@@ -100,7 +193,6 @@ bool SugiharaIK (
 		LOG << "Qres = " << Qres.transpose() << std::endl;
 
 		if (delta_theta.norm() < step_tol) {
-			LOG << "reached convergence after " << ik_iter << " steps" << std::endl;
 			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
 			return true;
 		}
@@ -171,7 +263,8 @@ bool ModelFitter::run(const VectorNd &initialState) {
 	}
 
 	success = SugiharaIK (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-8, 150);
-//	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-12, 0.05, 100);
+//	success = LevenbergMarquardtIK (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-8, 0.05, 100);
+//	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-8, 0.05, 100);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (Qres);
 
 	model->modelStateQ = fittedState;

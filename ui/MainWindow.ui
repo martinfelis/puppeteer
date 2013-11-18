@@ -122,9 +122,15 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QPushButton" name="fitModelButton">
+        <widget class="QPushButton" name="autoIKButton">
          <property name="text">
-          <string>Fit Model</string>
+          <string>Auto IK</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
