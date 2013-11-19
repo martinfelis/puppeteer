@@ -649,12 +649,13 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	}
 
 	if (animationData) {
+		int num_fraction_digits = 2;
 		double current_time = animationData->currentTime;
 		int num_seconds = static_cast<int>(floor(current_time));
-		int num_milliseconds = static_cast<int>(round((current_time - num_seconds) * 1000.f));
+		int num_milliseconds = static_cast<int>(round((current_time - num_seconds) * pow(10, num_fraction_digits)));
 
 		stringstream time_string("");
-		time_string << "Time: " << num_seconds << "." << setw(2) << setfill('0') << num_milliseconds;
+		time_string << "Time: " << num_seconds << "." << std::setfill('0') << std::setw(num_fraction_digits) << num_milliseconds;
 		timeLabel->setText(time_string.str().c_str());
 	}
 
