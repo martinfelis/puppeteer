@@ -53,6 +53,11 @@ struct VisualsData {
 	std::string src;
 };
 
+struct ModelMarkerObject: public SceneObject {
+	std::string markerName;
+	int frameId;
+};
+
 /**
  *
  * \todo add support for the deletion of joints and visuals. Currently it
@@ -78,6 +83,8 @@ struct MarkerModel {
 
 	std::vector<JointObject*> joints;
 	std::vector<VisualsObject*> visuals;
+	std::vector<ModelMarkerObject*> modelMarkers;
+
 	std::map<unsigned int, int> dofIndexToFrameId;
 	std::map<unsigned int, int> frameIdToRbdlId;
 	std::map<int, unsigned int> rbdlToFrameId;
@@ -98,7 +105,18 @@ struct MarkerModel {
 		return false;
 	}
 
+	bool isModelMarkerObject (int objectid) {
+		for (size_t i = 0; i < modelMarkers.size(); i++) {
+			if (modelMarkers[i]->id == objectid)
+				return true;
+		}
+		return false;
+	}
+
 	bool isModelObject (int objectid) {
+		if (isModelMarkerObject(objectid))
+			return true;
+
 		if (isVisualsObject(objectid))
 			return true;
 
@@ -114,6 +132,7 @@ struct MarkerModel {
 
 	JointObject* getJointObject (int frame_id);
 	VisualsObject* getVisualsObject (int frame_id, int visual_index);
+	ModelMarkerObject* getModelMarkerObject (int frame_id, const char* marker_name);
 
 	int getFrameMarkerCount (int frame_id);
 	std::vector<Vector3f> getFrameMarkerCoords (int frame_id);

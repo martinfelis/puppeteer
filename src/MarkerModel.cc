@@ -125,6 +125,20 @@ VisualsObject* MarkerModel::getVisualsObject (int frame_id, int visual_index) {
 	return visual_object;
 }
 
+ModelMarkerObject* MarkerModel::getModelMarkerObject (int frame_id, const char* marker_name) {
+	for (size_t i = 0; i < modelMarkers.size(); i++) {
+		if (modelMarkers[i]->frameId == frame_id && modelMarkers[i]->markerName == marker_name)
+			return modelMarkers[i];
+	}
+
+	ModelMarkerObject *model_marker_object = scene->createObject<ModelMarkerObject>();
+	model_marker_object->frameId = frame_id;
+	model_marker_object->markerName = marker_name;
+	modelMarkers.push_back (model_marker_object);
+
+	return model_marker_object;
+}
+
 int MarkerModel::getFrameMarkerCount(int frame_id) {
 	return (*luaTable)["frames"][frame_id]["markers"].length();
 }
@@ -208,6 +222,19 @@ void MarkerModel::updateSceneObjects() {
 
 		visuals[i]->transformation.translation = joint_transformation.translation;
 		visuals[i]->transformation.rotation = joint_transformation.rotation;
+	}
+
+	for (size_t i = 0; i < modelMarkers.size(); i++) {
+		int frame_id = modelMarkers[i]->frameId;
+		std::string marker_name = modelMarkers[i]->markerName;
+		int rbdl_id = frameIdToRbdlId[frame_id];
+
+		Vector3f local_coords = (*luaTable)["frames"][frame_id]["markers"][marker_name.c_str()].getDefault<Vector3f>(Vector3f (0.f, 0.f, 0.f));
+
+		RBDLVector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, rbdl_id, RigidBodyDynamics::Math::Vector3d (local_coords[0], local_coords[1], local_coords[2]), false);
+
+		Vector3f marker_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
+		modelMarkers[i]->transformation.translation = marker_position;
 	}
 }
 
@@ -464,6 +491,24 @@ void MarkerModel::updateFromLua() {
 			object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_data.mesh_center);
 	
 			visual_scene_object->transformation = object_transformation;
+		}
+
+		// add model markers
+		vector<LuaKey> marker_keys = (*luaTable)["frames"][i]["markers"].keys();
+		for (size_t mi = 0; mi < marker_keys.size(); mi++) {
+			if (marker_keys[mi].type != LuaKey::String) {	
+				cerr << "Warning: invalid marker name: " << marker_keys[mi].int_value << " but string expected!" << endl;
+				continue;
+			}
+
+			string marker_name = marker_keys[mi].string_value;
+			ModelMarkerObject* marker_scene_object = getModelMarkerObject (i, marker_name.c_str());
+			marker_scene_object->mesh = CreateUVSphere (8, 16);
+			marker_scene_object->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
+			marker_scene_object->noDepthTest = true;
+			marker_scene_object->color = Vector4f (1.f, 1.f, 1.f, 1.f);
+
+			modelMarkers.push_back (marker_scene_object);
 		}
 	}
 
