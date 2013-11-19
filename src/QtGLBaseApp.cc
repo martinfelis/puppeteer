@@ -80,7 +80,6 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	scene = new Scene;	
 	glWidget->setScene (scene);
 
-	// marker model and data
 	markerModel = NULL;
 	markerData = NULL;
 	modelFitter = NULL;
@@ -189,6 +188,7 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 		markerModel->modelStateQ = state;
 		markerModel->updateModelState();
 		markerModel->updateSceneObjects();
+		updateModelStateEditor();
 	}
 
 	if (markerModel && markerData) {
@@ -237,9 +237,6 @@ bool QtGLBaseApp::loadAnimationFile (const char* filename) {
 	if(!animationData->loadFromFile (filename))
 		return false;
 
-	slideAnimationCheckBox->setEnabled(true);
-	slideAnimationCheckBox->setChecked(true);
-
 	updateSliderBounds();
 
 	return true;
@@ -251,10 +248,23 @@ void QtGLBaseApp::updateSliderBounds() {
 	else
 		dockWidgetSlider->setVisible(false);
 
-	dockWidgetSlider->setVisible(true);
-	captureFrameSlider->setMinimum (markerData->getFirstFrame());
-	captureFrameSlider->setMaximum (markerData->getLastFrame());
-	connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
+	if (markerModel && animationData) {
+		slideAnimationCheckBox->setEnabled(true);
+		slideAnimationCheckBox->setChecked(true);
+	} else {
+		slideAnimationCheckBox->setEnabled(false);
+		slideAnimationCheckBox->setChecked(false);
+	}
+
+	if (markerData) {
+		dockWidgetSlider->setEnabled(true);
+		dockWidgetSlider->setVisible(true);
+		captureFrameSlider->setMinimum (markerData->getFirstFrame());
+		captureFrameSlider->setMaximum (markerData->getLastFrame());
+		connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
+	} else {
+		dockWidgetSlider->setEnabled(false);
+	}
 }
 
 Vector3f parse_vec3_string (const std::string vec3_string) {
