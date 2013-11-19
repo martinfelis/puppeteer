@@ -19,6 +19,9 @@ struct AnimationKeyFrame {
 };
 
 struct Animation {
+	Animation() :
+		currentTime (0.)
+	{}
 	double currentTime;
 	std::vector<AnimationKeyFrame> keyFrames;
 

@@ -5,6 +5,7 @@
 
 struct MarkerData;
 struct MarkerModel;
+struct Animation;
 
 struct ModelFitter {
 	MarkerData *data;
@@ -20,11 +21,13 @@ struct ModelFitter {
 	{ }
 
 	bool run (const VectorNd &initialState);
+	bool computeModelAnimationFromMarkers (const VectorNd &initialState, Animation *animation, int frame_start = -1, int frame_end = -1);
 
 	VectorNd getFittedState() {
 		return fittedState;
 	}
 };
+
 
 /* MODEL_FITTER_H */
 #endif 

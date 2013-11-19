@@ -85,10 +85,13 @@ public slots:
 		void saveModelState();
 		void loadModel();
 		void saveModel();
+		void loadAnimation();
+		void saveAnimation();
 		void collapseProperties();
 		void objectSelected(int object_id);
 		void assignMarkers();
 		void fitModel();
+		void fitAnimation();
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
 

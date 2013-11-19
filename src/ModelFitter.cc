@@ -2,6 +2,7 @@
 
 #include "MarkerModel.h"
 #include "MarkerData.h"
+#include "Animation.h"
 
 #include <rbdl/rbdl.h>
 
@@ -193,7 +194,7 @@ bool SugiharaIK (
 		LOG << "Qres = " << Qres.transpose() << std::endl;
 
 		if (delta_theta.norm() < step_tol) {
-			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
+//			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
 			return true;
 		}
 
@@ -287,7 +288,7 @@ bool ModelFitter::run(const VectorNd &initialState) {
 			double error_norm = error.norm();
 			marker_errors[index] = error_norm;
 			if (error_norm > 0.02) {
-				cout << "error: " << marker_names[marker_idx] << " = " << error_norm << endl;
+//				cout << "error: " << marker_names[marker_idx] << " = " << error_norm << endl;
 			}
 			if (error_norm > max_error) {
 				max_error = error_norm;
@@ -299,8 +300,47 @@ bool ModelFitter::run(const VectorNd &initialState) {
 	}
 
 	double rms_error = sqrt(error_norm_sum / index);
-	cout << "Errors: max = " << max_error << " " << max_error_marker_name << " avg = " << error_norm_sum / index << " rms = " << rms_error << endl; // << marker_errors.transpose() << endl;
-	cout << "Average: " << vec_average (marker_errors) << " deviation = " << vec_standard_deviation (marker_errors) << endl;
+//	cout << "Errors: max = " << max_error << " " << max_error_marker_name << " avg = " << error_norm_sum / index << " rms = " << rms_error << endl; // << marker_errors.transpose() << endl;
+//	cout << "Average: " << vec_average (marker_errors) << " deviation = " << vec_standard_deviation (marker_errors) << endl;
 
 	return success;
+}
+
+bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &initialState, Animation *animation, int frame_start, int frame_end) {
+	assert (model);
+	assert (data);
+	assert (animation);
+	
+	int old_current_frame = data->currentFrame;
+
+	double current_time = 0.;
+	double frame_rate = static_cast<double>(data->getFrameRate());
+	int frame_first = data->getFirstFrame();
+	int frame_last = data->getLastFrame();
+	double data_duration = static_cast<double>(frame_last - frame_first) / frame_rate;
+	bool result = true;
+
+	if (frame_start == -1 || frame_start < frame_first)
+		frame_start = frame_first;
+	if (frame_end == -1 || frame_end > frame_last)
+		frame_end = frame_last;
+
+	VectorNd current_state = initialState;
+
+	for (int i = frame_start; i <= frame_end; i++) {
+		current_time = static_cast<double>(i - frame_first) / static_cast<double>(frame_last - frame_first) * data_duration;
+		data->setCurrentFrameNumber (i);
+		
+		if (!run (current_state)) {
+			result = false;
+			cerr << "Warning: could not fit frame " << i << endl;
+		}
+
+		current_state = getFittedState();
+		animation->addPose (current_time, current_state);
+	}
+
+	data->currentFrame = old_current_frame;
+
+	return result;
 }

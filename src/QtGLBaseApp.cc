@@ -13,6 +13,7 @@
 #include <QProgressDialog>
 #include <QRegExp>
 #include <QRegExpValidator>
+#include <QProgressDialog>
 
 #include "GLWidget.h" 
 #include "QtGLBaseApp.h"
@@ -155,6 +156,10 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	
 	connect (assignMarkersButton, SIGNAL (clicked()), this, SLOT (assignMarkers()));
 	connect (autoIKButton, SIGNAL (clicked()), this, SLOT (fitModel()));
+
+	connect (fitAnimationButton, SIGNAL (clicked()), this, SLOT (fitAnimation()));
+	connect (loadAnimationButton, SIGNAL (clicked()), this, SLOT (loadAnimation()));
+	connect (saveAnimationButton, SIGNAL (clicked()), this, SLOT (saveAnimation()));
 }
 
 void print_usage(const char* execname) {
@@ -177,6 +182,13 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 			print_usage (argv[0]);
 			return false;
 		}
+	}
+
+	if (markerModel && animationData) {
+		VectorNd state = animationData->getCurrentPose();
+		markerModel->modelStateQ = state;
+		markerModel->updateModelState();
+		markerModel->updateSceneObjects();
 	}
 
 	if (markerModel && markerData) {
@@ -280,12 +292,20 @@ void QtGLBaseApp::saveModelState() {
 }
 
 void QtGLBaseApp::loadModel() {
-	markerModel->loadFromFile ("model.lua");
-	objectSelected (activeObject);
+	loadModelFile ("model.lua");
 }
 
 void QtGLBaseApp::saveModel() {
 	markerModel->saveToFile ("model.lua");
+}
+
+void QtGLBaseApp::loadAnimation() {
+	loadAnimationFile ("animation.csv");	
+}
+
+void QtGLBaseApp::saveAnimation() {
+	assert (animationData);
+	animationData->saveToFile ("animation.csv");
 }
 
 void QtGLBaseApp::collapseProperties() {
@@ -354,6 +374,54 @@ void QtGLBaseApp::fitModel() {
 	markerModel->modelStateQ = q_fitted;
 	markerModel->updateModelState();
 	markerModel->updateSceneObjects();
+}
+
+void QtGLBaseApp::fitAnimation() {
+	if (!modelFitter)
+		return;
+
+	if (!markerModel)
+		return;
+
+	if (!animationData)
+		animationData = new Animation();
+
+	animationData->keyFrames.clear();
+	int frame_count = markerData->getLastFrame() - markerData->getFirstFrame();
+
+	QProgressDialog progress ("Computing Animation...", "Cancel", 0, frame_count, this);
+	progress.setWindowModality (Qt::WindowModal);
+	progress.setMinimumDuration (0);
+
+	bool success = true;
+
+	for (int i = 0; i <= frame_count; i++) {
+		progress.setValue(i);
+		
+		bool fit_result = modelFitter->computeModelAnimationFromMarkers (markerModel->modelStateQ, animationData, markerData->getFirstFrame() + i, markerData->getFirstFrame() + i);
+
+		if (progress.wasCanceled()) {
+			qDebug() << "canceled!";
+			success = false;
+			break;
+		}
+
+		if (!fit_result)
+			success = false;
+	}
+
+	progress.setValue (frame_count);
+
+	if (success) {
+		qDebug() << "fit successful!";
+	} else {
+		qDebug() << "fit failed!";
+	}
+
+	slideAnimationCheckBox->setEnabled(true);
+	slideAnimationCheckBox->setChecked(true);
+
+	updateSliderBounds();
 }
 
 void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
@@ -568,6 +636,22 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 		if (fabs(animationData->getDuration() - mocap_duration) > 1.0e-3) {
 			cerr << "Warning: duration mismatch: Animation = " << animationData->getDuration() << " Motion Capture data = " << mocap_duration << endl; 
 		}
+	}
+
+	if (animationData) {
+		double current_time = animationData->currentTime;
+		int num_seconds = static_cast<int>(floor(current_time));
+		int num_milliseconds = static_cast<int>(round((current_time - num_seconds) * 1000.f));
+
+		stringstream time_string("");
+		time_string << "Time: " << num_seconds << "." << setw(2) << setfill('0') << num_milliseconds;
+		timeLabel->setText(time_string.str().c_str());
+	}
+
+	if (markerData) {
+		stringstream frame_string("");
+		frame_string << "Frame: " << markerData->currentFrame;
+		frameLabel->setText(frame_string.str().c_str());
 	}
 
 	if (slideMarkersCheckBox->isChecked()) 
