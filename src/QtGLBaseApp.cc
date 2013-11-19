@@ -192,7 +192,8 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 	}
 
 	if (markerModel && markerData) {
-		modelFitter = new ModelFitter (markerModel, markerData);
+		modelFitter = new SugiharaFitter (markerModel, markerData);
+//		modelFitter = new LevenbergMarquardtFitter (markerModel, markerData);
 		autoIKButton->setEnabled(true);
 	}
 

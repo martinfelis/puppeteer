@@ -3,7 +3,7 @@
 #include "MarkerModel.h"
 #include "MarkerData.h"
 #include "Animation.h"
-
+#include <fstream>
 #include <rbdl/rbdl.h>
 
 using namespace std;
@@ -22,6 +22,32 @@ OutType ConvertVector(const InType &in_vec) {
 	return result;
 }
 
+struct ModelFitter::ModelFitterInternal {
+	rbdlVectorNd Qinit;
+	rbdlVectorNd Qres;
+	std::vector<unsigned int> body_ids;
+	std::vector<rbdlVector3d> body_points;
+	std::vector<rbdlVector3d> target_pos;
+};
+
+ModelFitter::ModelFitter() {
+	internal = new ModelFitterInternal();
+}
+
+ModelFitter::ModelFitter (MarkerModel *model, MarkerData *data) :
+		model (model),
+		data (data),
+		tolerance (1.0e-8),
+		success (false),
+		steps (0)
+	{
+		internal = new ModelFitterInternal();
+	}
+
+ModelFitter::~ModelFitter() {
+	delete internal;
+}
+
 /** Inverse Kinematics using a Levenberg Marquardt with constant lambda
  */
 bool LevenbergMarquardtIK (
@@ -33,7 +59,9 @@ bool LevenbergMarquardtIK (
 		rbdlVectorNd &Qres,
 		double step_tol,
 		double lambda,
-		unsigned int max_iter
+		unsigned int max_iter,
+		unsigned int *steps,
+		VectorNd *residuals
 		) {
 
 	assert (Qinit.size() == model.q_size);
@@ -45,36 +73,33 @@ bool LevenbergMarquardtIK (
 
 	Qres = Qinit;
 
-	for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+	unsigned int ik_iter;
+
+	for (ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
 			rbdlMatrixNd G (3, model.qdot_size);
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
-			LOG << "current_pos = " << point_base.transpose() << std::endl;
 
 			for (unsigned int i = 0; i < 3; i++) {
 				for (unsigned int j = 0; j < model.qdot_size; j++) {
 					unsigned int row = k * 3 + i;
-					LOG << "i = " << i << " j = " << j << " k = " << k << " row = " << row << " col = " << j << std::endl;
 					J(row, j) = G (i,j);
 				}
 
 				e[k * 3 + i] = target_pos[k][i] - point_base[i];
 			}
 
-			LOG << J << std::endl;
-
 			// abort if we are getting "close"
 			if (e.norm() < step_tol) {
-				LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+				*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+				*steps = ik_iter;
+
 				return true;
 			}
 		}
-
-		LOG << "J = " << J << std::endl;
-		LOG << "e = " << e.transpose() << std::endl;
 
 		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
 
@@ -90,7 +115,8 @@ bool LevenbergMarquardtIK (
 		Qres = Qres + delta_theta;
 
 		if (delta_theta.norm() < step_tol) {
-			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
+			*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+			*steps = ik_iter;
 			return true;
 		}
 
@@ -101,16 +127,14 @@ bool LevenbergMarquardtIK (
 
 		for (unsigned int i = 0; i < z.size(); i++) {
 			test_1[i] = 1.;
-
 			rbdlVectorNd test_delta = J.transpose() * test_1;
-
 			test_res[i] = test_delta.squaredNorm();
-
 			test_1[i] = 0.;
 		}
-
-		LOG << "test_res = " << test_res.transpose() << std::endl;
 	}
+
+	*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+	*steps = ik_iter;
 
 	return false;
 }
@@ -129,7 +153,9 @@ bool SugiharaIK (
 		const std::vector<rbdlVector3d>& target_pos,
 		rbdlVectorNd &Qres,
 		double step_tol,
-		unsigned int max_iter
+		unsigned int max_iter,
+		unsigned int *steps,
+		VectorNd *residuals
 		) {
 
 	assert (Qinit.size() == model.q_size);
@@ -141,41 +167,43 @@ bool SugiharaIK (
 
 	Qres = Qinit;
 
-	for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+	unsigned int ik_iter;
+
+	for (ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
 			rbdlMatrixNd G (3, model.qdot_size);
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
-			LOG << "current_pos = " << point_base.transpose() << std::endl;
 
 			for (unsigned int i = 0; i < 3; i++) {
 				for (unsigned int j = 0; j < model.qdot_size; j++) {
 					unsigned int row = k * 3 + i;
-					LOG << "i = " << i << " j = " << j << " k = " << k << " row = " << row << " col = " << j << std::endl;
 					J(row, j) = G (i,j);
 				}
 
 				e[k * 3 + i] = target_pos[k][i] - point_base[i];
 			}
 
-			LOG << J << std::endl;
-
 			// abort if we are getting "close"
 			if (e.norm() < step_tol) {
-				LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+				*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+				*steps = ik_iter;
+
 				return true;
 			}
 		}
 
-		LOG << "J = " << J << std::endl;
-		LOG << "e = " << e.transpose() << std::endl;
-
 		double ek = e.squaredNorm() * 0.5;
-		double wn = 1.0e-3;
-		rbdlMatrixNd JJT_ek_wnI = J * J.transpose() + (ek + wn) * rbdlMatrixNd::Identity(e.size(), e.size());
-//		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
+		double wn = 1.0e-5;
+		rbdlMatrixNd Ek = rbdlMatrixNd::Identity (e.size(), e.size());
+	
+		for (size_t ei = 0; ei < e.size(); ei ++) {
+			Ek(ei,ei) = e[ei] * e[ei] * 0.5;
+		}
+
+		rbdlMatrixNd JJT_ek_wnI = J * J.transpose() + Ek + (wn) * rbdlMatrixNd::Identity(e.size(), e.size());
 
 		rbdlVectorNd z (body_id.size() * 3);
 #ifndef RBDL_USE_SIMPLE_MATH
@@ -185,16 +213,14 @@ bool SugiharaIK (
 		assert (solve_successful);
 #endif
 
-		LOG << "z = " << z << std::endl;
-
 		rbdlVectorNd delta_theta = J.transpose() * z;
-		LOG << "change = " << delta_theta << std::endl;
-
 		Qres = Qres + delta_theta;
-		LOG << "Qres = " << Qres.transpose() << std::endl;
 
 		if (delta_theta.norm() < step_tol) {
 //			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
+			*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+			*steps = ik_iter;
+
 			return true;
 		}
 
@@ -205,16 +231,14 @@ bool SugiharaIK (
 
 		for (unsigned int i = 0; i < z.size(); i++) {
 			test_1[i] = 1.;
-
 			rbdlVectorNd test_delta = J.transpose() * test_1;
-
 			test_res[i] = test_delta.squaredNorm();
-
 			test_1[i] = 0.;
 		}
-
-		LOG << "test_res = " << test_res.transpose() << std::endl;
 	}
+
+	*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+	*steps = ik_iter;
 
 	return false;
 }
@@ -237,16 +261,13 @@ double vec_standard_deviation (const VectorNd &vec) {
 	return sqrt (diff_sum / vec.size());
 }
 
-bool ModelFitter::run(const VectorNd &initialState) {
+void ModelFitter::setup() {
 	fittedState = initialState;
 	success = false;
 
-	rbdlVectorNd Qinit = ConvertVector<rbdlVectorNd, VectorNd> (initialState);
-	rbdlVectorNd Qres = ConvertVector<rbdlVectorNd, VectorNd> (initialState);
-
-	vector<unsigned int> body_ids;
-	vector<rbdlVector3d> body_points;
-	vector<rbdlVector3d> target_pos;
+	internal->Qinit = ConvertVector<rbdlVectorNd, VectorNd> (initialState);
+	internal->Qres = ConvertVector<rbdlVectorNd, VectorNd> (initialState);
+	residuals = VectorNd::Zero (initialState.size());
 
 	int frame_count = model->getFrameCount();
 	for (int frame_id = 1; frame_id <= frame_count; frame_id++) {
@@ -257,60 +278,18 @@ bool ModelFitter::run(const VectorNd &initialState) {
 		assert (marker_coords.size() == marker_names.size());
 
 		for (size_t marker_idx = 0; marker_idx < marker_coords.size(); marker_idx++) {
-			body_ids.push_back (body_id);
-			body_points.push_back (ConvertVector<rbdlVector3d, Vector3d> (marker_coords[marker_idx]));
-			target_pos.push_back (ConvertVector<rbdlVector3d, Vector3d> (data->getMarkerCurrentPosition (marker_names[marker_idx].c_str())));
+			internal->body_ids.push_back (body_id);
+			internal->body_points.push_back (ConvertVector<rbdlVector3d, Vector3d> (marker_coords[marker_idx]));
+			internal->target_pos.push_back (ConvertVector<rbdlVector3d, Vector3d> (data->getMarkerCurrentPosition (marker_names[marker_idx].c_str())));
 		}
 	}
-
-	success = SugiharaIK (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-8, 150);
-//	success = LevenbergMarquardtIK (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-8, 0.05, 100);
-//	success = RigidBodyDynamics::InverseKinematics (*(model->rbdlModel), Qinit, body_ids, body_points, target_pos, Qres, 1.0e-8, 0.05, 100);
-	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (Qres);
-
-	model->modelStateQ = fittedState;
-
-	vector<Vector3f> marker_displacement;
-	VectorNd marker_errors (VectorNd::Zero (body_ids.size()));
-	int index = 0;
-	double max_error = 0.;
-	string max_error_marker_name = "";
-	double error_norm_sum = 0.;
-	for (int frame_id = 0; frame_id < frame_count; frame_id++) {
-		vector<string> marker_names = model->getFrameMarkerNames(frame_id);
-
-		for (size_t marker_idx = 0; marker_idx < marker_names.size(); marker_idx++) {
-			Vector3f marker_position_data = data->getMarkerCurrentPosition (marker_names[marker_idx].c_str());
-			Vector3f marker_position_model = model->getMarkerPosition (frame_id, marker_names[marker_idx].c_str());
-
-			Vector3d error = marker_position_data - marker_position_model;
-			marker_displacement.push_back (error);
-			double error_norm = error.norm();
-			marker_errors[index] = error_norm;
-			if (error_norm > 0.02) {
-//				cout << "error: " << marker_names[marker_idx] << " = " << error_norm << endl;
-			}
-			if (error_norm > max_error) {
-				max_error = error_norm;
-				max_error_marker_name = marker_names[marker_idx];
-			}
-			error_norm_sum += error_norm * error_norm;
-			index++;
-		}
-	}
-
-	double rms_error = sqrt(error_norm_sum / index);
-//	cout << "Errors: max = " << max_error << " " << max_error_marker_name << " avg = " << error_norm_sum / index << " rms = " << rms_error << endl; // << marker_errors.transpose() << endl;
-//	cout << "Average: " << vec_average (marker_errors) << " deviation = " << vec_standard_deviation (marker_errors) << endl;
-
-	return success;
 }
 
-bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &initialState, Animation *animation, int frame_start, int frame_end) {
+bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialState, Animation *animation, int frame_start, int frame_end) {
 	assert (model);
 	assert (data);
 	assert (animation);
-	
+
 	int old_current_frame = data->currentFrame;
 
 	double current_time = 0.;
@@ -325,22 +304,67 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &initialState
 	if (frame_end == -1 || frame_end > frame_last)
 		frame_end = frame_last;
 
-	VectorNd current_state = initialState;
+	ofstream iklog;
+	if (frame_start == frame_first) {
+		iklog.open("fitting.log");
+	}	else {
+		iklog.open("fitting.log", ios::app);
+	}
+
+	VectorNd current_state = _initialState;
 
 	for (int i = frame_start; i <= frame_end; i++) {
 		current_time = static_cast<double>(i - frame_first) / static_cast<double>(frame_last - frame_first) * data_duration;
 		data->setCurrentFrameNumber (i);
-		
+
 		if (!run (current_state)) {
 			result = false;
 			cerr << "Warning: could not fit frame " << i << endl;
 		}
 
+		iklog << frame_start - frame_first << ", ";
+		iklog << steps << ", ";
+		for (int ri = 0; ri < residuals.size() / 3; ri++) {
+			Vector3d marker_res (residuals[ri * 3], residuals[ri * 3 + 1], residuals[ri * 3 + 2]); 
+			iklog << marker_res.norm();
+
+			if (ri != (residuals.size() / 3) - 1)
+				iklog << ", ";
+		}
+		iklog << endl;
+
 		current_state = getFittedState();
 		animation->addPose (current_time, current_state);
 	}
+	iklog.close();
 
 	data->currentFrame = old_current_frame;
 
 	return result;
+}
+
+bool LevenbergMarquardtFitter::run (const VectorNd &_initialState) {
+	initialState = _initialState;
+
+	setup();
+
+	success = LevenbergMarquardtIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, lambda, 100, &steps, &residuals);
+	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
+
+	model->modelStateQ = fittedState;
+
+	return success;
+}
+
+bool SugiharaFitter::run (const VectorNd &_initialState) {
+	initialState = _initialState;
+
+	setup();
+
+	success = SugiharaIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, 100, &steps, &residuals);
+	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
+
+	model->modelStateQ = fittedState;
+
+	return success;
 }

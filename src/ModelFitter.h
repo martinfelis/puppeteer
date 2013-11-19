@@ -8,19 +8,27 @@ struct MarkerModel;
 struct Animation;
 
 struct ModelFitter {
+	struct ModelFitterInternal;
+
 	MarkerData *data;
 	MarkerModel *model;
+	ModelFitterInternal *internal;
+
+	double tolerance;
 	bool success;
+	unsigned int steps;
+
 	VectorNd initialState;
 	VectorNd fittedState;
+	VectorNd residuals;
 
-	ModelFitter (MarkerModel *model, MarkerData *data):
-		data (data),
-		model (model),
-		success (false)
-	{ }
+	ModelFitter ();
+	ModelFitter (MarkerModel *model, MarkerData *data);
+	~ModelFitter();
 
-	bool run (const VectorNd &initialState);
+	void setup();
+	virtual bool run (const VectorNd &initialState) = 0;
+
 	bool computeModelAnimationFromMarkers (const VectorNd &initialState, Animation *animation, int frame_start = -1, int frame_end = -1);
 
 	VectorNd getFittedState() {
@@ -28,6 +36,22 @@ struct ModelFitter {
 	}
 };
 
+struct SugiharaFitter : public ModelFitter {
+	SugiharaFitter (MarkerModel *model, MarkerData *data) :
+		ModelFitter (model, data) 
+	{}
+	virtual bool run (const VectorNd &initialState);
+};
+
+struct LevenbergMarquardtFitter : public ModelFitter {
+	LevenbergMarquardtFitter (MarkerModel *model, MarkerData *data, double lambda = 0.05):
+		ModelFitter (model, data),
+		lambda (lambda)
+	{}
+	double lambda;
+
+	virtual bool run (const VectorNd &initialState);
+};
 
 /* MODEL_FITTER_H */
 #endif 
