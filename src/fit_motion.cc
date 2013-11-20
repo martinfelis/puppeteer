@@ -1,4 +1,7 @@
 #include <iostream>
+
+#include "timer.h"
+
 #include "MarkerModel.h"
 #include "MarkerData.h"
 #include "Animation.h"
@@ -27,7 +30,7 @@ bool parse_args (int argc, char* argv[]) {
 			data = new MarkerData();
 			if(!data->loadFromFile (arg.c_str())) 
 				return false;
-		} else if (arg == "-LM") {
+		} else if (arg == "--levenberg") {
 			fitter_method = "levenberg";
 		} else {
 			print_usage (argv[0]);
@@ -51,7 +54,12 @@ int main (int argc, char* argv[]) {
 	}
 
 	animation = new Animation();
+
+	TimerInfo timer;
+
+	timer_start(&timer);
 	bool result = fitter->computeModelAnimationFromMarkers (model->modelStateQ, animation, data->getFirstFrame(), data->getLastFrame());
+	cout << "Duration: " << timer_stop(&timer) << endl;
 
 	if (!result) {
 		cout << "Fit failed!" << endl;

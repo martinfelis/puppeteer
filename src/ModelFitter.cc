@@ -196,7 +196,7 @@ bool SugiharaIK (
 		}
 
 		double ek = e.squaredNorm() * 0.5;
-		double wn = 1.0e-5;
+		double wn = 1.0e-3;
 		rbdlMatrixNd Ek = rbdlMatrixNd::Identity (e.size(), e.size());
 	
 		for (size_t ei = 0; ei < e.size(); ei ++) {
@@ -268,6 +268,10 @@ void ModelFitter::setup() {
 	internal->Qinit = ConvertVector<rbdlVectorNd, VectorNd> (initialState);
 	internal->Qres = ConvertVector<rbdlVectorNd, VectorNd> (initialState);
 	residuals = VectorNd::Zero (initialState.size());
+
+	internal->body_ids.clear();
+	internal->body_points.clear();
+	internal->target_pos.clear();
 
 	int frame_count = model->getFrameCount();
 	for (int frame_id = 1; frame_id <= frame_count; frame_id++) {
@@ -351,8 +355,6 @@ bool LevenbergMarquardtFitter::run (const VectorNd &_initialState) {
 	success = LevenbergMarquardtIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, lambda, 100, &steps, &residuals);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
 
-	model->modelStateQ = fittedState;
-
 	return success;
 }
 
@@ -363,8 +365,6 @@ bool SugiharaFitter::run (const VectorNd &_initialState) {
 
 	success = SugiharaIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, 100, &steps, &residuals);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
-
-	model->modelStateQ = fittedState;
 
 	return success;
 }
