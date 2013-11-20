@@ -438,77 +438,79 @@ void MarkerModel::updateFromLua() {
 		frameIdToRbdlId[i] = rbdl_id;
 		rbdlToFrameId[rbdl_id] = i;
 
-		// Add joint scene object
-		JointObject *joint_scene_object = getJointObject(i);
-		joint_scene_object->rbdlBodyId = rbdl_id;
+		if (scene) {
+			// Add joint scene object
+			JointObject *joint_scene_object = getJointObject(i);
+			joint_scene_object->rbdlBodyId = rbdl_id;
 
-		joint_scene_object->color = Vector4f (0.9f, 0.9f, 0.9f, 1.f);
-	
-		RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
-		RBDLVector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, rbdl_id, RigidBodyDynamics::Math::Vector3d (0., 0., 0.));
-		RBDLMatrix3d rbdl_mat3 = CalcBodyWorldOrientation (*rbdlModel, q, rbdl_id);
-		Matrix33f rot_mat = ConvertToSimpleMathMat3 (rbdl_mat3.transpose());
+			joint_scene_object->color = Vector4f (0.9f, 0.9f, 0.9f, 1.f);
 
-		Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
-		joint_scene_object->transformation.rotation = SimpleMath::GL::Quaternion::fromMatrix(rot_mat);
-		joint_scene_object->transformation.translation = joint_position;
-		joint_scene_object->transformation.scaling = Vector3f (0.025, 0.025, 0.025);
-		joint_scene_object->mesh = CreateUVSphere (8, 16);
-		joint_scene_object->noDepthTest = true;
+			RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
+			RBDLVector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, rbdl_id, RigidBodyDynamics::Math::Vector3d (0., 0., 0.));
+			RBDLMatrix3d rbdl_mat3 = CalcBodyWorldOrientation (*rbdlModel, q, rbdl_id);
+			Matrix33f rot_mat = ConvertToSimpleMathMat3 (rbdl_mat3.transpose());
 
-		joint_scene_object->frameId = i;
+			Vector3f joint_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
+			joint_scene_object->transformation.rotation = SimpleMath::GL::Quaternion::fromMatrix(rot_mat);
+			joint_scene_object->transformation.translation = joint_position;
+			joint_scene_object->transformation.scaling = Vector3f (0.025, 0.025, 0.025);
+			joint_scene_object->mesh = CreateUVSphere (8, 16);
+			joint_scene_object->noDepthTest = true;
 
-		// add visuals
-		for (size_t vi = 0; vi < (*luaTable)["frames"][i]["visuals"].length(); vi++) {
-			VisualsData visual_data = (*luaTable)["frames"][i]["visuals"][vi + 1];
+			joint_scene_object->frameId = i;
 
-			assert ((visual_data.scale - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.scale not (yet) supported!");
-			assert ((visual_data.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
+			// add visuals
+			for (size_t vi = 0; vi < (*luaTable)["frames"][i]["visuals"].length(); vi++) {
+				VisualsData visual_data = (*luaTable)["frames"][i]["visuals"][vi + 1];
 
-			// setup of the scene object
-			VisualsObject* visual_scene_object = getVisualsObject (i, vi + 1);
-			visual_scene_object->frameId = i;
-			visual_scene_object->jointObject = joint_scene_object;
-			visual_scene_object->visualIndex = vi + 1;
-			visual_scene_object->color = visual_data.color;
-			visual_scene_object->color[3] = 0.8;
+				assert ((visual_data.scale - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.scale not (yet) supported!");
+				assert ((visual_data.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
 
-			MeshVBO mesh;
-			load_obj (mesh, visual_data.src.c_str());	
-			visual_scene_object->mesh = mesh;
+				// setup of the scene object
+				VisualsObject* visual_scene_object = getVisualsObject (i, vi + 1);
+				visual_scene_object->frameId = i;
+				visual_scene_object->jointObject = joint_scene_object;
+				visual_scene_object->visualIndex = vi + 1;
+				visual_scene_object->color = visual_data.color;
+				visual_scene_object->color[3] = 0.8;
 
-			// setup of the transformation
-			Transformation object_transformation = joint_scene_object->transformation;
-			Vector3f bbox_size (mesh.bbox_max - mesh.bbox_min);
-			Vector3f scale (
-					fabs(visual_data.dimensions[0]) / bbox_size[0],
-					fabs(visual_data.dimensions[1]) / bbox_size[1],
-					fabs(visual_data.dimensions[2]) / bbox_size[2]
-					);
+				MeshVBO mesh;
+				load_obj (mesh, visual_data.src.c_str());	
+				visual_scene_object->mesh = mesh;
 
-			object_transformation.scaling = scale;
+				// setup of the transformation
+				Transformation object_transformation = joint_scene_object->transformation;
+				Vector3f bbox_size (mesh.bbox_max - mesh.bbox_min);
+				Vector3f scale (
+						fabs(visual_data.dimensions[0]) / bbox_size[0],
+						fabs(visual_data.dimensions[1]) / bbox_size[1],
+						fabs(visual_data.dimensions[2]) / bbox_size[2]
+						);
 
-			object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_data.mesh_center);
-	
-			visual_scene_object->transformation = object_transformation;
-		}
+				object_transformation.scaling = scale;
 
-		// add model markers
-		vector<LuaKey> marker_keys = (*luaTable)["frames"][i]["markers"].keys();
-		for (size_t mi = 0; mi < marker_keys.size(); mi++) {
-			if (marker_keys[mi].type != LuaKey::String) {	
-				cerr << "Warning: invalid marker name: " << marker_keys[mi].int_value << " but string expected!" << endl;
-				continue;
+				object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_data.mesh_center);
+
+				visual_scene_object->transformation = object_transformation;
 			}
 
-			string marker_name = marker_keys[mi].string_value;
-			ModelMarkerObject* marker_scene_object = getModelMarkerObject (i, marker_name.c_str());
-			marker_scene_object->mesh = CreateUVSphere (8, 16);
-			marker_scene_object->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
-			marker_scene_object->noDepthTest = true;
-			marker_scene_object->color = Vector4f (1.f, 1.f, 1.f, 1.f);
+			// add model markers
+			vector<LuaKey> marker_keys = (*luaTable)["frames"][i]["markers"].keys();
+			for (size_t mi = 0; mi < marker_keys.size(); mi++) {
+				if (marker_keys[mi].type != LuaKey::String) {	
+					cerr << "Warning: invalid marker name: " << marker_keys[mi].int_value << " but string expected!" << endl;
+					continue;
+				}
 
-			modelMarkers.push_back (marker_scene_object);
+				string marker_name = marker_keys[mi].string_value;
+				ModelMarkerObject* marker_scene_object = getModelMarkerObject (i, marker_name.c_str());
+				marker_scene_object->mesh = CreateUVSphere (8, 16);
+				marker_scene_object->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
+				marker_scene_object->noDepthTest = true;
+				marker_scene_object->color = Vector4f (1.f, 1.f, 1.f, 1.f);
+
+				modelMarkers.push_back (marker_scene_object);
+			}
 		}
 	}
 

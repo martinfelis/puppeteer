@@ -15,8 +15,6 @@ MarkerData::~MarkerData() {
 }
 
 bool MarkerData::loadFromFile(const char *filename) {
-	assert (scene);
-
 	if (c3dfile) {
 		delete c3dfile;
 		markers.clear();
@@ -30,6 +28,9 @@ bool MarkerData::loadFromFile(const char *filename) {
 	}
 
 	currentFrame = getFirstFrame();
+
+	if (!scene)
+		return true;
 
 	enableMarker ("LFHD", Vector3f (0.f, 0.f, 1.f));
 	enableMarker ("LBHD", Vector3f (0.f, 0.f, 1.f));
@@ -76,7 +77,6 @@ bool MarkerData::loadFromFile(const char *filename) {
 
 void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	assert (c3dfile);
-	assert (scene);
 
 	MarkerObject* scene_marker = scene->createObject<MarkerObject>();
 	scene_marker->color.block<3,1>(0,0) = color;

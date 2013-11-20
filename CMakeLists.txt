@@ -60,6 +60,10 @@ ADD_EXECUTABLE ( qtglbase
 	${MainWindow_UIS_H}
 )
 
+ADD_EXECUTABLE ( fit_motion
+	src/fit_motion.cc
+	)
+
 INCLUDE_DIRECTORIES (
 	${QT_INCLUDE_DIR}
 	glew/include
@@ -100,3 +104,7 @@ TARGET_LINK_LIBRARIES ( qtglbase
 	QtPropertyBrowser
 	${OPENGL_LIBRARIES}
 )
+
+TARGET_LINK_LIBRARIES ( fit_motion
+	SceneGL
+	)
