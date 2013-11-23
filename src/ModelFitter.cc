@@ -28,6 +28,7 @@ struct ModelFitter::ModelFitterInternal {
 	std::vector<unsigned int> body_ids;
 	std::vector<rbdlVector3d> body_points;
 	std::vector<rbdlVector3d> target_pos;
+	std::vector<string> marker_names;
 };
 
 ModelFitter::ModelFitter() {
@@ -119,18 +120,6 @@ bool LevenbergMarquardtIK (
 			*steps = ik_iter;
 			return true;
 		}
-
-		rbdlVectorNd test_1 (z.size());
-		rbdlVectorNd test_res (z.size());
-
-		test_1.setZero();
-
-		for (unsigned int i = 0; i < z.size(); i++) {
-			test_1[i] = 1.;
-			rbdlVectorNd test_delta = J.transpose() * test_1;
-			test_res[i] = test_delta.squaredNorm();
-			test_1[i] = 0.;
-		}
 	}
 
 	*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
@@ -195,7 +184,6 @@ bool SugiharaIK (
 			}
 		}
 
-		double ek = e.squaredNorm() * 0.5;
 		double wn = 1.0e-3;
 		rbdlMatrixNd Ek = rbdlMatrixNd::Identity (e.size(), e.size());
 	
@@ -203,13 +191,13 @@ bool SugiharaIK (
 			Ek(ei,ei) = e[ei] * e[ei] * 0.5;
 		}
 
-		rbdlMatrixNd JJT_ek_wnI = J * J.transpose() + Ek + (wn) * rbdlMatrixNd::Identity(e.size(), e.size());
+		rbdlMatrixNd JJT_Ek_wnI = J * J.transpose() + Ek + (wn) * rbdlMatrixNd::Identity(e.size(), e.size());
 
 		rbdlVectorNd z (body_id.size() * 3);
 #ifndef RBDL_USE_SIMPLE_MATH
-		z = JJT_ek_wnI.colPivHouseholderQr().solve (e);
+		z = JJT_Ek_wnI.colPivHouseholderQr().solve (e);
 #else
-		bool solve_successful = LinSolveGaussElimPivot (JJT_ek_wnI, e, z);
+		bool solve_successful = LinSolveGaussElimPivot (JJT_Ek_wnI, e, z);
 		assert (solve_successful);
 #endif
 
@@ -217,23 +205,10 @@ bool SugiharaIK (
 		Qres = Qres + delta_theta;
 
 		if (delta_theta.norm() < step_tol) {
-//			cout << "IK result ||e|| = " << e.norm() << " steps: " << ik_iter << endl;
 			*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
 			*steps = ik_iter;
 
 			return true;
-		}
-
-		rbdlVectorNd test_1 (z.size());
-		rbdlVectorNd test_res (z.size());
-
-		test_1.setZero();
-
-		for (unsigned int i = 0; i < z.size(); i++) {
-			test_1[i] = 1.;
-			rbdlVectorNd test_delta = J.transpose() * test_1;
-			test_res[i] = test_delta.squaredNorm();
-			test_1[i] = 0.;
 		}
 	}
 
@@ -285,6 +260,7 @@ void ModelFitter::setup() {
 			internal->body_ids.push_back (body_id);
 			internal->body_points.push_back (ConvertVector<rbdlVector3d, Vector3d> (marker_coords[marker_idx]));
 			internal->target_pos.push_back (ConvertVector<rbdlVector3d, Vector3d> (data->getMarkerCurrentPosition (marker_names[marker_idx].c_str())));
+			internal->marker_names.push_back(marker_names[marker_idx]);
 		}
 	}
 }
@@ -311,6 +287,15 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 	ofstream iklog;
 	if (frame_start == frame_first) {
 		iklog.open("fitting.log");
+		setup();
+	
+		iklog << "frame, steps, ";
+		for (size_t i = 0; i < internal->marker_names.size(); i++) {
+			iklog << internal->marker_names[i];
+			if (i != internal->marker_names.size() - 1)
+				iklog << ", ";
+		}
+		iklog << endl;
 	}	else {
 		iklog.open("fitting.log", ios::app);
 	}
@@ -326,7 +311,7 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 			cerr << "Warning: could not fit frame " << i << endl;
 		}
 
-		iklog << frame_start - frame_first << ", ";
+		iklog << i - frame_first << ", ";
 		iklog << steps << ", ";
 		for (int ri = 0; ri < residuals.size() / 3; ri++) {
 			Vector3d marker_res (residuals[ri * 3], residuals[ri * 3 + 1], residuals[ri * 3 + 2]); 

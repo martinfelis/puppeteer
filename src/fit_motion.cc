@@ -16,7 +16,7 @@ ModelFitter *fitter = NULL;
 string fitter_method = "sugihara";
 
 void print_usage(const char* execname) {
-	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> [-LM]" << endl;
+	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> [--levenberg]" << endl;
 }
 
 bool parse_args (int argc, char* argv[]) {
