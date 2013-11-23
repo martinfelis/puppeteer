@@ -188,8 +188,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>235</width>
-          <height>107</height>
+          <width>138</width>
+          <height>78</height>
          </rect>
         </property>
         <attribute name="label">
@@ -223,8 +223,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>235</width>
-          <height>107</height>
+          <width>194</width>
+          <height>78</height>
          </rect>
         </property>
         <attribute name="label">
@@ -255,6 +255,14 @@
         </layout>
        </widget>
        <widget class="QWidget" name="page">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>235</width>
+          <height>107</height>
+         </rect>
+        </property>
         <attribute name="label">
          <string>Display</string>
         </attribute>
@@ -448,14 +456,14 @@
         <enum>QLayout::SetMinimumSize</enum>
        </property>
        <item>
-        <widget class="QPushButton" name="loadModelStateButton">
+        <widget class="QPushButton" name="saveModelStateButton">
          <property name="text">
           <string>Save</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="saveModelStateButton">
+        <widget class="QPushButton" name="loadModelStateButton">
          <property name="text">
           <string>Load</string>
          </property>
