@@ -85,7 +85,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	modelFitter = NULL;
 	animationData = NULL;
 	activeModelFrame = 0;
-	activeObject = 0;
+	activeObject = -1;
 
 	drawTimer = new QTimer (this);
 	drawTimer->setSingleShot(false);
@@ -348,6 +348,7 @@ void QtGLBaseApp::collapseProperties() {
 }
 
 void QtGLBaseApp::objectSelected (int object_id) {
+	qDebug() << "objectSelected " << object_id;
 	activeModelFrame = 0;
 	activeObject = object_id;
 
@@ -623,7 +624,7 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	unsigned int state_index = propertyToStateIndex[property];
 
 	markerModel->setModelStateValue (state_index, value);	
-	updateWidgetsFromObject ((*scene->selectedObjectIds.end()));
+	updateWidgetsFromObject (activeObject);
 }
 
 void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
