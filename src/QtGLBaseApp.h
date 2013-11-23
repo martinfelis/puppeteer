@@ -98,6 +98,10 @@ public slots:
 		void modelStateValueChanged (QtProperty *property, double value);
 		void valueChanged(QtProperty *property, QVector3D value);
 		void captureFrameSliderChanged (int value);
+
+		void displayModelMarkers (int display_state);
+		void displayBodySegments (int display_state);
+		void displayJoints (int display_state);
 };
  
 #endif

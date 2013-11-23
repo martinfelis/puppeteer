@@ -98,6 +98,10 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	slideAnimationCheckBox->setEnabled(false);
 	slideMarkersCheckBox->setEnabled(false);
 
+	drawModelMarkersCheckBox->setEnabled(false);
+	drawBodySegmentsCheckBox->setEnabled(false);
+	drawJointsCheckBox->setEnabled(false);
+
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
 	connect (actionSideView, SIGNAL (triggered()), glWidget, SLOT (set_side_view()));
 	connect (actionTopView, SIGNAL (triggered()), glWidget, SLOT (set_top_view()));
@@ -159,6 +163,10 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (fitAnimationButton, SIGNAL (clicked()), this, SLOT (fitAnimation()));
 	connect (loadAnimationButton, SIGNAL (clicked()), this, SLOT (loadAnimation()));
 	connect (saveAnimationButton, SIGNAL (clicked()), this, SLOT (saveAnimation()));
+
+	connect (drawModelMarkersCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayModelMarkers(int)));
+	connect (drawBodySegmentsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayBodySegments(int)));
+	connect (drawJointsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayJoints(int)));
 }
 
 void print_usage(const char* execname) {
@@ -181,6 +189,16 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 			print_usage (argv[0]);
 			return false;
 		}
+	}
+
+	if (markerModel) {
+		drawModelMarkersCheckBox->setEnabled(true);
+		drawBodySegmentsCheckBox->setEnabled(true);
+		drawJointsCheckBox->setEnabled(true);
+
+		displayModelMarkers (drawModelMarkersCheckBox->checkState());
+		displayBodySegments (drawBodySegmentsCheckBox->checkState());
+		displayJoints (drawJointsCheckBox->checkState());
 	}
 
 	if (markerModel && animationData) {
@@ -405,8 +423,9 @@ void QtGLBaseApp::fitAnimation() {
 	progress.setMinimumDuration (0);
 
 	bool success = true;
+	int i = 0;
 
-	for (int i = 0; i <= frame_count; i++) {
+	for (i = 0; i <= frame_count; i++) {
 		progress.setValue(i);
 		
 		bool fit_result = modelFitter->computeModelAnimationFromMarkers (markerModel->modelStateQ, animationData, markerData->getFirstFrame() + i, markerData->getFirstFrame() + i);
@@ -421,7 +440,7 @@ void QtGLBaseApp::fitAnimation() {
 			success = false;
 	}
 
-	progress.setValue (frame_count);
+	progress.setValue (i);
 
 	if (success) {
 		qDebug() << "fit successful!";
@@ -694,4 +713,34 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	}
 
 	updateModelStateEditor();
+}
+
+void QtGLBaseApp::displayModelMarkers (int display_state) {
+	bool no_draw = false;
+	if (display_state != Qt::Checked)
+		no_draw = true;
+
+	for (int i = 0; i < markerModel->modelMarkers.size(); i++) {
+		markerModel->modelMarkers[i]->noDraw = no_draw;
+	}
+}
+
+void QtGLBaseApp::displayBodySegments (int display_state) {
+	bool no_draw = false;
+	if (display_state != Qt::Checked)
+		no_draw = true;
+
+	for (int i = 0; i < markerModel->visuals.size(); i++) {
+		markerModel->visuals[i]->noDraw = no_draw;
+	}
+}
+
+void QtGLBaseApp::displayJoints (int display_state) {
+	bool no_draw = false;
+	if (display_state != Qt::Checked)
+		no_draw = true;
+
+	for (int i = 0; i < markerModel->joints.size(); i++) {
+		markerModel->joints[i]->noDraw = no_draw;
+	}
 }

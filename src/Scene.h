@@ -24,7 +24,8 @@ struct SceneObject {
 		id (-1),
 		color (1.f, 1.f, 1.f, 1.f),
 		noDepthTest(false),
-		noLighting(false)
+		noLighting(false),
+		noDraw (false)
 	{ }
 	virtual ~SceneObject() {}
 
@@ -32,6 +33,7 @@ struct SceneObject {
 	Vector4f color;
 	bool noDepthTest;
 	bool noLighting;
+	bool noDraw;
 	Transformation transformation;
 	MeshVBO mesh;
 };

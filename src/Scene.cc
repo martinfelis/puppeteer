@@ -46,7 +46,7 @@ void Scene::initShaders() {
 }
 
 void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
-	if (style == DrawStyleHidden)
+	if (style == DrawStyleHidden || object->noDraw)
 		return;
 
 //	defaultShader.printLog();
@@ -146,6 +146,9 @@ void Scene::drawForColorPicking() {
 	std::vector<SceneObject*> depth_ignoring_objects;
 
 	for (size_t i = 0; i < objects.size(); i++) {
+		if (objects[i]->noDraw)
+			continue;
+
 		if (objects[i]->noDepthTest) {
 			depth_ignoring_objects.push_back (objects[i]);
 			continue;
