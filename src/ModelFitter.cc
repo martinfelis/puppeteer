@@ -25,6 +25,7 @@ OutType ConvertVector(const InType &in_vec) {
 struct ModelFitter::ModelFitterInternal {
 	rbdlVectorNd Qinit;
 	rbdlVectorNd Qres;
+	std::map<std::string, int> marker_residual_index;
 	std::vector<unsigned int> body_ids;
 	std::vector<rbdlVector3d> body_points;
 	std::vector<rbdlVector3d> target_pos;
@@ -247,8 +248,12 @@ void ModelFitter::setup() {
 	internal->body_ids.clear();
 	internal->body_points.clear();
 	internal->target_pos.clear();
+	internal->marker_residual_index.clear();
+	internal->marker_names.clear();
 
 	int frame_count = model->getFrameCount();
+	int residual_index = 0;
+
 	for (int frame_id = 1; frame_id <= frame_count; frame_id++) {
 		unsigned int body_id = model->frameIdToRbdlId[frame_id];
 		vector<Vector3f> marker_coords = model->getFrameMarkerCoords(frame_id);
@@ -257,10 +262,22 @@ void ModelFitter::setup() {
 		assert (marker_coords.size() == marker_names.size());
 
 		for (size_t marker_idx = 0; marker_idx < marker_coords.size(); marker_idx++) {
+			rbdlVector3d marker_data_pos = ConvertVector<rbdlVector3d, Vector3d> (data->getMarkerCurrentPosition (marker_names[marker_idx].c_str()));
+			internal->marker_names.push_back(marker_names[marker_idx]);
+
+			if (marker_data_pos == rbdlVector3d (0., 0., 0.) || marker_data_pos.squaredNorm() > 1.0e2) {
+				cerr << "Warning: invalid marker data for marker '" << marker_names[marker_idx] << "' at frame " << data->currentFrame << ". Not fitting to this marker." << endl;
+				internal->marker_residual_index[marker_names[marker_idx]] = -1;
+				continue;
+			}
+
+			internal->marker_residual_index[marker_names[marker_idx]] = residual_index;
+			residual_index++;
+
 			internal->body_ids.push_back (body_id);
 			internal->body_points.push_back (ConvertVector<rbdlVector3d, Vector3d> (marker_coords[marker_idx]));
-			internal->target_pos.push_back (ConvertVector<rbdlVector3d, Vector3d> (data->getMarkerCurrentPosition (marker_names[marker_idx].c_str())));
-			internal->marker_names.push_back(marker_names[marker_idx]);
+
+			internal->target_pos.push_back (marker_data_pos);
 		}
 	}
 }
@@ -286,10 +303,10 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 
 	ofstream iklog;
 	if (frame_start == frame_first) {
-		iklog.open("fitting.log");
+		iklog.open("fitting_log.csv");
 		setup();
 	
-		iklog << "frame, steps, ";
+//		iklog << "frame, steps, ";
 		for (size_t i = 0; i < internal->marker_names.size(); i++) {
 			iklog << internal->marker_names[i];
 			if (i != internal->marker_names.size() - 1)
@@ -297,7 +314,7 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 		}
 		iklog << endl;
 	}	else {
-		iklog.open("fitting.log", ios::app);
+		iklog.open("fitting_log.csv", ios::app);
 	}
 
 	VectorNd current_state = _initialState;
@@ -311,13 +328,19 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 			cerr << "Warning: could not fit frame " << i << endl;
 		}
 
-		iklog << i - frame_first << ", ";
-		iklog << steps << ", ";
-		for (int ri = 0; ri < residuals.size() / 3; ri++) {
-			Vector3d marker_res (residuals[ri * 3], residuals[ri * 3 + 1], residuals[ri * 3 + 2]); 
-			iklog << marker_res.norm();
+		//		iklog << i - frame_first << ", ";
+		//		iklog << steps << ", ";
 
-			if (ri != (residuals.size() / 3) - 1)
+		for (size_t mi = 0; mi < internal->marker_names.size(); mi++) {
+			int ri = internal->marker_residual_index[internal->marker_names[mi]];
+			if (ri == -1) {
+				iklog << 0.;
+			} else {
+				Vector3d marker_res (residuals[ri * 3], residuals[ri * 3 + 1], residuals[ri * 3 + 2]); 
+				iklog << marker_res.norm();
+			}
+
+			if (mi != internal->marker_names.size() - 1)
 				iklog << ", ";
 		}
 		iklog << endl;

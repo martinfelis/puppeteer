@@ -58,7 +58,7 @@ int main (int argc, char* argv[]) {
 	TimerInfo timer;
 
 	timer_start(&timer);
-	bool result = fitter->computeModelAnimationFromMarkers (model->modelStateQ, animation, data->getFirstFrame(), data->getLastFrame());
+	bool result = fitter->computeModelAnimationFromMarkers (model->modelStateQ, animation, data->getFirstFrame(), data->getLastFrame() - 1);
 	cout << "Duration: " << timer_stop(&timer) << endl;
 
 	if (!result) {
