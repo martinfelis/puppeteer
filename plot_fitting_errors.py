@@ -7,7 +7,7 @@ import numpy
 
 data_array = numpy.genfromtxt("fitting_log.csv", delimiter=',', names=True)
 
-plt.figure()
+figure = plt.figure(figsize=(12,6))
 
 ax1 = plt.subplot(1, 2, 1)
 
@@ -28,15 +28,21 @@ ax1.axhline(numpy.average(average_errors), label="average", color="red")
 
 pylab.xticks(bar_pos, marker_names, rotation=90)
 ax1.legend()
-pylab.ylim([0, 0.0175])
 ax1.set_title ('Average Marker Errors')
+ax1.set_ylabel ('(m)')
+pylab.xlim([0, marker_count])
+pylab.ylim([0, 0.035])
 
 ax2 = plt.subplot(1, 2, 2)
 
 for col_name in sorted(data_array.dtype.names):
     marker_index = data_array.dtype.names.index(col_name)
     plt.plot(data_array[col_name], color=marker_colors[marker_index])
+    pylab.xlim([0, len(data_array[col_name])])
 
 ax2.set_title ('Marker Error per Capture Frame')
+ax2.set_ylabel ('(m)')
 pylab.ylim([0, 0.035])
+
+plt.subplots_adjust(left=0.08, right = 0.98)
 plt.show()
