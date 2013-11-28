@@ -97,6 +97,7 @@ Vector3f MarkerData::getMarkerCurrentPosition(const char * marker_name) {
 	int index = currentFrame - getFirstFrame();
 
 	return Vector3f (marker_traj.x[index], marker_traj.y[index], marker_traj.z[index]) * 1.0e-3;
+//	return Vector3f (-marker_traj.x[index], -marker_traj.y[index], marker_traj.z[index]) * 1.0e-3;
 }
 
 std::string MarkerData::getMarkerName (int object_id) {

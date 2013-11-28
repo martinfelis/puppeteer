@@ -1,874 +1,262 @@
-return {
-  gravity = {
- 0, 0, -9.81,  },
-  configuration = {
-    axis_right = {
- 0, -1, 0,    },
-    axis_front = {
- 1, 0, 0,    },
-    axis_up = {
- 0, 0, 1,    },
-  },
-  points = {
-  {
-      name = "right_heel",
-      point = {
- -0.074956921309592, 0, -0.031668,      },
-      body = "foot.r",
-    },
-  {
-      name = "right_hallux",
-      point = {
- 0.17489948305572, 0, -0.031668,      },
-      body = "foot.r",
-    },
-  {
-      name = "left_heel",
-      point = {
- -0.074956921309592, 0, -0.031668,      },
-      body = "foot.l",
-    },
-  {
-      name = "left_hallux",
-      point = {
- 0.17489948305572, 0, -0.031668,      },
-      body = "foot.l",
-    },
-  },
-  constraint_sets = {
-    RightHalxLeftHeel = {
-    {
-        point = "right_hallux",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_hallux",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
-    RightFlat = {
-    {
-        point = "right_heel",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_heel",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "right_hallux",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
-    RightHalxLeftFlat = {
-    {
-        point = "right_hallux",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_hallux",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "left_hallux",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
-    RightHalx = {
-    {
-        point = "right_hallux",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_hallux",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
-  },
-  frames = {
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, 0.072808153927326,          },
-          name = "lower_trunk",
-          color = {
- 0.2, 0.2, 0.9,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.42654800415039, 0.14561630785465,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, 0,        },
-      },
-      name = "pelvis",
-      parent = "ROOT",
-      joint = {
-      {
- 0, 0, 0, 1, 0, 0,        },
-      {
- 0, 0, 0, 0, 1, 0,        },
-      {
- 0, 0, 0, 0, 0, 1,        },
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        LPSI = {
- -0.094290345907211, 0.042038574814796, 0.14755935966969,        },
-        LASI = {
- 0.0901850014925, 0.11367540061474, 0.13502809405327,        },
-        RPSI = {
- -0.091277562081814, -0.060257684439421, 0.14059871435165,        },
-        RASI = {
- 0.093531757593155, -0.11199963837862, 0.13364866375923,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.089554032165422, 0, 0,          },
-        {
- 0, 0.08023458816772, 0,          },
-        {
- 0, 0, 0.085476775416427,          },
-        },
-        mass = 8.2658,
-        com = {
- 0, 0, 0.089044375071798,        },
-        length = 0.1456163124641,
-        name = "lower_trunk",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.21999999880791,          },
-          name = "thigh",
-          color = {
- 1, 0.1, 0.1,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.13920000195503, 0.43999999761581,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, -0.10000000149012, 0,        },
-      },
-      name = "thigh.r",
-      parent = "pelvis",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        RTHI = {
- 0.051821243017912, -0.097075551748276, -0.18554854393005,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.13882155, 0, 0,          },
-        {
- 0, 0.13882155, 0,          },
-        {
- 0, 0, 0.06287055,          },
-        },
-        mass = 10.4784,
-        com = {
- 0, 0, -0.172788525,        },
-        length = 0.42195,
-        name = "thigh",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.23000000417233,          },
-          name = "shank",
-          color = {
- 1, 0.2, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.13920000195503, 0.46000000834465,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.43999999761581,        },
-      },
-      name = "shank.r",
-      parent = "thigh.r",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      },
-      markers = {
-        RKNE = {
- 0.011590462177992, -0.054085567593575, 0.0060939821414649,        },
-        RTIB = {
- -0.0035912187304348, -0.090697519481182, -0.11352641135454,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.11221173, 0, 0,          },
-        {
- 0, 0.109571454, 0,          },
-        {
- 0, 0, 0.045324738,          },
-        },
-        mass = 3.2042,
-        com = {
- 0, 0, -0.1961725068,        },
-        length = 0.440046,
-        name = "shank",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0.049971280873061, 0, -0.015834,          },
-          name = "foot",
-          color = {
- 1, 0.2, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.24985640436531, 0.1914, 0.031668,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.46000000834465,        },
-      },
-      name = "foot.r",
-      parent = "shank.r",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        RHEE = {
- -0.038496185094118, 0.0055118226446211, -0.025327391922474,        },
-        RTOE = {
- 0.18001322448254, -0.016748568043113, -0.016326079145074,        },
-        RANK = {
- 0.008457500487566, -0.042965538799763, 0.0070176953449845,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.064213095921884, 0, 0,          },
-        {
- 0, 0.0612148190695, 0,          },
-        {
- 0, 0, 0.030982194141298,          },
-        },
-        mass = 1.0138,
-        com = {
- 0.099942561746123, 0, -0.11031160252728,        },
-        length = 0.24985640436531,
-        name = "foot",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.19499999284744,          },
-          name = "thigh",
-          color = {
- 0.1, 1, 0.1,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.13920000195503, 0.38999998569489,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0.10000000149012, 0,        },
-      },
-      name = "thigh.l",
-      parent = "pelvis",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        LTHI = {
- 0.03426456451416, 0.066781654953957, -0.25546106696129,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.13882155, 0, 0,          },
-        {
- 0, 0.13882155, 0,          },
-        {
- 0, 0, 0.06287055,          },
-        },
-        mass = 10.4784,
-        com = {
- 0, 0, -0.172788525,        },
-        length = 0.42195,
-        name = "thigh",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.23000000417233,          },
-          name = "shank",
-          color = {
- 0.2, 1, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.13920000195503, 0.46000000834465,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.38999998569489,        },
-      },
-      name = "shank.l",
-      parent = "thigh.l",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      },
-      markers = {
-        LKNE = {
- 0.019652932882309, 0.042542599141598, 0.0024211504496634,        },
-        LTIB = {
- 0.0067544505000114, 0.068727008998394, -0.29754617810249,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.11221173, 0, 0,          },
-        {
- 0, 0.109571454, 0,          },
-        {
- 0, 0, 0.045324738,          },
-        },
-        mass = 3.2042,
-        com = {
- 0, 0, -0.1961725068,        },
-        length = 0.440046,
-        name = "shank",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0.049971280873061, 0, -0.015834,          },
-          name = "foot",
-          color = {
- 0.2, 1, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.24985640436531, 0.1914, 0.031668,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.46000000834465,        },
-      },
-      name = "foot.l",
-      parent = "shank.l",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        LANK = {
- 0.01081882789731, 0.039032723754644, 0.00086993724107742,        },
-        LHEE = {
- -0.05278516933322, -0.0047132140025496, -0.022598430514336,        },
-        LTOE = {
- 0.17017158865929, -0.0097064282745123, -0.01961974799633,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.064213095921884, 0, 0,          },
-        {
- 0, 0.0612148190695, 0,          },
-        {
- 0, 0, 0.030982194141298,          },
-        },
-        mass = 1.0138,
-        com = {
- 0.099942561746123, 0, -0.11031160252728,        },
-        length = 0.24985640436531,
-        name = "foot",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, 0.10768811028145,          },
-          name = "middle_trunk",
-          color = {
- 0.2, 1, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.1392, 0.420732, 0.21537622056289,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, 0.1456163124641,        },
-      },
-      name = "middle_trunk",
-      parent = "pelvis",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.10381133831132, 0, 0,          },
-        {
- 0, 0.082489092475589, 0,          },
-        {
- 0, 0, 0.10079607122343,          },
-        },
-        mass = 12.0842,
-        com = {
- 0, 0, 0.096962374497415,        },
-        length = 0.21537622056289,
-        name = "middle_trunk",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, 0.14499999582767,          },
-          name = "upper_trunk",
-          color = {
- 0.2, 1, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.37532204389572, 0.28999999165535,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, 0.21537622056289,        },
-      },
-      name = "upper_trunk",
-      parent = "middle_trunk",
-      joint = {
-      },
-      markers = {
-        T10 = {
- -0.1362836509943, -0.017554558813572, 0.031705617904663,        },
-        C7 = {
- -0.08070956915617, 0.00075006810948253, 0.29476654529572,        },
-        CLAV = {
- 0.061176028102636, 0.0042151333764195, 0.21037332713604,        },
-        STRN = {
- 0.10311908274889, 0.021940292790532, 0.00013303550076671,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.12219027570362, 0, 0,          },
-        {
- 0, 0.077427501435956, 0,          },
-        {
- 0, 0, 0.11251183802412,          },
-        },
-        mass = 11.8104,
-        com = {
- 0, 0, 0.1225774132108,        },
-        length = 0.24196094198736,
-        name = "upper_trunk",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.18500000238419,          },
-          name = "upper_arm",
-          color = {
- 1, 0.1, 0.1,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.13920000195503, 0.37000000476837,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, -0.17000000178814, 0.24196094274521,        },
-      },
-      name = "upper_arm.r",
-      parent = "upper_trunk",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        RSHO = {
- -0.028729600831866, -0.0012231630971655, 0.014666452072561,        },
-        RUPA = {
- -0.0031442954204977, -0.04772612452507, -0.27470076084137,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.08023662, 0, 0,          },
-        {
- 0, 0.075732108, 0,          },
-        {
- 0, 0, 0.044482056,          },
-        },
-        mass = 2.0054,
-        com = {
- 0, 0, -0.1625002704,        },
-        length = 0.281532,
-        name = "upper_arm",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.14000000059605,          },
-          name = "lower_arm",
-          color = {
- 1, 0.2, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.13920000195503, 0.28000000119209,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.37000000476837,        },
-      },
-      name = "lower_arm.r",
-      parent = "upper_arm.r",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      },
-      markers = {
-        RWRA = {
- 0.024191586300731, 0.032929088920355, -0.27616700530052,        },
-        RWRB = {
- -0.031208265572786, -0.028851656243205, -0.28469875454903,        },
-        RELB = {
- 0.0019751794170588, -0.054744206368923, 0.00017195525288116,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.074149056, 0, 0,          },
-        {
- 0, 0.07119384, 0,          },
-        {
- 0, 0, 0.032507376,          },
-        },
-        mass = 1.1988,
-        com = {
- 0, 0, -0.1228832544,        },
-        length = 0.268656,
-        name = "lower_arm",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.043065,          },
-          name = "hand",
-          color = {
- 1, 0.3, 0.3,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.1392, 0.1392, 0.08613,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.28000000119209,        },
-      },
-      name = "hand.r",
-      parent = "lower_arm.r",
-      joint = {
-      },
-      body = {
-        inertia = {
-        {
- 0.05408964, 0, 0,          },
-        {
- 0, 0.04418469, 0,          },
-        {
- 0, 0, 0.03453813,          },
-        },
-        mass = 0.4514,
-        com = {
- 0, 0, -0.0680427,        },
-        length = 0.08613,
-        name = "hand",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.18500000238419,          },
-          name = "upper_arm",
-          color = {
- 0.1, 1, 0.1,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.13920000195503, 0.13920000195503, 0.37000000476837,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0.17000000178814, 0.24196094274521,        },
-      },
-      name = "upper_arm.l",
-      parent = "upper_trunk",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        LSHO = {
- -0.023708362132311, 0.0095784338191152, 0.029808299615979,        },
-        LUPA = {
- -0.032894447445869, 0.050957564264536, -0.15881006419659,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.08023662, 0, 0,          },
-        {
- 0, 0.075732108, 0,          },
-        {
- 0, 0, 0.044482056,          },
-        },
-        mass = 2.0054,
-        com = {
- 0, 0, -0.1625002704,        },
-        length = 0.281532,
-        name = "upper_arm",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.134328,          },
-          name = "lower_arm",
-          color = {
- 0.2, 1, 0.2,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.1392, 0.1392, 0.268656,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.37000000476837,        },
-      },
-      name = "lower_arm.l",
-      parent = "upper_arm.l",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      },
-      markers = {
-        LELB = {
- -0.0048908148892224, 0.05552414804697, -0.002525883493945,        },
-        LWRA = {
- 0.02030853740871, -0.028887806460261, -0.26720315217972,        },
-        LWRB = {
- -0.038655716925859, 0.032201558351517, -0.27161654829979,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.074149056, 0, 0,          },
-        {
- 0, 0.07119384, 0,          },
-        {
- 0, 0, 0.032507376,          },
-        },
-        mass = 1.1988,
-        com = {
- 0, 0, -0.1228832544,        },
-        length = 0.268656,
-        name = "lower_arm",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, -0.043065,          },
-          name = "hand",
-          color = {
- 0.3, 1, 0.3,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.1392, 0.1392, 0.08613,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, -0.268656,        },
-      },
-      name = "hand.l",
-      parent = "lower_arm.l",
-      joint = {
-      },
-      body = {
-        inertia = {
-        {
- 0.05408964, 0, 0,          },
-        {
- 0, 0.04418469, 0,          },
-        {
- 0, 0, 0.03453813,          },
-        },
-        mass = 0.4514,
-        com = {
- 0, 0, -0.0680427,        },
-        length = 0.08613,
-        name = "hand",
-      },
-    },
-  {
-      visuals = {
-      {
-          mesh_center = {
- 0, 0, 0.121365,          },
-          name = "head",
-          color = {
- 0.1, 0.1, 1,          },
-          src = "meshes/unit_cube.obj",
-          dimensions = {
- 0.1392, 0.1392, 0.24273,          },
-        },
-      },
-      joint_frame = {
-        r = {
- 0, 0, 0.28999999165535,        },
-      },
-      name = "head",
-      parent = "upper_trunk",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
-      markers = {
-        LFHD = {
- 0.084233708679676, 0.070345662534237, 0.1985385119915,        },
-        LBHD = {
- -0.026678735390306, 0.085480384528637, 0.19752342998981,        },
-        RFHD = {
- 0.084899626672268, -0.070707134902477, 0.19810263812542,        },
-        RBHD = {
- -0.024277774617076, -0.091088369488716, 0.19348251819611,        },
-      },
-      body = {
-        inertia = {
-        {
- 0.07354719, 0, 0,          },
-        {
- 0, 0.07645995, 0,          },
-        {
- 0, 0, 0.06335253,          },
-        },
-        mass = 5.1356,
-        com = {
- 0, 0, 0.121413546,        },
-        length = 0.24273,
-        name = "head",
-      },
-    },
-  },
+require 'HeiMan.strict'
+HeiMan = require 'HeiMan.HeiMan'
+
+-- create actual HeiMan model
+heiman = HeiMan (74, 1.79)
+heiman:refresh()
+
+bodies = {
+	pelvis = heiman:get_segment ("lower_trunk"),
+	middle_trunk = heiman:get_segment ("middle_trunk"),
+	upper_trunk = heiman:get_segment ("upper_trunk"),
+	head = heiman:get_segment ("head"),
+	thigh = heiman:get_segment ("thigh"),
+	shank = heiman:get_segment ("shank"),
+	foot = heiman:get_segment ("foot"),
+	upper_arm = heiman:get_segment ("upper_arm"),
+	lower_arm = heiman:get_segment ("lower_arm"),
+	hand = heiman:get_segment ("hand"),
 }
+
+joint_fixed = {}
+joint_rot_y = {
+	{ 0., 1., 0., 0., 0., 0.},
+}
+joint_rot_yxz = {
+	{ 0., 1., 0., 0., 0., 0.},
+	{ 0., 0., 1., 0., 0., 0.},
+	{ 1., 0., 0., 0., 0., 0.},
+}
+joint_base = {
+	{ 0., 0., 0., 1., 0., 0.},
+	{ 0., 0., 0., 0., 1., 0.},
+	{ 0., 0., 0., 0., 0., 1.},
+	{ 0., 1., 0., 0., 0., 0.},
+	{ 0., 0., 1., 0., 0., 0.},
+	{ 1., 0., 0., 0., 0., 0.},
+}
+
+joints = {
+	hip = joint_rot_yxz,
+	knee = joint_rot_y,
+	ankle = joint_rot_yxz,
+	lumbar = joint_rot_yxz,
+	thorax = joint_fixed,
+	shoulder= joint_rot_yxz,
+	elbow = joint_rot_y,
+	wrist = joint_fixed,
+	neck = joint_rot_yxz
+}
+
+model = {
+	gravity = { 0., 0., -9.81},
+
+	configuration = {
+		axis_front = { 1.,  0.,  0.},
+		axis_right = { 0., -1.,  0.},
+		axis_up    = { 0.,  0.,  1.}
+	},
+
+	frames = {
+		{
+			name = "pelvis",
+			parent = "ROOT",
+			body = bodies.pelvis,
+			joint = joint_base,
+			joint_frame = {
+				r = heiman:get_joint_origin ("pelvis")
+			},
+			visuals = {
+				heiman:get_visuals ("lower_trunk", { 0.2, 0.2, 0.9})
+			},
+		},
+		-- right leg
+		{
+			name = "thigh_r",
+			parent = "pelvis",
+			body = bodies.thigh,
+			joint = joints.hip,
+			joint_frame = {
+				r = heiman:get_joint_origin ("hip_r")
+			},
+			visuals = {
+				heiman:get_visuals ("thigh", { 1.0, 0.1, 0.1} ),
+			}
+		},
+		{
+			name = "shank_r",
+			parent = "thigh_r",
+			body = bodies.shank,
+			joint = joints.knee,
+			joint_frame = {
+				r = heiman:get_joint_origin ("knee_r")
+			},
+			visuals = {
+				heiman:get_visuals ("shank", { 1.0, 0.2, 0.2}) ,
+			},
+		},
+		{
+			name = "foot_r",
+			parent = "shank_r",
+			body = bodies.foot,
+			joint = joints.ankle,
+			joint_frame = {
+				r = heiman:get_joint_origin ("ankle_r")
+			},
+			visuals = {
+				heiman:get_visuals ("foot", {1.0, 0.2, 0.2}) ,
+			},
+		},
+		-- left leg
+		{
+			name = "thigh_l",
+			parent = "pelvis",
+			body = bodies.thigh,
+			joint = joints.hip,
+			joint_frame = {
+				r = heiman:get_joint_origin ("hip_l")
+			},
+			visuals = {
+				heiman:get_visuals ("thigh", { 0.1, 1.0, 0.1}) ,
+			}
+		},
+		{
+			name = "shank_l",
+			parent = "thigh_l",
+			body = bodies.shank,
+			joint = joints.knee,
+			joint_frame = {
+				r = heiman:get_joint_origin ("knee_l")
+			},
+			visuals = {
+				heiman:get_visuals ("shank", { 0.2, 1.0, 0.2}) ,
+			},
+		},
+		{
+			name = "foot_l",
+			parent = "shank_l",
+			body = bodies.foot,
+			joint = joints.ankle,
+			joint_frame = {
+				r = heiman:get_joint_origin ("ankle_l")
+			},
+			visuals = {
+				heiman:get_visuals ("foot", { 0.2, 1.0, 0.2}) ,
+			},
+		},
+		-- trunk
+		{
+			name = "middle_trunk",
+			parent = "pelvis",
+			body = bodies.middle_trunk,
+			joint = joints.lumbar,
+			joint_frame = {
+				r = heiman:get_joint_origin ("lumbar")
+			},
+			visuals = {
+				heiman:get_visuals ("middle_trunk", { 0.2, 1.0, 0.2}) ,
+			}
+		},
+		{
+			name = "upper_trunk",
+			parent = "middle_trunk",
+			body = bodies.upper_trunk,
+			joint = joints.thorax,
+			joint_frame = {
+				r = heiman:get_joint_origin ("thorax")
+			},
+			visuals = {
+				heiman:get_visuals ("upper_trunk", { 0.2, 1.0, 0.2}) ,
+			},
+		},
+		-- right arm
+		{
+			name = "upper_arm_r",
+			parent = "upper_trunk",
+			body = bodies.upper_arm,
+			joint = joints.shoulder,
+			joint_frame = {
+				r = heiman:get_joint_origin ("shoulder_r", "upper_trunk")
+			},
+			visuals = {
+				heiman:get_visuals ("upper_arm", { 1.0, 0.1, 0.1}) ,
+			}	
+		},
+		{
+			name = "lower_arm_r",
+			parent = "upper_arm_r",
+			body = bodies.lower_arm,
+			joint = joints.elbow,
+			joint_frame = {
+				r = heiman:get_joint_origin ("elbow_r")
+			},
+			visuals = {
+				heiman:get_visuals ("lower_arm", { 1.0, 0.2, 0.2}),
+			},
+		},
+		{
+			name = "hand_r",
+			parent = "lower_arm_r",
+			body = bodies.hand,
+			joint = joints.wrist,
+			joint_frame = {
+				r = heiman:get_joint_origin ("wrist_r")
+			},
+			visuals = {
+				heiman:get_visuals ("hand", { 1.0, 0.3, 0.3}),
+			}
+		},
+		-- left arm
+		{
+			name = "upper_arm_l",
+			parent = "upper_trunk",
+			body = bodies.upper_arm,
+			joint = joints.shoulder,
+			joint_frame = {
+				r = heiman:get_joint_origin ("shoulder_l", "upper_trunk")
+			},
+			visuals = {
+				heiman:get_visuals ("upper_arm", { 0.1, 1.0, 0.1}) ,
+			}
+		},
+		{
+			name = "lower_arm_l",
+			parent = "upper_arm_l",
+			body = bodies.lower_arm,
+			joint = joints.elbow,
+			joint_frame = {
+				r = heiman:get_joint_origin ("elbow_l")
+			},
+			visuals = {
+				heiman:get_visuals ("lower_arm", { 0.2, 1.0, 0.2}) ,
+			},
+		},
+		{
+			name = "hand_l",
+			parent = "lower_arm_l",
+			body = bodies.hand,
+			joint = joints.wrist,
+			joint_frame = {
+				r = heiman:get_joint_origin ("wrist_l")
+			},
+			visuals = {
+				heiman:get_visuals ("hand", { 0.3, 1.0, 0.3}) ,
+			}
+		},
+		-- head
+		{
+			name = "head",
+			parent = "upper_trunk",
+			body = bodies.head,
+			joint = joints.neck,
+			joint_frame = {
+				 r = heiman:get_joint_origin ("neck", "upper_trunk")
+			},
+			visuals = {
+				heiman:get_visuals ("head", { 0.1, 0.1, 1.0}) ,
+			},
+		}
+	}
+}
+
+return model
