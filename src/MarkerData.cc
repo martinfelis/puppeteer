@@ -91,13 +91,27 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	markers.push_back (scene_marker);
 }
 
+bool MarkerData::markerExists(const char* marker_name) {
+	std::string point_label(marker_name);
+	
+	point_label = point_label.substr(0, point_label.find_last_not_of(" ") + 1);
+
+	if (c3dfile->label_point_map.find(point_label) == c3dfile->label_point_map.end()) {
+		return false;
+	}
+
+	return true;
+}
+
 Vector3f MarkerData::getMarkerCurrentPosition(const char * marker_name) {
 	FloatMarkerData marker_traj = c3dfile->getMarkerTrajectories (marker_name);
 	
 	int index = currentFrame - getFirstFrame();
 
+	if (rotateZ) 
+		return Vector3f (-marker_traj.x[index], -marker_traj.y[index], marker_traj.z[index]) * 1.0e-3;
+	
 	return Vector3f (marker_traj.x[index], marker_traj.y[index], marker_traj.z[index]) * 1.0e-3;
-//	return Vector3f (-marker_traj.x[index], -marker_traj.y[index], marker_traj.z[index]) * 1.0e-3;
 }
 
 std::string MarkerData::getMarkerName (int object_id) {

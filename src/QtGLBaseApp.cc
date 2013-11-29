@@ -238,6 +238,42 @@ bool QtGLBaseApp::loadMocapFile (const char* filename) {
 	if(!markerData->loadFromFile (filename)) 
 		return false;
 
+	// check whether we want to rotate the data
+	if (markerData->markerExists ("LASI") && markerData->markerExists ("LPSI")) {
+
+		float fraction_negative = 0.;
+		int frame_count = markerData->getLastFrame() - markerData->getFirstFrame();
+
+		for (int i = markerData->getFirstFrame(); i < markerData->getLastFrame(); i++) {
+			markerData->setCurrentFrameNumber (i);
+			Vector3f lasi = markerData->getMarkerCurrentPosition("LASI");
+			Vector3f lpsi = markerData->getMarkerCurrentPosition("LPSI");
+
+			float projection = (lasi - lpsi).normalize().dot(Vector3f (1.f, 0.f, 0.f));
+
+			if (projection < -0.)
+				fraction_negative = fraction_negative + 1.f / static_cast<float>(frame_count);
+		}
+
+		if (fraction_negative > 0.5) {
+			QMessageBox rotate_message_box;
+			rotate_message_box.setText("Backwards orientation detected.");
+			rotate_message_box.setInformativeText ("Re-align subject orientation along positive X axis?");
+			rotate_message_box.setDetailedText ("The subject of the motion capture trial is facing along the negative X axis for the majority of the frames. This can result in numerical problems when fitting and it is highly recommended to re-align the data for the subject.");
+			rotate_message_box.setStandardButtons (QMessageBox::Yes | QMessageBox::No);
+			rotate_message_box.setIcon (QMessageBox::Question);
+
+			rotate_message_box.setDefaultButton (QMessageBox::Save);
+
+			int ret = rotate_message_box.exec();
+
+			if (ret == QMessageBox::Yes) {
+				markerData->rotateZ = true;
+				markerData->updateMarkerSceneObjects();
+			}
+		}
+	}
+
 	slideMarkersCheckBox->setEnabled(true);
 	slideMarkersCheckBox->setChecked(true);
 

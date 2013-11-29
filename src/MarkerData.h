@@ -18,12 +18,14 @@ struct MarkerData {
 	MarkerData() :
 		scene (NULL),
 		c3dfile (NULL),
-		currentFrame (-1)
+		currentFrame (-1),
+		rotateZ(false)
 	{}
 	MarkerData(Scene* scene_) :
 		scene (scene_),
 		c3dfile (NULL),
-		currentFrame (-1)
+		currentFrame (-1),
+		rotateZ(false)
 	{}
 	~MarkerData();
 
@@ -31,6 +33,7 @@ struct MarkerData {
 	C3DFile *c3dfile;
 	int currentFrame;
 	std::vector<MarkerObject*> markers;
+	bool rotateZ;
 
 	bool isMarkerObject(int objectid) {
 		for (size_t i = 0; i < markers.size(); i++) {
@@ -42,7 +45,8 @@ struct MarkerData {
 	}
 	void enableMarker (const char* marker_name, const Vector3f &color);
 	bool loadFromFile (const char* filename);
-	Vector3f getMarkerCurrentPosition (const char*);
+	bool markerExists (const char* marker_name);
+	Vector3f getMarkerCurrentPosition (const char* marker_name);
 	std::string getMarkerName (int objectid);
 	int getFirstFrame ();
 	int getLastFrame ();
