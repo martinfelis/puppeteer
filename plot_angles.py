@@ -22,8 +22,9 @@ fig, axes_grid = plt.subplots (7, 6, sharey=False)
 axes = [item for sublist in axes_grid for item in sublist]
 
 for i in range (1, custom_data_array.shape[1]):
-    axes[i - 1].plot (custom_data_array[:,0], custom_data_array[:,i])
-    axes[i - 1].set_title(dof_names[i - 1])
+    axes[i - 1].plot (custom_data_array[:,0], custom_data_array[:,i], label=dof_names[i-1])
+    axes[i - 1].legend(prop={'size':8})
+#    axes[i - 1].set_title(dof_names[i - 1])
 #    axes[i - 1].plot (deleva_data_array[:,0], deleva_data_array[:,i])
 
 plt.subplots_adjust(left=0.04, right = 0.98, top=0.98, bottom= 0.04)
