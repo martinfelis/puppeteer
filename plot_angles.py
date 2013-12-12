@@ -15,14 +15,14 @@ dof_names = [ " 0: Pelvis_TX", " 1: Pelvis_TY", " 2: Pelvis_TZ", " 3: Pelvis_RY"
   "31: UpperArm_l_RY", "32: UpperArm_l_RX", "33: UpperArm_l_RZ", "34: LowerArm_l_RY",
   "35: LowerArm_l_RZ", "36: Head_RY", "37: Head_RX", "38: Head_RZ" ]
 
-custom_data_array = numpy.genfromtxt("custom.csv", delimiter=',') * 180. / 3.141
-deleva_data_array = numpy.genfromtxt("deleva.csv", delimiter=',') * 180. / 3.141
+custom_data_array = numpy.genfromtxt("animation.csv", delimiter=',') * 180. / 3.141
+# deleva_data_array = numpy.genfromtxt("deleva.csv", delimiter=',') * 180. / 3.141
 
 fig, axes_grid = plt.subplots (7, 6, sharey=False)
 axes = [item for sublist in axes_grid for item in sublist]
 
 for i in range (1, custom_data_array.shape[1]):
-    axes[i - 1].plot (custom_data_array[:,0], custom_data_array[:,i] - deleva_data_array[:,i])
+    axes[i - 1].plot (custom_data_array[:,0], custom_data_array[:,i])
     axes[i - 1].set_title(dof_names[i - 1])
 #    axes[i - 1].plot (deleva_data_array[:,0], deleva_data_array[:,i])
 
