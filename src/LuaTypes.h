@@ -13,7 +13,7 @@ template<> Vector3f LuaTableNode::getDefault<Vector3f>(const Vector3f &default_v
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
 		if (vector_table.length() != 3) {
-			std::cerr << "LuaModel Error: invalid 3d vector!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 3d vector!" << std::endl;
 			abort();
 		}
 		
@@ -46,7 +46,7 @@ template<> Vector4f LuaTableNode::getDefault<Vector4f>(const Vector4f &default_v
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
 		if (vector_table.length() != 4) {
-			std::cerr << "LuaModel Error: invalid 4d vector!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 4d vector!" << std::endl;
 			abort();
 		}
 		
@@ -69,14 +69,14 @@ template<> SimpleMath::Fixed::Matrix<float, 3, 3> LuaTableNode::getDefault<Simpl
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 		
 		if (vector_table.length() != 3) {
-			std::cerr << "LuaModel Error: invalid 3d matrix!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 3d matrix!" << std::endl;
 			abort();
 		}
 
 		if (vector_table[1].length() != 3
 				|| vector_table[2].length() != 3
 				|| vector_table[3].length() != 3) {
-			std::cerr << "LuaModel Error: invalid 3d matrix!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 3d matrix!" << std::endl;
 			abort();
 		}
 
@@ -124,7 +124,7 @@ template<> RigidBodyDynamics::Math::Vector3d LuaTableNode::getDefault<RigidBodyD
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
 		if (vector_table.length() != 3) {
-			std::cerr << "LuaModel Error: invalid 3d vector!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 3d vector!" << std::endl;
 			abort();
 		}
 		
@@ -145,7 +145,7 @@ template<> RigidBodyDynamics::Math::SpatialVector LuaTableNode::getDefault<Rigid
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 		
 		if (vector_table.length() != 6) {
-			std::cerr << "LuaModel Error: invalid 6d vector!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 6d vector!" << std::endl;
 			abort();
 		}
 		result[0] = vector_table[1];
@@ -168,14 +168,14 @@ template<> RigidBodyDynamics::Math::Matrix3d LuaTableNode::getDefault<RigidBodyD
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 		
 		if (vector_table.length() != 3) {
-			std::cerr << "LuaModel Error: invalid 3d matrix!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 3d matrix!" << std::endl;
 			abort();
 		}
 
 		if (vector_table[1].length() != 3
 				|| vector_table[2].length() != 3
 				|| vector_table[3].length() != 3) {
-			std::cerr << "LuaModel Error: invalid 3d matrix!" << std::endl;
+			std::cerr << "LuaModel Error at " << keyStackToString() << " : invalid 3d matrix!" << std::endl;
 			abort();
 		}
 
