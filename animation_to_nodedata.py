@@ -3,12 +3,13 @@
 import pylab
 import numpy
 import math
+import sys
 
 frame_first = 239
 frame_rate = 100
 
 phases = [
-        { 'name': 'RightFlat', 'start_frame': 303, 'nshoot': 15},
+        { 'name': 'RightFlat', 'start_frame': 303, 'nshoot': 10},
         { 'name': 'RightToe', 'start_frame': 333, 'nshoot': 10},
         { 'name': 'RightToeTouchDownLeftHeel', 'start_frame': 343, 'nshoot': 1},
         { 'name': 'RightToeLeftHeel', 'start_frame': 343, 'nshoot': 5},
@@ -83,11 +84,30 @@ def print_node_data ():
 def print_phase_durations ():
     h = calc_phase_durations(animation_data)
 
-    print ("h:")
+    print ("h")
     for i in range(0,len(h)):
         print (str(i) + ": " + str(h[i]))
 
     print ("")
 
+def print_nshoot():
+    print ("nshoot")
+    for i in range(0,len(phases)):
+        if phases[i]["name"] == "End":
+            break
+
+        print (str(i) + ": " + str(phases[i]["nshoot"]))
+
+    print ("")
+
+# shift the data such that the pelvis origin has x,y coordinates 0,0
+start_line = phases[0]["start_frame"] - frame_first
+pos_start = animation_data[start_line][1:3]
+animation_data[:,1:3] = animation_data[:,1:3] - pos_start
+
+print ("* GENERATED INITIAL START")
+print_nshoot()
 print_phase_durations()
 print_node_data()
+print ("* GENERATED INITIAL END")
+
