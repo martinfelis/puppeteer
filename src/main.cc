@@ -11,13 +11,11 @@
 #include "QtGLBaseApp.h"
 
 #include <iostream>
-#include <clocale>
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-	setlocale (LC_NUMERIC, "C");
 	QApplication app(argc, argv);
 	QtGLBaseApp *main_window = new QtGLBaseApp;
 

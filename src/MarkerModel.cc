@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <clocale>
 
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
@@ -542,6 +543,10 @@ void MarkerModel::saveStateToFile (const char* filename) {
 }
 
 bool MarkerModel::loadFromFile(const char* filename) {
+	// ensure that we have a '.' as decimal point even in weird languages
+	// such as German
+	setlocale(LC_NUMERIC, "C");
+
 	if (rbdlModel) {
 		delete rbdlModel;
 	}
