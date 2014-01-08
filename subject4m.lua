@@ -1,14 +1,4 @@
 return {
-  gravity = {
- 0, 0, -9.81,  },
-  configuration = {
-    axis_right = {
- 0, -1, 0,    },
-    axis_front = {
- 1, 0, 0,    },
-    axis_up = {
- 0, 0, 1,    },
-  },
   points = {
   {
       name = "right_heel",
@@ -47,136 +37,16 @@ return {
       body = "Foot_l",
     },
   },
-  constraint_sets = {
-    RightToeLeftFlat = {
-    {
-        point = "right_toe",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "left_toe",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "left_toe",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "left_hallux",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
-    RightToeLeftHeel = {
-    {
-        point = "right_toe",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "left_heel",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
-    RightToe = {
-    {
-        point = "right_toe",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
-    RightFlat = {
-    {
-        point = "right_heel",
-        normal = {
- 1, 0, 0,        },
-      },
-    {
-        point = "right_heel",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "right_heel",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 1, 0,        },
-      },
-    {
-        point = "right_toe",
-        normal = {
- 0, 0, 1,        },
-      },
-    {
-        point = "right_hallux",
-        normal = {
- 0, 0, 1,        },
-      },
-    },
+  configuration = {
+    axis_right = {
+ 0, -1, 0,    },
+    axis_front = {
+ 1, 0, 0,    },
+    axis_up = {
+ 0, 0, 1,    },
   },
+  gravity = {
+ 0, 0, -9.81,  },
   frames = {
   {
       visuals = {
@@ -591,19 +461,11 @@ return {
       },
       name = "UpperTrunk",
       parent = "MiddleTrunk",
-      joint = {
-      {
- 0, 1, 0, 0, 0, 0,        },
-      {
- 1, 0, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
-      },
       markers = {
         CLAV = {
- 0.075545787811279, 0.0091064414009452, 0.21131482720375,        },
+ 0.07780272513628, -0.0096961818635464, 0.21372811496258,        },
         C7 = {
- -0.061987865716219, 0.0054406700655818, 0.28187644481659,        },
+ -0.061922062188387, -0.015905136242509, 0.28510349988937,        },
       },
       body = {
         inertia = {
@@ -650,7 +512,7 @@ return {
       },
       markers = {
         RUPA = {
- -0.0076111704111099, -0.033876851201057, -0.20298536121845,        },
+ -0.0091715008020401, -0.012074896134436, -0.19867531955242,        },
       },
       body = {
         inertia = {
@@ -672,13 +534,13 @@ return {
       visuals = {
       {
           mesh_center = {
- 0, 0, -0.125,          },
+ 0, 0, -0.12999999523163,          },
           name = "LowerArm",
           color = {
  1, 0.2, 0.2,          },
           src = "meshes/unit_cube.obj",
           dimensions = {
- 0.13920000195503, 0.13920000195503, 0.25,          },
+ 0.13920000195503, 0.13920000195503, 0.25999999046326,          },
         },
       },
       joint_frame = {
@@ -690,16 +552,14 @@ return {
       joint = {
       {
  0, 1, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
       },
       markers = {
         RWRA = {
- 0.00048369288560934, 0.045184943825006, -0.25474604964256,        },
+ 0.028811048716307, 0.013812097720802, -0.26795703172684,        },
         RWRB = {
- 0.004289020318538, -0.037910144776106, -0.26248559355736,        },
+ -0.046302698552608, -0.022073410451412, -0.2630327641964,        },
         RELB = {
- 0.027760891243815, -0.031160593032837, -0.0015345618594438,        },
+ 0.0028007118962705, -0.016225827857852, -0.0048297182656825,        },
       },
       body = {
         inertia = {
@@ -732,7 +592,7 @@ return {
       },
       joint_frame = {
         r = {
- 0, 0, -0.25,        },
+ 0, 0, -0.25999999046326,        },
       },
       name = "Hand_r",
       parent = "LowerArm_r",
@@ -783,7 +643,7 @@ return {
       },
       markers = {
         LUPA = {
- -0.008067692629993, 0.053959015756845, -0.071238927543163,        },
+ -0.020957767963409, 0.038117289543152, -0.053999658674002,        },
       },
       body = {
         inertia = {
@@ -805,13 +665,13 @@ return {
       visuals = {
       {
           mesh_center = {
- 0, 0, -0.134328,          },
+ 0, 0, -0.12999999523163,          },
           name = "LowerArm",
           color = {
  0.2, 1, 0.2,          },
           src = "meshes/unit_cube.obj",
           dimensions = {
- 0.1392, 0.1392, 0.268656,          },
+ 0.13920000195503, 0.13920000195503, 0.25999999046326,          },
         },
       },
       joint_frame = {
@@ -823,16 +683,14 @@ return {
       joint = {
       {
  0, 1, 0, 0, 0, 0,        },
-      {
- 0, 0, 1, 0, 0, 0,        },
       },
       markers = {
         LELB = {
- 0.041708052158356, 0.037214960902929, -0.001958834240213,        },
+ 0.010974816046655, 0.03166963160038, 0.0035079540684819,        },
         LWRA = {
- -0.0046090981923044, -0.035124264657497, -0.26078149676323,        },
+ 0.03827391564846, -0.023187652230263, -0.26211893558502,        },
         LWRB = {
- 0.011263878084719, 0.046099331229925, -0.26016438007355,        },
+ -0.028132054954767, 0.024745386093855, -0.25308811664581,        },
       },
       body = {
         inertia = {
@@ -865,7 +723,7 @@ return {
       },
       joint_frame = {
         r = {
- 0, 0, -0.268656,        },
+ 0, 0, -0.25999999046326,        },
       },
       name = "Hand_l",
       parent = "LowerArm_l",
@@ -916,13 +774,13 @@ return {
       },
       markers = {
         LFHD = {
- 0.08941225707531, 0.065406963229179, 0.2123167514801,        },
+ 0.072681158781052, 0.069479957222939, 0.21994252502918,        },
         LBHD = {
- -0.025419931858778, 0.088021695613861, 0.17940540611744,        },
+ -0.03630343452096, 0.090551026165485, 0.17667463421822,        },
         RFHD = {
- 0.094822406768799, -0.071502044796944, 0.20584972202778,        },
+ 0.079903699457645, -0.067612111568451, 0.21674621105194,        },
         RBHD = {
- -0.039266634732485, -0.089232131838799, 0.16567426919937,        },
+ -0.052942741662264, -0.086700826883316, 0.16705107688904,        },
       },
       body = {
         inertia = {
@@ -938,6 +796,136 @@ return {
  0, 0, 0.121413546,        },
         length = 0.24273,
         name = "Head",
+      },
+    },
+  },
+  constraint_sets = {
+    RightToeLeftFlat = {
+    {
+        point = "right_toe",
+        normal = {
+ 1, 0, 0,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 0, 1,        },
+      },
+    {
+        point = "left_heel",
+        normal = {
+ 1, 0, 0,        },
+      },
+    {
+        point = "left_heel",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "left_heel",
+        normal = {
+ 0, 0, 1,        },
+      },
+    {
+        point = "left_toe",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "left_toe",
+        normal = {
+ 0, 0, 1,        },
+      },
+    {
+        point = "left_hallux",
+        normal = {
+ 0, 0, 1,        },
+      },
+    },
+    RightToeLeftHeel = {
+    {
+        point = "right_toe",
+        normal = {
+ 1, 0, 0,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 0, 1,        },
+      },
+    {
+        point = "left_heel",
+        normal = {
+ 1, 0, 0,        },
+      },
+    {
+        point = "left_heel",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "left_heel",
+        normal = {
+ 0, 0, 1,        },
+      },
+    },
+    RightToe = {
+    {
+        point = "right_toe",
+        normal = {
+ 1, 0, 0,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 0, 1,        },
+      },
+    },
+    RightFlat = {
+    {
+        point = "right_heel",
+        normal = {
+ 1, 0, 0,        },
+      },
+    {
+        point = "right_heel",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "right_heel",
+        normal = {
+ 0, 0, 1,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 1, 0,        },
+      },
+    {
+        point = "right_toe",
+        normal = {
+ 0, 0, 1,        },
+      },
+    {
+        point = "right_hallux",
+        normal = {
+ 0, 0, 1,        },
       },
     },
   },
