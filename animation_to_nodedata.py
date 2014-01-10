@@ -9,7 +9,7 @@ frame_first = 239
 frame_rate = 100
 
 phases = [
-        { 'name': 'RightFlat', 'start_frame': 303, 'nshoot': 10},
+        { 'name': 'RightFlat', 'start_frame': 303, 'nshoot': 30},
         { 'name': 'RightToe', 'start_frame': 333, 'nshoot': 10},
         { 'name': 'RightToeTouchDownLeftHeel', 'start_frame': 343, 'nshoot': 1},
         { 'name': 'RightToeLeftHeel', 'start_frame': 343, 'nshoot': 5},
@@ -19,6 +19,16 @@ phases = [
         ]
     
 animation_data = numpy.genfromtxt("animation.csv", delimiter=',')
+
+dof_names = [
+"Pelvis_TX", "Pelvis_TY", "Pelvis_TZ", "Pelvis_RY", "Pelvis_RX", "Pelvis_RZ",
+"Thigh_r_RY", "Thigh_r_RX", "Thigh_r_RZ", "Shank_r_RY", "Foot_r_RY",
+"Foot_r_RX", "Foot_r_RZ", "Thigh_l_RY", "Thigh_l_RX", "Thigh_l_RZ",
+"Shank_l_RY", "Foot_l_RY", "Foot_l_RX", "Foot_l_RZ", "MiddleTrunk_RY",
+"MiddleTrunk_RX", "MiddleTrunk_RZ", "UpperArm_r_RY", "UpperArm_r_RX",
+"UpperArm_r_RZ", "LowerArm_r_RY", "UpperArm_l_RY", "UpperArm_l_RX",
+"UpperArm_l_RZ", "LowerArm_l_RY", "Head_RY", "Head_RX", "Head_RZ", 
+]
 
 def calc_phase_durations (data):
     h = numpy.ndarray(len(phases) - 1)
@@ -100,6 +110,19 @@ def print_nshoot():
 
     print ("")
 
+def print_xdname():
+    print ("xd_name")
+    for i in range (0, len(dof_names)):
+        print (str(i) + ": " + dof_names[i])
+    for i in range (0, len(dof_names)):
+        print (str(i + len(dof_names)) + ": " + dof_names[i] + "_dot" )
+    print ("")
+
+def print_uname():
+    print ("u_name")
+    for i in range (6, len(dof_names)):
+        print (str(i - 6) + ": " + dof_names[i - 6])
+
 # shift the data such that the pelvis origin has x,y coordinates 0,0
 start_line = phases[0]["start_frame"] - frame_first
 pos_start = animation_data[start_line][1:3]
@@ -109,5 +132,9 @@ print ("* GENERATED INITIAL START")
 print_nshoot()
 print_phase_durations()
 print_node_data()
+print_xdname()
+print_uname()
+
 print ("* GENERATED INITIAL END")
+
 
