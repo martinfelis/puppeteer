@@ -164,6 +164,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (loadAnimationButton, SIGNAL (clicked()), this, SLOT (loadAnimation()));
 	connect (saveAnimationButton, SIGNAL (clicked()), this, SLOT (saveAnimation()));
 
+	connect (drawMocapMarkersCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayMocapMarkers(int)));
 	connect (drawModelMarkersCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayModelMarkers(int)));
 	connect (drawBodySegmentsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayBodySegments(int)));
 	connect (drawJointsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayJoints(int)));
@@ -751,6 +752,16 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	}
 
 	updateModelStateEditor();
+}
+
+void QtGLBaseApp::displayMocapMarkers (int display_state) {
+	bool no_draw = false;
+	if (display_state != Qt::Checked)
+		no_draw = true;
+
+	for (int i = 0; i < markerData->markers.size(); i++) {
+		markerData->markers[i]->noDraw = no_draw;
+	}
 }
 
 void QtGLBaseApp::displayModelMarkers (int display_state) {
