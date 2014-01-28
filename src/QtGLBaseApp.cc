@@ -319,7 +319,10 @@ void QtGLBaseApp::updateSliderBounds() {
 		captureFrameSlider->setMaximum (markerData->getLastFrame());
 		connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
 	} else {
-		dockWidgetSlider->setEnabled(false);
+		dockWidgetSlider->setEnabled(true);
+		captureFrameSlider->setMinimum (animationData->getFirstFrameTime() * 500);
+		captureFrameSlider->setMaximum (animationData->getLastFrameTime() * 500);
+		connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
 	}
 }
 
@@ -694,7 +697,7 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 }
 
 void QtGLBaseApp::captureFrameSliderChanged (int value) {
-	assert (markerData);
+	assert (markerData || animationData);
 
 	if (slideMarkersCheckBox->isChecked() && slideAnimationCheckBox->isChecked()) {
 		double first_frame = static_cast<double>(markerData->getFirstFrame());
