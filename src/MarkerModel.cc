@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "MarkerModel.h"
 #include "Scene.h"
 
@@ -6,6 +8,7 @@
 #include <sstream>
 #include <fstream>
 #include <clocale>
+#include <sys/stat.h>
 
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
@@ -19,8 +22,73 @@ using namespace RigidBodyDynamics;
 typedef RigidBodyDynamics::Math::VectorNd RBDLVectorNd;
 typedef RigidBodyDynamics::Math::Vector3d RBDLVector3d;
 typedef RigidBodyDynamics::Math::Matrix3d RBDLMatrix3d;
-
 typedef RigidBodyDynamics::Math::SpatialTransform SpatialTransform;
+
+bool file_exists (const char* path) {
+	struct stat s;
+	int err = stat(path, &s);
+	if (err == -1) {
+		if (errno == ENOENT)
+			return false;
+		else {
+			cerr << "Error checking for file %s: errno = %d: %s\n", path, errno, strerror(errno);
+			abort();
+			return false;
+		}
+	} else if(S_ISREG(s.st_mode)) {
+		return true;
+	}
+	return false;
+}
+
+std::string find_mesh_file_by_name (const std::string &filename) {
+	std::string result;
+
+	std::vector<std::string> paths;
+	paths.push_back("./");
+	paths.push_back(std::string(BUILD_INSTALL_DIRECTORY) + "/glexp/share/");
+	paths.push_back(std::string(BUILD_SOURCE_DIRECTORY) + "/");
+
+	paths.push_back("/usr/share/glexp/share/");
+
+	if (getenv ("MESHUP_PATH")) {
+		std::string env_meshup_dir (getenv("MESHUP_PATH"));
+
+		if (env_meshup_dir.size() != 0) {
+			if (env_meshup_dir[env_meshup_dir.size() - 1] != '/')
+				env_meshup_dir += '/';
+
+			paths.push_back (env_meshup_dir);
+			paths.push_back (env_meshup_dir + "share/meshup/" ) ;
+		}
+	}
+
+	paths.push_back("/usr/local/share/meshup/meshes/");
+	paths.push_back("/usr/share/meshup/meshes/");
+
+	std::vector<std::string>::iterator iter = paths.begin();
+	for (iter; iter != paths.end(); iter++) {
+		std::string test_path = *iter;
+
+		if (!file_exists( (test_path + filename).c_str()))
+			continue;
+
+		break;
+	}
+
+	if (iter != paths.end())
+		return (string(*iter) + string(filename));
+
+	cerr << "Could not find mesh file " << filename << ". Search path: " << endl;
+	for (iter = paths.begin(); iter != paths.end(); iter++) {
+		cout << "  " << *iter << endl;
+	}
+	abort();
+
+	return std::string("");
+}
+
+
 
 Matrix33f ConvertToSimpleMathMat3 (const RBDLMatrix3d &mat) {
 	Matrix33f result;
@@ -476,7 +544,7 @@ void MarkerModel::updateFromLua() {
 				visual_scene_object->color[3] = 0.8;
 
 				MeshVBO mesh;
-				load_obj (mesh, visual_data.src.c_str());	
+				load_obj (mesh, find_mesh_file_by_name(visual_data.src).c_str());	
 				visual_scene_object->mesh = mesh;
 
 				// setup of the transformation
