@@ -9,7 +9,7 @@ frame_first = 239
 frame_rate = 100
 
 phases = [
-        { 'name': 'RightFlat', 'start_frame': 303, 'nshoot': 10},
+        { 'name': 'RightFlat', 'start_frame': 303, 'nshoot': 15},
         { 'name': 'RightToe', 'start_frame': 333, 'nshoot': 10},
         { 'name': 'RightToeTouchDownLeftHeel', 'start_frame': 343, 'nshoot': 1},
         { 'name': 'RightToeLeftHeel', 'start_frame': 343, 'nshoot': 5},
@@ -124,7 +124,7 @@ def print_state_boundaries ():
 
     print("sd_sca(*,*)")
     for i in range(0, len(dof_names)): 
-        print (str(i) + ": " + str( math.fabs(animation_data[start_line:end_line,i+1].max() - animation_data[start_line:end_line,i+1].min()) ))
+        print (str(i) + ": " + str( math.fabs(animation_data[start_line:end_line,i+1].mean()) ))
     for i in range(0, len(dof_names)): 
         print (str(i + len(dof_names)) + ": 5.")
 
@@ -169,6 +169,15 @@ def print_uname():
             print (str(i - 6) + ": " + dof_names[i - 6])
     print ("")
 
+def export_path(filename):
+    start_line = phases[0]["start_frame"] - frame_first
+    end_line = phases[len(phases) - 1]["start_frame"] - frame_first
+
+    path_data = animation_data[start_line:end_line, :]
+    path_data[:,0] = path_data[:,0] - path_data[0,0]
+
+    numpy.savetxt(filename, path_data, delimiter=", ")
+
 # shift the data such that the pelvis origin has x,y coordinates 0,0
 start_line = phases[0]["start_frame"] - frame_first
 pos_start = animation_data[start_line][1:3]
@@ -181,6 +190,8 @@ print_node_data()
 print_state_boundaries()
 print_xdname()
 print_uname()
+
+export_path("sd_path.csv")
 
 print ("* GENERATED INITIAL END")
 
