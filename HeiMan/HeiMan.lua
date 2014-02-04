@@ -229,9 +229,9 @@ local function newHeiMan (model_mass, model_height)
 		local side_identifier = ""
 		local full_joint_name = joint_name
 
-		if string.find(joint_name, "%.") then
-			side_identifier = string.lower(string.sub(joint_name, string.find(joint_name, "%.") + 1, -1))
-			joint_name = string.sub(joint_name, 1, string.find(joint_name, "%.") - 1)
+		if string.find(joint_name, "%_") then
+			side_identifier = string.lower(string.sub(joint_name, string.find(joint_name, "%_") + 1, -1))
+			joint_name = string.sub(joint_name, 1, string.find(joint_name, "%_") - 1)
 		end
 
 		if joint_name == "pelvis" then
