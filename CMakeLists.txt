@@ -54,7 +54,7 @@ ADD_LIBRARY ( glew SHARED
 	glew/src/glew.c
 	)
 
-ADD_EXECUTABLE ( qtglbase
+ADD_EXECUTABLE ( puppeteer
 	${QtGLBaseApp_SRCS}
 	${QtGLBaseApp_MOC_SRCS}
 	${MainWindow_UIS_H}
@@ -102,7 +102,7 @@ TARGET_LINK_LIBRARIES ( SceneGL
 	c3dfile
 	)
 
-TARGET_LINK_LIBRARIES ( qtglbase
+TARGET_LINK_LIBRARIES ( puppeteer
 	SceneGL
 	${QT_LIBRARIES}
 	QtPropertyBrowser
