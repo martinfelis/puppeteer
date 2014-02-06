@@ -374,6 +374,19 @@ int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 	return 0;
 }
 
+int MarkerModel::getFrameId (const char *frame_name) {
+	int frame_count = (*luaTable)["frames"].length();
+
+	for (int i = 1; i <= frame_count; i++) {
+		if ((*luaTable)["frames"][i]["name"].get<std::string>() == frame_name)
+			return i;
+	}
+
+	cerr << "Error: could not frind frame id for frame with name '" << frame_name << "'!" << endl;
+	abort();
+	
+	return -1;
+}
 
 std::string MarkerModel::getFrameName (int frame_id) {
 	return rbdlModel->GetBodyName(frameIdToRbdlId[frame_id]);

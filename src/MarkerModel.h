@@ -149,6 +149,7 @@ struct MarkerModel {
 	int getFrameCount ();
 
 	VisualsData getVisualsData (int frame_id, int visuals_index);
+	int getFrameId (const char *frame_name);
 	std::string getFrameName (int frame_id);
 	std::string getParentName (int frame_id);
 	Vector3f getFrameLocationGlobal (int frame_id);
