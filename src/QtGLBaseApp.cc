@@ -739,7 +739,8 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 		double value_d = static_cast<double>(value);
 		double slider_percentage = (value_d - slider_min) / (slider_max - slider_min);
 
-		animationData->setCurrentTime (animationData->getFirstFrameTime() + animationData->getDuration() * slider_percentage);
+		double current_time =	animationData->getFirstFrameTime() + animationData->getDuration() * slider_percentage;
+		animationData->setCurrentTime (current_time);
 
 		VectorNd state = animationData->getCurrentPose();
 		if (state.size() < markerModel->modelStateQ.size()) {
