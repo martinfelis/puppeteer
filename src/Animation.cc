@@ -128,14 +128,21 @@ bool Animation::loadFromFile (const char* filename) {
 
 		double frame_time = 0.;
 		VectorNd state = VectorNd::Zero (tokens.size() - 1);
+
+		double value;
+		istringstream value_stream (tokens[0]);
+
+		// If the first entry is not a number we ignore the whole line
+		if (!(value_stream >> value))
+			continue;
+
 		for (size_t i = 0; i < tokens.size(); i++) {
-			double value;
-			istringstream value_stream (tokens[i]);
+			value_stream.clear();
+			value_stream.str(tokens[i]);
 			if (!(value_stream >> value)) {
 				cerr << "Error: could not convert string '" << tokens[i] << "' to number in " << filename << ", line " << line_index << ", column " << i << endl;
 				abort();
 			}
-
 
 			if (i == 0)
 				frame_time = value;
@@ -143,7 +150,6 @@ bool Animation::loadFromFile (const char* filename) {
 				state[i - 1] = value;
 			}
 		}
-	
 		addPose (frame_time, state);
 	}
 
