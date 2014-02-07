@@ -14,7 +14,6 @@
 #include <rbdl/addons/luamodel/luamodel.h>
 
 #include "LuaTypes.h"
-#include "objloader.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -556,8 +555,13 @@ void MarkerModel::updateFromLua() {
 				visual_scene_object->color = visual_data.color;
 				visual_scene_object->color[3] = 0.8;
 
+				MeshVBO temp_mesh;
+				if (!temp_mesh.loadOBJ(find_mesh_file_by_name(visual_data.src).c_str())) {
+					cerr << "Error: could not load mesh '" << visual_data.src << "'!" << endl;
+					abort();
+				}
 				MeshVBO mesh;
-				load_obj (mesh, find_mesh_file_by_name(visual_data.src).c_str());	
+				mesh.join(SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f), temp_mesh);
 				visual_scene_object->mesh = mesh;
 
 				// setup of the transformation

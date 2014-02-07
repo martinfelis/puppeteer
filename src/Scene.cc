@@ -6,7 +6,6 @@
 
 #include "Scene.h"
 #include "Shader.h"
-#include "objloader.h"
 
 using namespace std;
 

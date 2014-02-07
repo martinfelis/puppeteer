@@ -27,7 +27,6 @@ SET ( SCENEGL_SRCS
 	src/Scene.cc
 	src/MeshVBO.cc
 	src/Shader.cc
-	src/objloader.cc
 	src/MarkerModel.cc
 	src/MarkerData.cc
 	src/Animation.cc

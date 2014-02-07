@@ -19,6 +19,28 @@
 
 typedef ptrdiff_t GLsizeiptr;
 
+struct MaterialLib {
+};
+
+struct Material {
+	std::string name;
+	Vector3f color_ambient;
+	Vector3f color_diffuse;
+	Vector3f color_specular;
+	float transparency;
+	int illum;
+
+	std::string map_ambient;
+	std::string map_diffuse;
+	std::string map_specular;
+	std::string map_bump;
+
+	unsigned int texture_ambient;
+	unsigned int texture_diffuse;
+	unsigned int texture_specular;
+	unsigned int texture_bump;
+};
+
 /** \brief Loads Wavefront VBO files and prepares them for use in
  * OpenGL.
  */
@@ -81,6 +103,7 @@ struct MeshVBO {
 	std::vector<Vector4f> colors;
 
 	void join (const Matrix44f &transformation, const MeshVBO &other);
+	bool loadOBJ (const char* filename, const char* object_name = NULL, bool strict = false);
 };
 
 MeshVBO CreateUVSphere (unsigned int rows, unsigned int segments);
