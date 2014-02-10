@@ -181,16 +181,19 @@ bool SugiharaIK (
 		}
 
 		double wn = 1.0e-3;
-//		rbdlMatrixNd Ek = rbdlMatrixNd::Identity (e.size(), e.size());
 		double Ek = 0.;
 
 		for (size_t ei = 0; ei < e.size(); ei ++) {
-//			Ek(ei,ei) = e[ei] * e[ei] * 0.5;
 			Ek += e[ei] * e[ei] * 0.5;
 		}
 
+		rbdlVectorNd ek = J.transpose() * e;
 		rbdlMatrixNd Wn = rbdlMatrixNd::Zero (Qres.size(), Qres.size());
+
+		assert (ek.size() == Qres.size());
+
 		for (size_t wi = 0; wi < Qres.size(); wi++) {
+//			Wn(wi, wi) = ek[wi] * ek[wi] * 0.5 + 1.0e-3;
 			Wn(wi, wi) = Ek + 1.0e-3;
 		}
 
