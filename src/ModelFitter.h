@@ -43,6 +43,13 @@ struct SugiharaFitter : public ModelFitter {
 	virtual bool run (const VectorNd &initialState);
 };
 
+struct SugiharaTaskSpaceFitter : public ModelFitter {
+	SugiharaTaskSpaceFitter (MarkerModel *model, MarkerData *data) :
+		ModelFitter (model, data) 
+	{}
+	virtual bool run (const VectorNd &initialState);
+};
+
 struct LevenbergMarquardtFitter : public ModelFitter {
 	LevenbergMarquardtFitter (MarkerModel *model, MarkerData *data, double lambda = 0.05):
 		ModelFitter (model, data),

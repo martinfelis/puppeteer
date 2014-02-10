@@ -32,6 +32,8 @@ bool parse_args (int argc, char* argv[]) {
 				return false;
 		} else if (arg == "--levenberg") {
 			fitter_method = "levenberg";
+		} else if (arg == "--sugiharats") {
+			fitter_method = "sugiharats";
 		} else {
 			print_usage (argv[0]);
 			return false;
@@ -49,6 +51,8 @@ int main (int argc, char* argv[]) {
 
 	if (fitter_method == "sugihara") {
 		fitter = new SugiharaFitter(model, data);
+	} else if (fitter_method == "sugiharats") {
+		fitter = new SugiharaTaskSpaceFitter(model, data);
 	} else {
 		fitter = new LevenbergMarquardtFitter (model, data);
 	}

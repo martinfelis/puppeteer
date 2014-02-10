@@ -106,12 +106,7 @@ bool LevenbergMarquardtIK (
 		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
 
 		rbdlVectorNd z (body_id.size() * 3);
-#ifndef RBDL_USE_SIMPLE_MATH
 		z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
-#else
-		bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
-		assert (solve_successful);
-#endif
 
 		rbdlVectorNd delta_theta = J.transpose() * z;
 		Qres = Qres + delta_theta;
@@ -186,25 +181,99 @@ bool SugiharaIK (
 		}
 
 		double wn = 1.0e-3;
-		rbdlMatrixNd Ek = rbdlMatrixNd::Identity (e.size(), e.size());
-	
+//		rbdlMatrixNd Ek = rbdlMatrixNd::Identity (e.size(), e.size());
+		double Ek = 0.;
+
 		for (size_t ei = 0; ei < e.size(); ei ++) {
-			Ek(ei,ei) = e[ei] * e[ei] * 0.5;
+//			Ek(ei,ei) = e[ei] * e[ei] * 0.5;
+			Ek += e[ei] * e[ei] * 0.5;
 		}
 
-		rbdlMatrixNd JJT_Ek_wnI = J * J.transpose() + Ek + (wn) * rbdlMatrixNd::Identity(e.size(), e.size());
+		rbdlMatrixNd Wn = rbdlMatrixNd::Zero (Qres.size(), Qres.size());
+		for (size_t wi = 0; wi < Qres.size(); wi++) {
+			Wn(wi, wi) = Ek + 1.0e-3;
+		}
 
-		rbdlVectorNd z (body_id.size() * 3);
-#ifndef RBDL_USE_SIMPLE_MATH
-		z = JJT_Ek_wnI.colPivHouseholderQr().solve (e);
-#else
-		bool solve_successful = LinSolveGaussElimPivot (JJT_Ek_wnI, e, z);
-		assert (solve_successful);
-#endif
-
-		rbdlVectorNd delta_theta = J.transpose() * z;
+		rbdlMatrixNd A = J.transpose() * J + Wn;
+		rbdlVectorNd delta_theta = A.colPivHouseholderQr().solve(J.transpose() * e);
 		Qres = Qres + delta_theta;
 
+		if (delta_theta.norm() < step_tol) {
+			*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+			*steps = ik_iter;
+
+			return true;
+		}
+	}
+
+	*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+	*steps = ik_iter;
+
+	return false;
+}
+
+bool SugiharaTaskSpaceIK (
+		RigidBodyDynamics::Model &model,
+		const rbdlVectorNd &Qinit,
+		const std::vector<unsigned int>& body_id,
+		const std::vector<rbdlVector3d>& body_point,
+		const std::vector<rbdlVector3d>& target_pos,
+		rbdlVectorNd &Qres,
+		double step_tol,
+		unsigned int max_iter,
+		unsigned int *steps,
+		VectorNd *residuals
+		) {
+
+	assert (Qinit.size() == model.q_size);
+	assert (body_id.size() == body_point.size());
+	assert (body_id.size() == target_pos.size());
+
+	rbdlMatrixNd J = rbdlMatrixNd::Zero(3 * body_id.size(), model.qdot_size);
+	rbdlVectorNd e = rbdlVectorNd::Zero(3 * body_id.size());
+
+	Qres = Qinit;
+
+	unsigned int ik_iter;
+
+	for (ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
+
+		for (unsigned int k = 0; k < body_id.size(); k++) {
+			rbdlMatrixNd G (3, model.qdot_size);
+			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
+			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
+
+			for (unsigned int i = 0; i < 3; i++) {
+				for (unsigned int j = 0; j < model.qdot_size; j++) {
+					unsigned int row = k * 3 + i;
+					J(row, j) = G (i,j);
+				}
+
+				e[k * 3 + i] = target_pos[k][i] - point_base[i];
+			}
+
+			// abort if we are getting "close"
+			if (e.norm() < step_tol) {
+				*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+				*steps = ik_iter;
+
+				return true;
+			}
+		}
+
+		double wn = 1.0e-3;
+		rbdlMatrixNd Ek = rbdlMatrixNd::Zero (e.size(), e.size());
+	
+		for (size_t ei = 0; ei < e.size(); ei ++) {
+			Ek(ei,ei) = e[ei] * e[ei] * 0.5 + wn;
+		}
+
+		rbdlMatrixNd JJT_Ek_wnI = J * J.transpose() + Ek;
+
+		rbdlVectorNd delta_theta = J.transpose() * JJT_Ek_wnI.colPivHouseholderQr().solve (e);
+
+		Qres = Qres + delta_theta;
 		if (delta_theta.norm() < step_tol) {
 			*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
 			*steps = ik_iter;
@@ -306,7 +375,7 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 		iklog.open("fitting_log.csv");
 		setup();
 	
-//		iklog << "frame, steps, ";
+		iklog << "frame, steps, ";
 		for (size_t i = 0; i < internal->marker_names.size(); i++) {
 			iklog << internal->marker_names[i];
 			if (i != internal->marker_names.size() - 1)
@@ -328,8 +397,8 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 			cerr << "Warning: could not fit frame " << i << endl;
 		}
 
-		//		iklog << i - frame_first << ", ";
-		//		iklog << steps << ", ";
+		iklog << i - frame_first << ", ";
+		iklog << steps << ", ";
 
 		for (size_t mi = 0; mi < internal->marker_names.size(); mi++) {
 			int ri = internal->marker_residual_index[internal->marker_names[mi]];
@@ -372,6 +441,17 @@ bool SugiharaFitter::run (const VectorNd &_initialState) {
 	setup();
 
 	success = SugiharaIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, 100, &steps, &residuals);
+	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
+
+	return success;
+}
+
+bool SugiharaTaskSpaceFitter::run (const VectorNd &_initialState) {
+	initialState = _initialState;
+
+	setup();
+
+	success = SugiharaTaskSpaceIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, 100, &steps, &residuals);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
 
 	return success;
