@@ -294,6 +294,7 @@ bool QtGLBaseApp::loadAnimationFile (const char* filename) {
 		return false;
 
 	updateSliderBounds();
+	captureFrameSliderChanged (0);
 
 	return true;
 }
