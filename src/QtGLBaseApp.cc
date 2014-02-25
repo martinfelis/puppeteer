@@ -127,6 +127,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	vector3DYXZReadOnlyPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);
 	vector3DYXZPropertyManager->setPropertyLabels ("Y", "X", "Z");
 
+	vector3DPropertyManager->setDefaultDecimals (4);
+	vector3DYXZPropertyManager->setDefaultDecimals (4);
+
 	// property browser: editor factories
 	doubleSpinBoxFactory = new QtDoubleSpinBoxFactory(propertiesBrowser);
 	lineEditFactory = new QtLineEditFactory(propertiesBrowser);
@@ -599,18 +602,21 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 		QtProperty *center_property = vector3DPropertyManager->addProperty("center");
 		Vector3f center = markerModel->getVisualCenter (frame_id, visual_id);
 		vector3DPropertyManager->setValue (center_property, QVector3D (center[0], center[1], center[2]));
+		registerProperty (center_property, (std::string ("visuals_") + visual_name + "_center").c_str());
 		visual_property->addSubProperty (center_property);
 
 		// dimensions
 		QtProperty *dimensions_property = vector3DPropertyManager->addProperty("dimensions");
 		Vector3f dimensions = markerModel->getVisualCenter (frame_id, visual_id);
 		vector3DPropertyManager->setValue (dimensions_property, QVector3D (dimensions[0], dimensions[1], dimensions[2]));
+		registerProperty (center_property, (std::string ("visuals_") + visual_name + "_dimensions").c_str());
 		visual_property->addSubProperty (dimensions_property);
 
 		// color
 		QtProperty *color_property = vector3DPropertyManager->addProperty("color");
 		Vector3f color = markerModel->getVisualCenter (frame_id, visual_id);
 		vector3DPropertyManager->setValue (color_property, QVector3D (color[0], color[1], color[2]));
+		registerProperty (center_property, (std::string ("visuals_") + visual_name + "_color").c_str());
 		visual_property->addSubProperty (color_property);
 
 		registerProperty (visual_property, visual_name.c_str());
@@ -635,9 +641,6 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 			propertiesBrowser->setExpanded ((*iter), false);
 		}
 	}
-
-//	QtProperty *visuals_group = groupManager->addProperty("Visuals");
-//	propertiesBrowser->addProperty (visuals_group);
 
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }

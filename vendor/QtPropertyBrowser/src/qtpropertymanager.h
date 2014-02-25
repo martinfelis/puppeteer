@@ -776,13 +776,16 @@ public:
 
     QVector3D value(const QtProperty *property) const;
 		void setPropertyLabels (const QString &label_x, const QString &label_y, const QString &label_z);
+		void setDefaultDecimals (const int prec);
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QVector3D &val);
     void setSingleStep(QtProperty *property, double step);
+    void setDecimals(QtProperty *property, int prec);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QVector3D &val);
     void singleStepChanged(QtProperty *property, double step);
+    void decimalsChanged(QtProperty *property, int prec);
 protected:
     QString valueText(const QtProperty *property) const;
     virtual void initializeProperty(QtProperty *property);
@@ -790,6 +793,7 @@ protected:
 private:
     QtVector3DPropertyManagerPrivate *d_ptr;
 		QString propertyLabel[3];
+		int defaultDecimals;
     Q_DECLARE_PRIVATE(QtVector3DPropertyManager)
     Q_DISABLE_COPY(QtVector3DPropertyManager)
     Q_PRIVATE_SLOT(d_func(), void slotDoubleChanged(QtProperty *, double))
