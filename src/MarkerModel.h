@@ -158,6 +158,14 @@ struct MarkerModel {
 	Vector3f getJointOrientationLocalEulerYXZ (int frame_id);
 	void setJointLocationLocal (int frame_id, const Vector3f &location);
 	void setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler);
+
+	void setVisualDimensions (int frame_id, int visuals_index, const Vector3f &dimensions);
+	Vector3f getVisualDimensions (int frame_id, int visuals_index);
+	void setVisualCenter (int frame_id, int visuals_index, const Vector3f &center);
+	Vector3f getVisualCenter(int frame_id, int visuals_index);
+	void setVisualColor (int frame_id, int visuals_index, const Vector3f &color);
+	Vector3f getVisualColor(int frame_id, int visuals_index);
+
 	void adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r);
 
 	bool loadFromFile (const char* filename);

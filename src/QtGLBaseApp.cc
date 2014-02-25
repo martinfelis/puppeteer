@@ -587,6 +587,36 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 	// visuals
 	QtProperty *visuals_group = groupManager->addProperty("Visuals");
+	vector<string> visuals_names;
+	for (size_t visual_id = 1; visual_id <= markerModel->getVisualsCount(frame_id); visual_id++) {
+		ostringstream name_stream ("");
+		name_stream << visual_id;
+		string visual_name = name_stream.str();
+
+		QtProperty *visual_property = groupManager->addProperty (visual_name.c_str());
+
+		// center
+		QtProperty *center_property = vector3DPropertyManager->addProperty("center");
+		Vector3f center = markerModel->getVisualCenter (frame_id, visual_id);
+		vector3DPropertyManager->setValue (center_property, QVector3D (center[0], center[1], center[2]));
+		visual_property->addSubProperty (center_property);
+
+		// dimensions
+		QtProperty *dimensions_property = vector3DPropertyManager->addProperty("dimensions");
+		Vector3f dimensions = markerModel->getVisualCenter (frame_id, visual_id);
+		vector3DPropertyManager->setValue (dimensions_property, QVector3D (dimensions[0], dimensions[1], dimensions[2]));
+		visual_property->addSubProperty (dimensions_property);
+
+		// color
+		QtProperty *color_property = vector3DPropertyManager->addProperty("color");
+		Vector3f color = markerModel->getVisualCenter (frame_id, visual_id);
+		vector3DPropertyManager->setValue (color_property, QVector3D (color[0], color[1], color[2]));
+		visual_property->addSubProperty (color_property);
+
+		registerProperty (visual_property, visual_name.c_str());
+		visuals_group->addSubProperty (visual_property);
+	}
+	item = propertiesBrowser->addProperty (visuals_group);
 
 	// markers
 	QtProperty *marker_group = groupManager->addProperty("Markers");

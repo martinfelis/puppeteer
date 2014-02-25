@@ -433,6 +433,30 @@ Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
 }
 
+void MarkerModel::setVisualDimensions (int frame_id, int visuals_index, const Vector3f &dimensions) {
+	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["dimensions"] = dimensions;
+}
+
+Vector3f MarkerModel::getVisualDimensions (int frame_id, int visuals_index) {
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["dimensions"] ;
+}
+
+void MarkerModel::setVisualCenter (int frame_id, int visuals_index, const Vector3f &center) {
+	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_center"] = center;
+}
+
+Vector3f MarkerModel::getVisualCenter(int frame_id, int visuals_index) {
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_center"] ;
+}
+
+void MarkerModel::setVisualColor (int frame_id, int visuals_index, const Vector3f &color) {
+	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["color"] = color;
+}
+
+Vector3f MarkerModel::getVisualColor(int frame_id, int visuals_index) {
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["color"] ;
+}
+
 void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r) {
 	/// \todo adjusting of parent visuals fails when mesh_center moves out of the bounding box of the original bbox.
 	Vector3f delta_r = new_r - old_r;
