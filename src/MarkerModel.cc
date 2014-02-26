@@ -435,6 +435,8 @@ Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
 
 void MarkerModel::setVisualDimensions (int frame_id, int visuals_index, const Vector3f &dimensions) {
 	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["dimensions"] = dimensions;
+
+	updateFromLua();
 }
 
 Vector3f MarkerModel::getVisualDimensions (int frame_id, int visuals_index) {
@@ -443,6 +445,8 @@ Vector3f MarkerModel::getVisualDimensions (int frame_id, int visuals_index) {
 
 void MarkerModel::setVisualCenter (int frame_id, int visuals_index, const Vector3f &center) {
 	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_center"] = center;
+	cout << "Set center = " << center.transpose() << endl;
+	updateFromLua();
 }
 
 Vector3f MarkerModel::getVisualCenter(int frame_id, int visuals_index) {
@@ -451,6 +455,7 @@ Vector3f MarkerModel::getVisualCenter(int frame_id, int visuals_index) {
 
 void MarkerModel::setVisualColor (int frame_id, int visuals_index, const Vector3f &color) {
 	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["color"] = color;
+	updateFromLua();
 }
 
 Vector3f MarkerModel::getVisualColor(int frame_id, int visuals_index) {

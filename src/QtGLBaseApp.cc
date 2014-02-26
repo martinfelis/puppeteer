@@ -154,6 +154,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (doubleManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (modelStateValueChanged (QtProperty *, double)));
 	connect (vector3DPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
+	connect (colorManager, SIGNAL (valueChanged (QtProperty *, QColor)), this, SLOT (colorValueChanged (QtProperty *, QColor)));
 
 	connect (saveModelStateButton, SIGNAL (clicked()), this, SLOT (saveModelState()));
 	connect (loadModelStateButton, SIGNAL (clicked()), this, SLOT (loadModelState()));
@@ -590,7 +591,6 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 	// visuals
 	QtProperty *visuals_group = groupManager->addProperty("Visuals");
-	vector<string> visuals_names;
 	for (size_t visual_id = 1; visual_id <= markerModel->getVisualsCount(frame_id); visual_id++) {
 		ostringstream name_stream ("");
 		name_stream << visual_id;
@@ -607,16 +607,16 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 		// dimensions
 		QtProperty *dimensions_property = vector3DPropertyManager->addProperty("dimensions");
-		Vector3f dimensions = markerModel->getVisualCenter (frame_id, visual_id);
+		Vector3f dimensions = markerModel->getVisualDimensions (frame_id, visual_id);
 		vector3DPropertyManager->setValue (dimensions_property, QVector3D (dimensions[0], dimensions[1], dimensions[2]));
-		registerProperty (center_property, (std::string ("visuals_") + visual_name + "_dimensions").c_str());
+		registerProperty (dimensions_property, (std::string ("visuals_") + visual_name + "_dimensions").c_str());
 		visual_property->addSubProperty (dimensions_property);
 
 		// color
-		QtProperty *color_property = vector3DPropertyManager->addProperty("color");
-		Vector3f color = markerModel->getVisualCenter (frame_id, visual_id);
-		vector3DPropertyManager->setValue (color_property, QVector3D (color[0], color[1], color[2]));
-		registerProperty (center_property, (std::string ("visuals_") + visual_name + "_color").c_str());
+		QtProperty *color_property = colorManager->addProperty("color");
+		Vector3f color = markerModel->getVisualColor (frame_id, visual_id);
+		colorManager->setValue (color_property, QColor (color[0] * 255, color[1] * 255, color[2] * 255));
+		registerProperty (color_property, (std::string ("visuals_") + visual_name + "_color").c_str());
 		visual_property->addSubProperty (color_property);
 
 		registerProperty (visual_property, visual_name.c_str());
@@ -725,6 +725,54 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 	} else if (property_name.startsWith("marker_coordinates")) {
 		Vector3f coord (value.x(), value.y(), value.z());
 		markerModel->setFrameMarkerCoord (activeModelFrame, property->propertyName().toAscii(), coord);
+	}	else if (property_name.startsWith("visuals_")) {
+		QRegExp rx("visuals_(\\d+)_(\\w+)");
+		if (!rx.exactMatch (property_name)) {
+			qDebug() << "Warning! Unhandled value change of property " << property_name;
+			return;
+		}
+
+		int visual_id = rx.cap(1).toInt();
+		QString visual_property = rx.cap(2);
+
+		if (visual_property == "dimensions") {
+			Vector3f dimensions (value.x(), value.y(), value.z());
+			markerModel->setVisualDimensions (activeModelFrame, visual_id, dimensions);
+		} else if (visual_property == "center") {
+			Vector3f center (value.x(), value.y(), value.z());
+			markerModel->setVisualCenter (activeModelFrame, visual_id, center);
+		} else {
+			qDebug() << "Warning! Unhandled value change of property " << property_name;
+			return;
+		}
+	} else {
+		qDebug() << "Warning! Unhandled value change of property " << property_name;
+	}
+}
+
+void QtGLBaseApp::colorValueChanged (QtProperty *property, QColor value) {
+	if (!propertyToName.contains(property))
+		return;
+
+	QString property_name = propertyToName[property];
+
+	if (property_name.startsWith("visuals_")) {
+		QRegExp rx("visuals_(\\d+)_(\\w+)");
+		if (!rx.exactMatch (property_name)) {
+			qDebug() << "Warning! Unhandled value change of property " << property_name;
+			return;
+		}
+
+		int visual_id = rx.cap(1).toInt();
+		QString visual_property = rx.cap(2);
+
+		if (visual_property == "color") {
+			Vector3f color (value.red() * 1.f/255.f, value.green() * 1.f/255.f , value.blue() * 1.f/255.f);
+			markerModel->setVisualColor (activeModelFrame, visual_id, color);
+		} else {
+			qDebug() << "Warning! Unhandled value change of property " << property_name;
+			return;
+		}
 	} else {
 		qDebug() << "Warning! Unhandled value change of property " << property_name;
 	}
