@@ -127,6 +127,7 @@ void Scene::draw() {
 		}
 	}
 
+	// Draw the outline of the selected objects using stencil buffers
 	glClear (GL_DEPTH_BUFFER_BIT);
 
 	glEnable (GL_STENCIL_TEST);
@@ -143,6 +144,8 @@ void Scene::draw() {
 		glPushMatrix();
 		glMultMatrixf (object->transformation.toGLMatrix().data());
 
+		// 1st draw: draw the wireframe model of the back and set the stencil
+		// buffer to 1
 		glDisable (GL_LIGHTING);
 		glDisable (GL_BLEND);
 
@@ -154,6 +157,7 @@ void Scene::draw() {
 		glStencilOpSeparate (GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
 		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 
+		// 2nd draw: draw the regular model and set the stencil buffer to 0
 		glEnable (GL_LIGHTING);
 		glLineWidth (1.f);
 		glPolygonMode (GL_FRONT, GL_FILL);
@@ -168,7 +172,6 @@ void Scene::draw() {
 	}
 
 	glClear (GL_DEPTH_BUFFER_BIT);
-
 	glPolygonMode (GL_BACK, GL_FILL);
 	glDisable (GL_STENCIL_TEST);
 
