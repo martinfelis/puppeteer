@@ -65,17 +65,19 @@ void Scene::drawSceneObjectStyled (const SceneObject *object, DrawStyle style) {
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 		glPushMatrix();
-		glScalef (1.03f, 1.03f, 1.03f);
+		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+		glLineWidth (3.f);
 		glColor3f (1.f, 0.f, 0.f);
 		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 		glPopMatrix();
 		glCullFace(GL_BACK);
 		glDisable(GL_CULL_FACE);
+		glLineWidth (1.f);
+		glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
 		if (!object->noLighting)
 			glEnable(GL_LIGHTING);
-
-		glColor4f (0.f, 0.8f, 0.8f, 1.f);
+		glColor4fv (object->color.data());
 		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
 	} else if (style == DrawStyleHighlighted) {
 		glDisable(GL_LIGHTING);
@@ -127,6 +129,49 @@ void Scene::draw() {
 
 	glClear (GL_DEPTH_BUFFER_BIT);
 
+	glEnable (GL_STENCIL_TEST);
+	glClearStencil(0);
+	glClear (GL_STENCIL_BUFFER_BIT);
+
+	std::list<int>::iterator selected_iter = selectedObjectIds.begin();
+
+	while (selected_iter != selectedObjectIds.end()) {
+		if (*selected_iter == -1)
+			break;
+		SceneObject* object = getObject<SceneObject>(*selected_iter);
+
+		glPushMatrix();
+		glMultMatrixf (object->transformation.toGLMatrix().data());
+
+		glDisable (GL_LIGHTING);
+		glDisable (GL_BLEND);
+
+		glPolygonMode (GL_BACK, GL_LINE);
+		glLineWidth (5.f);
+		glColor3f (1.f, 0.f, 0.f);
+
+		glStencilFuncSeparate(GL_BACK, GL_ALWAYS, 1, 1);
+		glStencilOpSeparate (GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
+
+		glEnable (GL_LIGHTING);
+		glLineWidth (1.f);
+		glPolygonMode (GL_FRONT, GL_FILL);
+		glColor4fv (object->color.data());
+		glStencilFuncSeparate(GL_FRONT, GL_ALWAYS, 0, 1);
+		glStencilOpSeparate (GL_FRONT, GL_REPLACE, GL_REPLACE, GL_REPLACE);
+		const_cast<MeshVBO*>(&(object->mesh))->draw(GL_TRIANGLES);
+
+		glPopMatrix();
+
+		selected_iter++;
+	}
+
+	glClear (GL_DEPTH_BUFFER_BIT);
+
+	glPolygonMode (GL_BACK, GL_FILL);
+	glDisable (GL_STENCIL_TEST);
+
 	for (size_t i = 0; i < depth_ignoring_objects.size(); i++) {
 		drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleNormal);
 		if (objectIsSelected(depth_ignoring_objects[i]->id)) {
@@ -137,6 +182,7 @@ void Scene::draw() {
 			drawSceneObjectStyled (depth_ignoring_objects[i], DrawStyleNormal);
 		}
 	}
+
 }
 
 void Scene::drawForColorPicking() {
