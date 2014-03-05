@@ -586,10 +586,25 @@ void MarkerModel::updateFromLua() {
 				visual_scene_object->color[3] = 0.8;
 
 				MeshVBO temp_mesh;
-				if (!temp_mesh.loadOBJ(find_mesh_file_by_name(visual_data.src).c_str())) {
-					cerr << "Error: could not load mesh '" << visual_data.src << "'!" << endl;
-					abort();
+				string mesh_filename = visual_data.src;
+				string submesh_name = "";
+				if (mesh_filename.find (':') != string::npos) {
+					submesh_name = mesh_filename.substr (mesh_filename.find(':') + 1, mesh_filename.size());
+					mesh_filename = mesh_filename.substr (0, mesh_filename.find(':'));
+					string mesh_file_location = find_mesh_file_by_name (mesh_filename);
+
+					if (!temp_mesh.loadOBJ(mesh_file_location.c_str(), submesh_name.c_str())) {
+						cerr << "Error: could not load submesh '" << submesh_name << "' from mesh file '" << mesh_file_location << "'!" << endl;
+						abort();
+					}
+				} else {
+					string mesh_file_location = find_mesh_file_by_name (mesh_filename);
+					if (!temp_mesh.loadOBJ(mesh_file_location.c_str())) {
+						cerr << "Error: could not load mesh file '" << mesh_file_location << "'!" << endl;
+						abort();
+					}
 				}
+
 				MeshVBO mesh;
 				mesh.join(SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f), temp_mesh);
 				visual_scene_object->mesh = mesh;
