@@ -20,21 +20,6 @@ namespace RigidBodyDynamics {
 
 struct LuaTable;
 
-struct JointObject : public SceneObject {
-	int frameId;
-	unsigned int rbdlBodyId;
-};
-
-struct VisualsObject: public SceneObject {
-	VisualsObject(): 
-		frameId(0)
-	{}
-
-	int frameId;
-	int visualIndex;
-	JointObject* jointObject;
-};
-
 struct VisualsData {
 	VisualsData(): 
 		scale (-1.f, -1.f, -1.f),
@@ -51,6 +36,23 @@ struct VisualsData {
 	Vector3f mesh_center;
 	Vector3f translate;
 	std::string src;
+};
+
+
+struct JointObject : public SceneObject {
+	int frameId;
+	unsigned int rbdlBodyId;
+};
+
+struct VisualsObject: public SceneObject {
+	VisualsObject(): 
+		frameId(0)
+	{}
+
+	int frameId;
+	int visualIndex;
+	JointObject* jointObject;
+	VisualsData data;
 };
 
 struct ModelMarkerObject: public SceneObject {

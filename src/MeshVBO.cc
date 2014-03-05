@@ -336,6 +336,15 @@ void MeshVBO::join (const Matrix44f &transformation, const MeshVBO &other) {
 	}
 }
 
+void MeshVBO::center() {
+	Vector3f displacement = - bbox_min - (bbox_max - bbox_min) * 0.5;
+	for (size_t i = 0; i < vertices.size(); i++) {
+		vertices[i] = vertices[i] + Vector4f (displacement[0], displacement[1], displacement[2], 0.);
+	}
+	bbox_max += displacement;
+	bbox_min += displacement;
+}
+
 //
 // OBJ loader
 //

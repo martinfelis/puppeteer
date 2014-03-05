@@ -103,6 +103,7 @@ struct MeshVBO {
 	std::vector<Vector4f> colors;
 
 	void join (const Matrix44f &transformation, const MeshVBO &other);
+	void center ();
 	bool loadOBJ (const char* filename, const char* object_name = NULL, bool strict = false);
 };
 
