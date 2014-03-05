@@ -170,14 +170,6 @@ bool SugiharaIK (
 
 				e[k * 3 + i] = target_pos[k][i] - point_base[i];
 			}
-
-			// abort if we are getting "close"
-			if (e.norm() < step_tol) {
-				*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
-				*steps = ik_iter;
-
-				return true;
-			}
 		}
 
 		double wn = 1.0e-3;

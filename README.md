@@ -1,1 +1,1 @@
-QtGLBaseApp - A simple OpenGL Application that uses Qt
+Puppeteer - A Motion Capture Mapping Tool
