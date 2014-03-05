@@ -290,24 +290,7 @@ void MarkerModel::updateSceneObjects() {
 		joint_transformation.translation = joint_transformation.translation + joint_transformation.rotation.rotate (mesh_center);
 
 		visuals[i]->transformation.translation = joint_transformation.translation;
-//		Vector3d translation = joint_transformation.translation;
-//		visuals[i]->transformation.translation = Vector3d (translation[0], translation[2], translation[1]);
 		visuals[i]->transformation.rotation = joint_transformation.rotation;
-
-//		visuals[i]->transformation = Transformation();
-
-		if ((*luaTable)["frames"][visuals[i]->frameId]["name"].get<std::string>() == "pelvis") {
-			cout << "=== " << (*luaTable)["frames"][visuals[i]->frameId]["name"].get<std::string>() << endl << visuals[i]->transformation.toGLMatrix() << endl;
-			cout << "visuals glmatrix = " << endl << visuals[i]->transformation.toGLMatrix() << endl;
-		}
-		if ((*luaTable)["frames"][visuals[i]->frameId]["name"].get<std::string>() == "upper_arm.r") {
-			cout << "=== " << (*luaTable)["frames"][visuals[i]->frameId]["name"].get<std::string>() << endl << visuals[i]->transformation.toGLMatrix() << endl;
-			cout << "visuals glmatrix = " << endl << visuals[i]->transformation.toGLMatrix() << endl;
-		}
-		if ((*luaTable)["frames"][visuals[i]->frameId]["name"].get<std::string>() == "thigh.r") {
-			cout << "=== " << (*luaTable)["frames"][visuals[i]->frameId]["name"].get<std::string>() << endl << visuals[i]->transformation.toGLMatrix() << endl;
-			cout << "visuals glmatrix = " << endl << visuals[i]->transformation.toGLMatrix() << endl;
-		}
 	}
 
 	for (size_t i = 0; i < modelMarkers.size(); i++) {
@@ -640,13 +623,7 @@ void MarkerModel::updateFromLua() {
 				object_transformation.scaling = scale;
 
 				object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_data.mesh_center);
-
-				if (body_name == "pelvis" || body_name == "upper_arm.r" || body_name == "thigh.r") {
-					cout << body_name << endl << "bbox = " << bbox_size.transpose() << endl << "bbox(old) " << (temp_mesh.bbox_max - temp_mesh.bbox_min).transpose() << endl << object_transformation.toGLMatrix() << endl;
-					cout << "  min = " << temp_mesh.bbox_min.transpose() << endl;
-					cout << "  max = " << temp_mesh.bbox_max.transpose() << endl;
-				}
-
+				
 				visual_scene_object->transformation = object_transformation;
 			}
 
