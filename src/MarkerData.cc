@@ -72,6 +72,8 @@ bool MarkerData::loadFromFile(const char *filename) {
 	enableMarker ("LHEE", Vector3f (0.f, 1.f, 0.f));
 	enableMarker ("LTOE", Vector3f (0.f, 1.f, 0.f));
 
+	enableMarker ("PELO", Vector3f (1.f, 0.25, 0.9));
+
 	return true;
 }
 
