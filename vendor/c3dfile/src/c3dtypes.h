@@ -359,10 +359,10 @@ class DataMatrix {
 			if (raw_data)
 				delete[] raw_data;
 		}
-		char& operator() (const unsigned i, const unsigned j) {
+		T& operator() (const unsigned i, const unsigned j) {
 			return raw_data[i * columns + j];
 		}
-    char operator() (const unsigned i, const unsigned j) const {
+    T operator() (const unsigned i, const unsigned j) const {
 			return raw_data[i * columns + j];
 		}
 		T* GetRawPtr() {
@@ -396,6 +396,20 @@ inline std::ostream& operator<<(std::ostream& output, const DataMatrix<T> &data)
 
 	return output;
 }
+
+struct EventInfo { 
+	EventInfo() :
+		label (""),
+		context (""),
+		time_minutes (0.f),
+		time_seconds (0.f)
+	{}
+
+	std::string label;
+	std::string context;
+	float time_minutes;
+	float time_seconds;
+};
 
 #endif /* C3DTYPES */
 

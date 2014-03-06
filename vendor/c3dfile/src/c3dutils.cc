@@ -70,4 +70,11 @@ void print_parameter_info (const ParameterInfo &parameter_info) {
 		<< " (" << static_cast<int>(parameter_info.descr_length) << ")" << endl;
 }
 
+void print_event_info (const EventInfo &event_info) {
+	cout << "Event: " << event_info.label << endl;
+	cout << "  " << "context: " << event_info.context << endl;
+	cout << "  " << "label  : " << event_info.label << endl;
+	cout << "  " << "minutes: " << event_info.time_minutes << endl;
+	cout << "  " << "seconds: " << event_info.time_seconds << endl;
+}
 

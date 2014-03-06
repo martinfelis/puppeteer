@@ -10,6 +10,8 @@
 struct C3DFile {
 	bool load(const char *filename);
 	FloatMarkerData getMarkerTrajectories(const char* point_name_str);	
+	size_t getEventCount();
+	EventInfo getEventInfo (size_t index);
 
 	std::string getParamString(const char* id_str);
 	Sint8 getParamSint8(const char* id_str);

@@ -6,6 +6,7 @@
 void print_c3dheaderinfo (const C3DHeader &header);
 void print_group_info (const GroupInfo &group_info);
 void print_parameter_info (const ParameterInfo &parameter_info);
+void print_event_info (const EventInfo &event_info);
 
 template <typename T>
 inline bool check_param_type(const Sint8 data_type) {

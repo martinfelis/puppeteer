@@ -50,6 +50,57 @@ FloatMarkerData C3DFile::getMarkerTrajectories (const char* point_name_str) {
 	return float_point_data[index];
 }
 
+size_t C3DFile::getEventCount() {
+	ParameterInfo event_used = getParamInfo ("EVENT:USED");
+	assert (event_used.data_type == 2);
+
+	return static_cast<size_t>(event_used.int_data[0]);
+}
+
+EventInfo C3DFile::getEventInfo (size_t index) {
+	assert (getEventCount() > index);
+
+	EventInfo result;
+
+	ParameterInfo contexts_info = getParamInfo ("EVENT:CONTEXTS");
+	DataMatrix<char> contexts_data (
+			static_cast<unsigned int>(contexts_info.dimensions[1]),
+			static_cast<unsigned int>(contexts_info.dimensions[0])
+			);
+
+	contexts_data.CopyFrom (contexts_info.char_data);
+	string context = "";
+	for (size_t j = 0; j < contexts_data.GetColumns(); j++) {
+		context += contexts_data(index, j);
+	}
+	result.context = context.substr (0, context.find_last_not_of(' ') + 1);
+
+	ParameterInfo labels_info = getParamInfo ("EVENT:LABELS");
+	DataMatrix<char> labels_data (
+			static_cast<unsigned int>(labels_info.dimensions[1]),
+			static_cast<unsigned int>(labels_info.dimensions[0])
+			);
+
+	labels_data.CopyFrom (labels_info.char_data);
+	string label = "";
+	for (size_t j = 0; j < labels_data.GetColumns(); j++) {
+		label += labels_data(index, j);
+	}
+	result.label = label.substr (0, label.find_last_not_of(' ') + 1);
+
+	ParameterInfo times_info = getParamInfo ("EVENT:TIMES");
+	DataMatrix<float> times_data (
+			static_cast<unsigned int>(times_info.dimensions[1]),
+			static_cast<unsigned int>(times_info.dimensions[0])
+			);
+
+	times_data.CopyFrom (times_info.float_data);
+	result.time_minutes = times_data(index, 0);
+	result.time_seconds = times_data(index, 1);
+
+	return result;
+}
+
 std::string C3DFile::getParamString(const char* id_str) {
 	ParameterInfo param_info;
 
@@ -243,7 +294,7 @@ void C3DFile::readPointSection(ifstream &datastream) {
 
 	Sint16 point_count = getParamSint16("POINT:USED");
 
-	Uint16 frame_count = header.last_frame - header.first_frame;
+	Uint16 frame_count = header.last_frame - header.first_frame + 1;
 
 	/*
 	float video_frame_rate = header.video_sampling_rate;
