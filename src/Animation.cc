@@ -74,7 +74,7 @@ VectorNd Animation::getCurrentPose() {
 
 		iter = next;
 		next++;
-	} while (next != keyFrames.end());
+	} while (next + 1 != keyFrames.end());
 
 	double frac = (currentTime - iter->time) / (next->time - iter->time);
 	return (1. - frac) * iter->state + frac * next->state;
