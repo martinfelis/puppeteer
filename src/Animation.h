@@ -27,14 +27,14 @@ struct Animation {
 
 	void addPose (double time, const VectorNd &states);
 	void setCurrentTime (double time);
-	VectorNd getCurrentPose ();
+	VectorNd getCurrentPose () const;
 
-	double getFirstFrameTime();
-	double getLastFrameTime();
-	double getDuration() { return getLastFrameTime() - getFirstFrameTime(); };
+	double getFirstFrameTime() const;
+	double getLastFrameTime() const;
+	double getDuration() const { return getLastFrameTime() - getFirstFrameTime(); };
 
 	bool loadFromFile (const char* filename);
-	void saveToFile (const char* filename);
+	void saveToFile (const char* filename) const;
 };
 
 /* ANIMATION_H */

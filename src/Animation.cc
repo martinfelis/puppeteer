@@ -53,7 +53,7 @@ void Animation::setCurrentTime (double time) {
 	currentTime = time;
 }
 
-VectorNd Animation::getCurrentPose() {
+VectorNd Animation::getCurrentPose() const {
 	if (keyFrames.size() == 0) {
 		cerr << "Error: cannot get pose: no keyframes defined" << endl;
 		abort();
@@ -63,8 +63,8 @@ VectorNd Animation::getCurrentPose() {
 		return keyFrames[0].state;
 	}
 
-	vector<AnimationKeyFrame>::iterator iter = keyFrames.begin();
-	vector<AnimationKeyFrame>::iterator next = iter;
+	vector<AnimationKeyFrame>::const_iterator iter = keyFrames.begin();
+	vector<AnimationKeyFrame>::const_iterator next = iter;
 	next++;
 
 	do {
@@ -80,7 +80,7 @@ VectorNd Animation::getCurrentPose() {
 	return (1. - frac) * iter->state + frac * next->state;
 }
 
-double Animation::getFirstFrameTime() {
+double Animation::getFirstFrameTime() const {
 	if (keyFrames.size() == 0) {
 		cerr << "Error: cannot get time: no keyframes defined" << endl;
 		abort();
@@ -89,7 +89,7 @@ double Animation::getFirstFrameTime() {
 	return keyFrames[0].time;
 }
 
-double Animation::getLastFrameTime() {
+double Animation::getLastFrameTime() const {
 	if (keyFrames.size() < 2) {
 		cerr << "Error: cannot get time: too few keyframes defined" << endl;
 		abort();
@@ -158,10 +158,10 @@ bool Animation::loadFromFile (const char* filename) {
 	return true;
 }
 
-void Animation::saveToFile( const char* filename) {
+void Animation::saveToFile( const char* filename) const {
 	ofstream outfile (filename);
 
-	for (vector<AnimationKeyFrame>::iterator iter = keyFrames.begin(); iter != keyFrames.end(); iter++) {
+	for (vector<AnimationKeyFrame>::const_iterator iter = keyFrames.begin(); iter != keyFrames.end(); iter++) {
 		outfile << iter->time << ", ";
 		for (size_t i = 0; i < iter->state.size(); i++) {
 			outfile << iter->state[i];
