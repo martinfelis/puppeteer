@@ -597,6 +597,11 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	joint_group->addSubProperty (joint_orientation_local_property);
 
 	item = propertiesBrowser->addProperty (joint_group);
+	if (item->children().size() > 0) {
+		for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {
+			propertiesBrowser->setExpanded ((*iter), false);
+		}
+	}
 
 	// visuals
 	QtProperty *visuals_group = groupManager->addProperty("Visuals");
@@ -632,6 +637,11 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 		visuals_group->addSubProperty (visual_property);
 	}
 	item = propertiesBrowser->addProperty (visuals_group);
+	if (item->children().size() > 0) {
+		for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {
+			propertiesBrowser->setExpanded ((*iter), false);
+		}
+	}
 
 	// markers
 	QtProperty *marker_group = groupManager->addProperty("Markers");
