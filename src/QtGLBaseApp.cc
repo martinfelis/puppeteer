@@ -284,8 +284,6 @@ bool QtGLBaseApp::loadMocapFile (const char* filename) {
 
 	updateSliderBounds();
 
-
-
 	return true;
 }
 
