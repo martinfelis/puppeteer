@@ -731,8 +731,19 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (markerModel && markerModel->isModelObject(object_id)) {
 		dockModelStateEditor->setEnabled(true);
 		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
-		updatePropertiesForFrame (frame_id);
-		return;
+
+		if (markerModel->isModelMarkerObject(object_id)) {
+			ModelMarkerObject *marker_object = dynamic_cast<ModelMarkerObject*> (scene->getObject<SceneObject>(object_id));
+
+			QtProperty *marker_name_property = stringManager->addProperty ("Name");
+			stringManager->setValue (marker_name_property, marker_object->markerName.c_str());
+			propertiesBrowser->insertProperty (marker_name_property, 0);
+			QtProperty *marker_parent_property = stringManager->addProperty ("Parent");
+			stringManager->setValue (marker_parent_property, markerModel->getFrameName (marker_object->frameId).c_str());
+			propertiesBrowser->insertProperty (marker_parent_property, marker_name_property);
+		} else {
+			updatePropertiesForFrame (frame_id);
+		}
 	} else if (markerData && markerData->isMarkerObject(object_id)) {
 		QtProperty *marker_name_property = stringManager->addProperty ("Name");
 		stringManager->setValue (marker_name_property, markerData->getMarkerName (object_id).c_str());
@@ -840,6 +851,10 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	if (markerData) {
 		current_frame = markerData->getFirstFrame() + static_cast<int>(round(current_time * static_cast<double>(markerData->getFrameRate())));
 	}
+
+
+	if (activeObject >= 0)
+		updateWidgetsFromObject(activeObject);
 
 	if (slideMarkersCheckBox->isChecked() && slideAnimationCheckBox->isChecked()) {
 		double first_frame = static_cast<double>(markerData->getFirstFrame());
