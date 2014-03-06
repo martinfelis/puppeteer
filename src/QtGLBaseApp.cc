@@ -284,6 +284,8 @@ bool QtGLBaseApp::loadMocapFile (const char* filename) {
 
 	updateSliderBounds();
 
+
+
 	return true;
 }
 
@@ -298,7 +300,7 @@ bool QtGLBaseApp::loadAnimationFile (const char* filename) {
 		return false;
 
 	updateSliderBounds();
-	captureFrameSliderChanged (0);
+	captureFrameSliderChanged (captureFrameSlider->minimum());
 
 	return true;
 }

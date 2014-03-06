@@ -105,7 +105,7 @@ bool MarkerData::markerExists(const char* marker_name) {
 
 Vector3f MarkerData::getMarkerCurrentPosition(const char * marker_name) {
 	FloatMarkerData marker_traj = c3dfile->getMarkerTrajectories (marker_name);
-	
+
 	int index = currentFrame - getFirstFrame();
 
 	if (rotateZ) 
