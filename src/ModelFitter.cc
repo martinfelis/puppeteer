@@ -419,6 +419,62 @@ bool ModelFitter::computeModelAnimationFromMarkers (const VectorNd &_initialStat
 	return result;
 }
 
+void ModelFitter::analyzeAnimation (Animation animation) {
+	assert (model);
+	assert (data);
+
+	double frame_rate = static_cast<double>(data->getFrameRate());
+	int frame_first = data->getFirstFrame();
+	int frame_last = data->getLastFrame();
+	double data_duration = static_cast<double>(frame_last - frame_first) / frame_rate;
+
+	assert (data_duration == animation.getDuration());
+
+	ofstream iklog;
+
+	iklog.open("fitting_log.csv");
+	setup();
+
+	iklog << "frame, steps, ";
+	for (size_t i = 0; i < internal->marker_names.size(); i++) {
+		iklog << internal->marker_names[i];
+		if (i != internal->marker_names.size() - 1)
+			iklog << ", ";
+	}
+	iklog << endl;
+
+	for (int i = frame_first; i <= frame_last; i++) {
+		double current_time = static_cast<double>(i - frame_first) / static_cast<double>(frame_last - frame_first) * data_duration;
+		data->setCurrentFrameNumber (i);
+		animation.setCurrentTime (current_time);
+		rbdlVectorNd q = ConvertVector<rbdlVectorNd, VectorNd>(animation.getCurrentPose());
+
+		iklog << i - frame_first << ", ";
+		iklog << 0 << ", ";
+		
+		setup();
+
+		UpdateKinematicsCustom (*(model->rbdlModel), &q, NULL, NULL);
+
+		for (size_t mi = 0; mi < internal->marker_names.size(); mi++) {
+			string marker_name = internal->marker_names[mi];
+			int ri = internal->marker_residual_index[internal->marker_names[mi]];
+			if (ri == -1) {
+				iklog << 0.;
+			} else {
+				rbdlVector3d data_marker = internal->target_pos[mi];
+				rbdlVector3d model_marker = CalcBodyToBaseCoordinates (*(model->rbdlModel), q, internal->body_ids[mi], internal->body_points[mi], false);
+				iklog << (data_marker - model_marker).norm();
+			}
+
+			if (mi != internal->marker_names.size() - 1)
+				iklog << ", ";
+		}
+		iklog << endl;
+	}
+	iklog.close();
+}
+
 bool LevenbergMarquardtFitter::run (const VectorNd &_initialState) {
 	initialState = _initialState;
 

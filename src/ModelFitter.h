@@ -30,6 +30,7 @@ struct ModelFitter {
 	virtual bool run (const VectorNd &initialState) = 0;
 
 	bool computeModelAnimationFromMarkers (const VectorNd &initialState, Animation *animation, int frame_start = -1, int frame_end = -1);
+	void analyzeAnimation (Animation animation);
 
 	VectorNd getFittedState() {
 		return fittedState;
