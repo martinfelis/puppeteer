@@ -38,6 +38,8 @@ public:
 
 protected:
 		QTimer *drawTimer;
+		QTimer *playbackTimer;
+		QTime *previousPlaybackTime;
 		Scene *scene;
 		MarkerModel *markerModel;
 		MarkerData *markerData;
@@ -94,6 +96,9 @@ public slots:
 		void fitAnimation();
 		void updateWidgetsFromObject (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
+
+		void playButtonClicked (bool checked);
+		void advanceFrame ();
 
 		void modelStateValueChanged (QtProperty *property, double value);
 		void valueChanged(QtProperty *property, QVector3D value);

@@ -29,6 +29,7 @@
 #include <ctime>
 
 #include <assert.h>
+
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -39,7 +40,7 @@ using namespace std;
 
 using namespace SimpleMath::GL;
 
-const double TimeLineDuration = 1000.;
+const double TIME_SLIDER_RATE = 1000.;
 
 std::string vec3_to_string (const Vector3f vec3, unsigned int digits = 2) {
 	stringstream vec_stream ("");
@@ -90,6 +91,9 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	drawTimer = new QTimer (this);
 	drawTimer->setSingleShot(false);
 	drawTimer->start(20);
+
+	playbackTimer = new QTimer (this);
+	previousPlaybackTime = new QTime();
 
 	dockModelStateEditor->setVisible(false);
 	dockWidgetSlider->setVisible(false);
@@ -172,6 +176,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (drawModelMarkersCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayModelMarkers(int)));
 	connect (drawBodySegmentsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayBodySegments(int)));
 	connect (drawJointsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayJoints(int)));
+
+	connect (toolButtonPlay, SIGNAL (clicked(bool)), this, SLOT (playButtonClicked(bool)));
 }
 
 void print_usage(const char* execname) {
@@ -320,13 +326,16 @@ void QtGLBaseApp::updateSliderBounds() {
 	if (markerData) {
 		dockWidgetSlider->setEnabled(true);
 		dockWidgetSlider->setVisible(true);
-		captureFrameSlider->setMinimum (markerData->getFirstFrame());
-		captureFrameSlider->setMaximum (markerData->getLastFrame());
+
+		double duration = static_cast<double>(markerData->getLastFrame() - markerData->getFirstFrame()) / static_cast<double>(markerData->getFrameRate());
+
+		captureFrameSlider->setMinimum (0);
+		captureFrameSlider->setMaximum (static_cast<int>(floor(duration * TIME_SLIDER_RATE)));
 		connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
 	} else {
 		dockWidgetSlider->setEnabled(true);
-		captureFrameSlider->setMinimum (animationData->getFirstFrameTime() * 500);
-		captureFrameSlider->setMaximum (animationData->getLastFrameTime() * 500);
+		captureFrameSlider->setMinimum (0);
+		captureFrameSlider->setMaximum (static_cast<int>(floor(animationData->getDuration() * TIME_SLIDER_RATE)));
 		connect (captureFrameSlider, SIGNAL (valueChanged(int)), this, SLOT (captureFrameSliderChanged (int)));
 	}
 }
@@ -645,6 +654,40 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
+void QtGLBaseApp::playButtonClicked (bool checked) {
+	if (!toolButtonPlay->isChecked()) {
+		disconnect (playbackTimer, SIGNAL(timeout()), this, SLOT (advanceFrame()));
+		playbackTimer->stop();
+	} else {
+		if (captureFrameSlider->value() == captureFrameSlider->maximum())
+			captureFrameSlider->setValue (captureFrameSlider->minimum());
+
+		playbackTimer->setSingleShot (false);
+		playbackTimer->start(20);
+		previousPlaybackTime->restart();
+
+		connect (playbackTimer, SIGNAL(timeout()), this, SLOT (advanceFrame()));
+	}
+}
+
+void QtGLBaseApp::advanceFrame() {
+	int current_pos = captureFrameSlider->value();
+	int advancement = static_cast<int>(round(static_cast<double>(previousPlaybackTime->restart()) * playbackSpeedSpinBox->value()));
+
+	if (current_pos + advancement > captureFrameSlider->maximum()) {
+		if (repeatCheckBox->checkState() == Qt::Checked) {
+			captureFrameSlider->setValue(captureFrameSlider->value() - captureFrameSlider->maximum() + advancement);
+		} else {
+			captureFrameSlider->setValue (captureFrameSlider->maximum());
+			disconnect (playbackTimer, SIGNAL(timeout()), this, SLOT (advanceFrame()));
+			playbackTimer->stop();
+			toolButtonPlay->setChecked(false);
+		}
+	} else {
+		captureFrameSlider->setValue(captureFrameSlider->value() + advancement);
+	}
+}
+
 void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 	if (object_id < 0) {
 		propertiesBrowser->clear();
@@ -781,6 +824,13 @@ void QtGLBaseApp::colorValueChanged (QtProperty *property, QColor value) {
 void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	assert (markerData || animationData);
 
+	double current_time = static_cast<double>(value) / TIME_SLIDER_RATE;
+	int current_frame = 0;
+	
+	if (markerData) {
+		current_frame = markerData->getFirstFrame() + static_cast<int>(round(current_time * static_cast<double>(markerData->getFrameRate())));
+	}
+
 	if (slideMarkersCheckBox->isChecked() && slideAnimationCheckBox->isChecked()) {
 		double first_frame = static_cast<double>(markerData->getFirstFrame());
 		double last_frame = static_cast<double>(markerData->getLastFrame());
@@ -794,7 +844,6 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 
 	if (animationData) {
 		int num_fraction_digits = 2;
-		double current_time = animationData->currentTime;
 		int num_seconds = static_cast<int>(floor(current_time));
 		int num_milliseconds = static_cast<int>(round((current_time - num_seconds) * pow(10, num_fraction_digits)));
 
@@ -809,20 +858,15 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 		frameLabel->setText(frame_string.str().c_str());
 	}
 
-	if (slideMarkersCheckBox->isChecked()) 
-		markerData->setCurrentFrameNumber (value);
+	if (slideMarkersCheckBox->isChecked()) { 
+		markerData->setCurrentFrameNumber (current_frame);
+	}
 
 	if (autoIKButton->isChecked())
 		fitModel();
 
 	if (slideAnimationCheckBox->isChecked()) {
-		double slider_min = static_cast<double> (captureFrameSlider->minimum());	
-		double slider_max = static_cast<double> (captureFrameSlider->maximum());
-		double value_d = static_cast<double>(value);
-		double slider_percentage = (value_d - slider_min) / (slider_max - slider_min);
-
-		double current_time =	animationData->getFirstFrameTime() + animationData->getDuration() * slider_percentage;
-		animationData->setCurrentTime (current_time);
+		animationData->setCurrentTime(current_time);
 
 		VectorNd state = animationData->getCurrentPose();
 		if (state.size() < markerModel->modelStateQ.size()) {

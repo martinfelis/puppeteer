@@ -191,7 +191,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>154</height>
+              <height>178</height>
              </rect>
             </property>
             <attribute name="label">
@@ -226,7 +226,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>154</height>
+              <height>178</height>
              </rect>
             </property>
             <attribute name="label">
@@ -262,7 +262,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>154</height>
+              <height>178</height>
              </rect>
             </property>
             <attribute name="label">
@@ -402,7 +402,7 @@
          <item row="1" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="toolButtonPlay">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -411,6 +411,12 @@
              </property>
              <property name="text">
               <string>Play</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -431,7 +437,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox">
+            <widget class="QDoubleSpinBox" name="playbackSpeedSpinBox">
              <property name="singleStep">
               <double>0.100000000000000</double>
              </property>
@@ -441,7 +447,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="repeatCheckBox">
              <property name="minimumSize">
               <size>
                <width>80</width>
