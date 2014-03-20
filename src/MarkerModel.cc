@@ -63,8 +63,8 @@ std::string find_mesh_file_by_name (const std::string &filename) {
 		}
 	}
 
-	paths.push_back("/usr/local/share/meshup/meshes/");
-	paths.push_back("/usr/share/meshup/meshes/");
+	paths.push_back("/usr/local/share/meshup/");
+	paths.push_back("/usr/share/meshup/");
 
 	std::vector<std::string>::iterator iter = paths.begin();
 	for (iter; iter != paths.end(); iter++) {
