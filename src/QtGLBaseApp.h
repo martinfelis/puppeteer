@@ -53,6 +53,7 @@ protected:
 		QtVector3DPropertyManager *vector3DYXZPropertyManager;
 		QtVector3DPropertyManager *vector3DYXZReadOnlyPropertyManager;
 		QtDoublePropertyManager *doubleReadOnlyManager;
+		QtDoublePropertyManager *doubleManager;
 		QtStringPropertyManager *stringManager;
 		QtColorPropertyManager *colorManager;
 		QtDoublePropertyManager *doubleManagerModelStateEditor;
@@ -101,6 +102,7 @@ public slots:
 		void advanceFrame ();
 
 		void modelStateValueChanged (QtProperty *property, double value);
+		void valueChanged(QtProperty *property, double value);
 		void valueChanged(QtProperty *property, QVector3D value);
 		void colorValueChanged(QtProperty *property, QColor value);
 		void captureFrameSliderChanged (int value);

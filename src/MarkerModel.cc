@@ -489,6 +489,30 @@ void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &old_r,
 	}
 }
 
+void MarkerModel::setBodyMass (int frame_id, double mass) {
+	(*luaTable)["frames"][frame_id]["body"]["mass"] = mass;
+}
+
+double MarkerModel::getBodyMass (int frame_id) {
+	return (*luaTable)["frames"][frame_id]["body"]["mass"].getDefault(0.);
+}
+
+void MarkerModel::setBodyCOM (int frame_id, const Vector3f &com) {
+	(*luaTable)["frames"][frame_id]["body"]["com"] = com;
+}
+
+Vector3f MarkerModel::getBodyCOM (int frame_id) {
+	return (*luaTable)["frames"][frame_id]["body"]["com"].getDefault(Vector3f::Zero(3,3));
+}
+
+void MarkerModel::setBodyInertia (int frame_id, const Matrix33f &inertia) {
+	(*luaTable)["frames"][frame_id]["body"]["inertia"] = inertia;
+}
+
+Matrix33f MarkerModel::getBodyInertia (int frame_id) {
+	return (*luaTable)["frames"][frame_id]["body"]["inertia"].getDefault(Matrix33f::Zero(3,3));
+}
+
 void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location) {
 	Vector3f old_location = (*luaTable)["frames"][frame_id]["joint_frame"]["r"];
 	(*luaTable)["frames"][frame_id]["joint_frame"]["r"] = location;

@@ -122,6 +122,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// property browser: managers
 	doubleReadOnlyManager = new QtDoublePropertyManager(propertiesBrowser);
+	doubleManager = new QtDoublePropertyManager(propertiesBrowser);
 	stringManager = new QtStringPropertyManager(propertiesBrowser);
 	colorManager = new QtColorPropertyManager(propertiesBrowser);
 	groupManager = new QtGroupPropertyManager(propertiesBrowser);
@@ -141,7 +142,13 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	vector3DEditorFactory = new QtVector3DEditorFactory(propertiesBrowser);
 	vector3DYXZEditorFactory = new QtVector3DEditorFactory(propertiesBrowser);
 
+	// model state editor
+	doubleManagerModelStateEditor = new QtDoublePropertyManager(modelStateEditor);
+	doubleSpinBoxFactoryModelStateEditor = new QtDoubleSpinBoxFactory(modelStateEditor);
+	modelStateEditor->setFactoryForManager (doubleManagerModelStateEditor, doubleSpinBoxFactoryModelStateEditor);
+
 	// property browser: manager <-> editor
+	propertiesBrowser->setFactoryForManager (doubleManager, doubleSpinBoxFactory);
 	propertiesBrowser->setFactoryForManager (stringManager, lineEditFactory);
 	propertiesBrowser->setFactoryForManager (colorManager, colorEditFactory);
 	propertiesBrowser->setFactoryForManager (vector3DPropertyManager, vector3DEditorFactory);
@@ -149,12 +156,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager, vector3DEditorFactory);
 	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
-	// model state editor
-	doubleManagerModelStateEditor = new QtDoublePropertyManager(modelStateEditor);
-	doubleSpinBoxFactoryModelStateEditor = new QtDoubleSpinBoxFactory(modelStateEditor);
-	modelStateEditor->setFactoryForManager (doubleManagerModelStateEditor, doubleSpinBoxFactoryModelStateEditor);
-
 	// signals
+	connect (doubleManager, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (valueChanged (QtProperty *, double)));
 	connect (doubleManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (modelStateValueChanged (QtProperty *, double)));
 	connect (vector3DPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
@@ -643,6 +646,63 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 		}
 	}
 
+	// Inertial Properties
+	QtProperty *body_group = groupManager->addProperty("Body");
+	
+	// mass
+	QtProperty *mass_property = doubleManager->addProperty("mass");
+	double mass = markerModel->getBodyMass (frame_id);
+	doubleManager->setValue (mass_property, mass);
+	registerProperty (mass_property, ("body_mass"));
+	body_group->addSubProperty (mass_property);
+
+	// com
+	QtProperty *com_property = vector3DPropertyManager->addProperty("com");
+	Vector3f com = markerModel->getBodyCOM (frame_id);
+	vector3DPropertyManager->setValue (com_property, QVector3D (com[0], com[1], com[2]));
+	registerProperty (com_property, "body_com");
+	body_group->addSubProperty (com_property);
+
+	// inertia
+	QtProperty *inertia_group = groupManager->addProperty ("Inertia");
+
+	Matrix33f inertia = markerModel->getBodyInertia (frame_id);
+
+	// inertia row1
+	QtProperty *inertia_row1_property = vector3DPropertyManager->addProperty("1");
+	Vector3f inertia_row1 = inertia.block<3,1>(0,0).transpose();
+	vector3DPropertyManager->setValue (inertia_row1_property, QVector3D (inertia_row1[0], inertia_row1[1], inertia_row1[2]));
+	registerProperty (inertia_row1_property, "body_inertia_row1");
+	inertia_group->addSubProperty (inertia_row1_property);
+
+	// inertia row2
+	QtProperty *inertia_row2_property = vector3DPropertyManager->addProperty("2");
+	Vector3f inertia_row2 = inertia.block<3,1>(1,0).transpose();
+	vector3DPropertyManager->setValue (inertia_row2_property, QVector3D (inertia_row2[0], inertia_row2[1], inertia_row2[2]));
+	registerProperty (inertia_row2_property, "body_inertia_row2");
+	inertia_group->addSubProperty (inertia_row2_property);
+
+	// inertia row3
+	QtProperty *inertia_row3_property = vector3DPropertyManager->addProperty("3");
+	Vector3f inertia_row3 = inertia.block<3,1>(2,0).transpose();
+	vector3DPropertyManager->setValue (inertia_row3_property, QVector3D (inertia_row3[0], inertia_row3[1], inertia_row3[2]));
+	registerProperty (inertia_row3_property, "body_inertia_row3");
+	inertia_group->addSubProperty (inertia_row3_property);
+
+	body_group->addSubProperty (inertia_group);
+
+	item = propertiesBrowser->addProperty (body_group);
+	if (item->children().size() > 0) {
+		for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {
+
+//			if (iter)
+				for (QList<QtBrowserItem*>::const_iterator iter2 = (*iter)->children().constBegin(); iter2 != (*iter)->children().constEnd(); iter2++) {
+					propertiesBrowser->setExpanded ((*iter2), false);
+				}
+			propertiesBrowser->setExpanded ((*iter), false);
+		}
+	}
+
 	// markers
 	QtProperty *marker_group = groupManager->addProperty("Markers");
 	vector<string> marker_names = markerModel->getFrameMarkerNames(frame_id);
@@ -766,6 +826,19 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	updateWidgetsFromObject (activeObject);
 }
 
+void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
+	if (!propertyToName.contains(property))
+		return;
+
+	QString property_name = propertyToName[property];
+
+	if (property_name.startsWith ("body_mass")) {
+		markerModel->setBodyMass (activeModelFrame, value);
+	} else {
+		qDebug() << "Warning! Unhandled value change of property " << property_name;
+	}
+}
+	
 void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 	if (!propertyToName.contains(property))
 		return;
@@ -809,6 +882,20 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 			qDebug() << "Warning! Unhandled value change of property " << property_name;
 			return;
 		}
+	} else if (property_name.startsWith("body_com")) {
+		markerModel->setBodyCOM (activeModelFrame, Vector3f (value.x(), value.y(), value.z()));
+	} else if (property_name.startsWith("body_inertia_row")) {
+		Matrix33f inertia = markerModel->getBodyInertia (activeModelFrame);
+		if (property_name == "body_inertia_row1") {
+			inertia.block<1,3>(0,0) = Vector3f (value.x(), value.y(), value.z()).transpose();
+		} else if (property_name == "body_inertia_row2") {
+			inertia.block<1,3>(1,0) = Vector3f (value.x(), value.y(), value.z()).transpose();
+		} else if (property_name == "body_inertia_row3") {
+			inertia.block<1,3>(2,0) = Vector3f (value.x(), value.y(), value.z()).transpose();
+		} else {
+			qDebug() << "Warning! Unhandled value change of property " << property_name;
+		}
+		markerModel->setBodyInertia (activeModelFrame, inertia);
 	} else {
 		qDebug() << "Warning! Unhandled value change of property " << property_name;
 	}

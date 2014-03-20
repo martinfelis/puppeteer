@@ -170,6 +170,13 @@ struct MarkerModel {
 
 	void adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r);
 
+	void setBodyMass (int frame_id, double mass);
+	double getBodyMass (int frame_id);
+	void setBodyCOM (int frame_id, const Vector3f &com);
+	Vector3f getBodyCOM (int frame_id);
+	void setBodyInertia (int frame_id, const Matrix33f &inertia);
+	Matrix33f getBodyInertia (int frame_id);
+
 	bool loadFromFile (const char* filename);
 	void saveToFile (const char* filename);
 	void loadStateFromFile (const char* filename);
