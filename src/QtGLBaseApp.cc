@@ -801,6 +801,15 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 			QtProperty *marker_parent_property = stringManager->addProperty ("Parent");
 			stringManager->setValue (marker_parent_property, markerModel->getFrameName (marker_object->frameId).c_str());
 			propertiesBrowser->insertProperty (marker_parent_property, marker_name_property);
+		} else if (markerModel->isContactPointObject (object_id)) {
+			ContactPointObject *contact_point_object = dynamic_cast<ContactPointObject*> (scene->getObject<SceneObject>(object_id));
+
+			QtProperty *contact_point_name_property = stringManager->addProperty ("Name");
+			stringManager->setValue (contact_point_name_property, contact_point_object->name.c_str());
+			propertiesBrowser->insertProperty (contact_point_name_property, 0);
+			QtProperty *contact_point_parent_property = stringManager->addProperty ("Parent");
+			stringManager->setValue (contact_point_parent_property, markerModel->getFrameName (contact_point_object->frameId).c_str());
+			propertiesBrowser->insertProperty (contact_point_parent_property, contact_point_name_property);
 		} else {
 			updatePropertiesForFrame (frame_id);
 		}
