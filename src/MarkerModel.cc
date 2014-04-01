@@ -546,12 +546,25 @@ void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location)
 	updateFromLua();
 }
 
+void MarkerModel::setContactPointGlobal (int contact_point_index, const Vector3f &global_coords) {
+	ContactPointObject* contact_point = getContactPointObject (contact_point_index);
+
+	RBDLVectorNd Q = RBDLVectorNd::Zero(rbdlModel->q_size);
+	RBDLVector3d point_global (global_coords[0], global_coords[1], global_coords[2]);
+	RBDLVector3d point_local = CalcBaseToBodyCoordinates (*rbdlModel, Q, frameIdToRbdlId[contact_point->frameId], point_global, false);
+
+	(*luaTable)["points"][contact_point_index]["point"] = Vector3f (point_local[0], point_local[1], point_local[2]);
+
+	updateFromLua();
+}
+
 void MarkerModel::setContactPointLocal (int contact_point_index, const Vector3f &local_coords) {
+	(*luaTable)["points"][contact_point_index]["point"] = local_coords;
+	updateFromLua();
 }
 
 Vector3f MarkerModel::getContactPointLocal (int contact_point_index) const {
-	abort();
-	return Vector3f (0.f, 0.f, 0.f); 
+	return (*luaTable)["points"][contact_point_index]["point"];
 }
 
 void MarkerModel::setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler) {

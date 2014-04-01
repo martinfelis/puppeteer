@@ -197,6 +197,7 @@ struct MarkerModel {
 	void setBodyInertia (int frame_id, const Matrix33f &inertia);
 	Matrix33f getBodyInertia (int frame_id);
 
+	void setContactPointGlobal (int contact_point_index, const Vector3f &global_coords);
 	void setContactPointLocal (int contact_point_index, const Vector3f &local_coords);
 	Vector3f getContactPointLocal (int contact_point_index) const;
 

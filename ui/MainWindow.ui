@@ -68,11 +68,14 @@
     <addaction name="separator"/>
     <addaction name="actionToggleRenderSettings"/>
     <addaction name="actionToggleCameraControls"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggleModelStateEditor"/>
+    <addaction name="actionTogglePropertiesEditor"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuControl_Panels"/>
   </widget>
-  <widget class="QDockWidget" name="dockFrameProperties">
+  <widget class="QDockWidget" name="dockPropertiesEditor">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
      <horstretch>0</horstretch>
@@ -191,7 +194,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>178</height>
+              <height>187</height>
              </rect>
             </property>
             <attribute name="label">
@@ -226,7 +229,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>178</height>
+              <height>187</height>
              </rect>
             </property>
             <attribute name="label">
@@ -262,21 +265,21 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>178</height>
+              <height>187</height>
              </rect>
             </property>
             <attribute name="label">
              <string>Display</string>
             </attribute>
             <layout class="QGridLayout" name="gridLayout_5">
-             <item row="3" column="0">
+             <item row="4" column="0">
               <widget class="QCheckBox" name="drawModelMarkersCheckBox">
                <property name="text">
                 <string>Model Markers</string>
                </property>
               </widget>
              </item>
-             <item row="7" column="0">
+             <item row="8" column="0">
               <spacer name="verticalSpacer">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
@@ -313,6 +316,16 @@
               <widget class="QCheckBox" name="drawMocapMarkersCheckBox">
                <property name="text">
                 <string>Mocap Markers</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QCheckBox" name="drawPointsCheckBox">
+               <property name="text">
+                <string>Points</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
@@ -667,7 +680,35 @@
     <string>C</string>
    </property>
   </action>
-  <zorder>dockFrameProperties</zorder>
+  <action name="actionToggleModelStateEditor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Model State Editor</string>
+   </property>
+   <property name="shortcut">
+    <string>S</string>
+   </property>
+  </action>
+  <action name="actionTogglePropertiesEditor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Properties Editor</string>
+   </property>
+   <property name="shortcut">
+    <string>P</string>
+   </property>
+  </action>
+  <zorder>dockPropertiesEditor</zorder>
   <zorder>dockWidgetSlider</zorder>
   <zorder>dockModelStateEditor</zorder>
  </widget>
@@ -686,5 +727,38 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionToggleModelStateEditor</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>dockModelStateEditor</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>100</x>
+     <y>361</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionTogglePropertiesEditor</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>dockPropertiesEditor</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>772</x>
+     <y>361</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

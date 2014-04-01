@@ -69,7 +69,7 @@ struct Scene {
 
 	template <typename T> T* createObject();
 	template <typename T> void destroyObject(T* object);
-	template <typename T> T* getObject(const int id);
+	template <typename T> T* getObject(const int &id);
 
 	ShaderProgram defaultShader;
 
@@ -91,7 +91,7 @@ template<typename T> inline void Scene::destroyObject(T* object) {
 	delete object;
 }
 
-template<> inline SceneObject* Scene::getObject<SceneObject>(const int id) {
+template<> inline SceneObject* Scene::getObject<SceneObject>(const int &id) {
 	std::vector<SceneObject*>::iterator obj_iter = objects.begin();
 
 	do {
