@@ -208,6 +208,19 @@ ModelMarkerObject* MarkerModel::getModelMarkerObject (int frame_id, const char* 
 	return model_marker_object;
 }
 
+ContactPointObject* MarkerModel::getContactPointObject (int contact_point_index) {
+	for (size_t i = 0; i < contactPoints.size(); i++) {
+		if (contactPoints[i]->pointIndex == contact_point_index)
+			return contactPoints[i];
+	}
+
+	ContactPointObject *contact_point_object = scene->createObject<ContactPointObject>();
+	contact_point_object->pointIndex = contact_point_index;
+	contactPoints.push_back (contact_point_object);
+
+	return contact_point_object;
+}
+
 int MarkerModel::getFrameMarkerCount(int frame_id) {
 	return (*luaTable)["frames"][frame_id]["markers"].length();
 }
@@ -304,6 +317,17 @@ void MarkerModel::updateSceneObjects() {
 
 		Vector3f marker_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
 		modelMarkers[i]->transformation.translation = marker_position;
+	}
+
+	for (size_t i = 0; i < contactPoints.size(); i++) {
+		int point_id = contactPoints[i]->pointIndex;
+		unsigned int rbdl_id = frameIdToRbdlId[contactPoints[i]->frameId];
+		Vector3f local_coords = (*luaTable)["points"][point_id]["point"].get<Vector3f>();
+
+		RBDLVector3d rbdl_vec3 = CalcBodyToBaseCoordinates (*rbdlModel, q, rbdl_id, RigidBodyDynamics::Math::Vector3d(local_coords[0], local_coords[1], local_coords[2]), false);
+
+		Vector3f contact_point_position (rbdl_vec3[0], rbdl_vec3[1], rbdl_vec3[2]);
+		contactPoints[i]->transformation.translation = contact_point_position;
 	}
 }
 
@@ -522,6 +546,14 @@ void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location)
 	updateFromLua();
 }
 
+void MarkerModel::setContactPointLocal (int contact_point_index, const Vector3f &local_coords) {
+}
+
+Vector3f MarkerModel::getContactPointLocal (int contact_point_index) const {
+	abort();
+	return Vector3f (0.f, 0.f, 0.f); 
+}
+
 void MarkerModel::setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler) {
 	Matrix33f matrix = SimpleMath::GL::Quaternion::fromEulerYXZ(yxz_euler).toMatrix().transpose();
 	(*luaTable)["frames"][frame_id]["joint_frame"]["E"] = matrix;
@@ -665,10 +697,25 @@ void MarkerModel::updateFromLua() {
 				marker_scene_object->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
 				marker_scene_object->noDepthTest = true;
 				marker_scene_object->color = Vector4f (1.f, 1.f, 1.f, 1.f);
-
-				modelMarkers.push_back (marker_scene_object);
 			}
 		}
+	}
+
+	int contact_point_count = (*luaTable)["points"].length();
+
+	for (int i = 1; i <= contact_point_count; i++) {
+		ContactPointObject* contact_point_scene_object = getContactPointObject (i);
+
+		contact_point_scene_object->pointIndex = i;
+		contact_point_scene_object->localCoords = (*luaTable)["points"][i]["point"].get<Vector3f>();
+		contact_point_scene_object->name = (*luaTable)["points"][i]["name"].get<std::string>();
+		contact_point_scene_object->frameId = getFrameId((*luaTable)["points"][i]["body"].get<std::string>().c_str());
+		
+		contact_point_scene_object->mesh = CreateUVSphere (8, 16);
+		contact_point_scene_object->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
+		contact_point_scene_object->noDepthTest = true;
+		contact_point_scene_object->color = Vector4f (0.f, 1.f, 1.f, 1.f);
+		contact_point_scene_object->noDraw = false;
 	}
 
 	if (modelStateQ.size() != rbdlModel->q_size)
