@@ -714,21 +714,25 @@ void MarkerModel::updateFromLua() {
 		}
 	}
 
-	int contact_point_count = (*luaTable)["points"].length();
+	// Contact points only available when we visualize things but not when
+	// only performing fitting.
+	if (scene) {
+		int contact_point_count = (*luaTable)["points"].length();
 
-	for (int i = 1; i <= contact_point_count; i++) {
-		ContactPointObject* contact_point_scene_object = getContactPointObject (i);
+		for (int i = 1; i <= contact_point_count; i++) {
+			ContactPointObject* contact_point_scene_object = getContactPointObject (i);
 
-		contact_point_scene_object->pointIndex = i;
-		contact_point_scene_object->localCoords = (*luaTable)["points"][i]["point"].get<Vector3f>();
-		contact_point_scene_object->name = (*luaTable)["points"][i]["name"].get<std::string>();
-		contact_point_scene_object->frameId = getFrameId((*luaTable)["points"][i]["body"].get<std::string>().c_str());
-		
-		contact_point_scene_object->mesh = CreateUVSphere (8, 16);
-		contact_point_scene_object->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
-		contact_point_scene_object->noDepthTest = true;
-		contact_point_scene_object->color = Vector4f (0.f, 1.f, 1.f, 1.f);
-		contact_point_scene_object->noDraw = false;
+			contact_point_scene_object->pointIndex = i;
+			contact_point_scene_object->localCoords = (*luaTable)["points"][i]["point"].get<Vector3f>();
+			contact_point_scene_object->name = (*luaTable)["points"][i]["name"].get<std::string>();
+			contact_point_scene_object->frameId = getFrameId((*luaTable)["points"][i]["body"].get<std::string>().c_str());
+
+			contact_point_scene_object->mesh = CreateUVSphere (8, 16);
+			contact_point_scene_object->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
+			contact_point_scene_object->noDepthTest = true;
+			contact_point_scene_object->color = Vector4f (0.f, 1.f, 1.f, 1.f);
+			contact_point_scene_object->noDraw = false;
+		}
 	}
 
 	if (modelStateQ.size() != rbdlModel->q_size)
