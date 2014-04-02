@@ -11,14 +11,21 @@
 
 using namespace std;
 
+void usage (const char* argname) {
+		cout << "Usage: " << argname << " <filename.c3d> <list|info|marker_id>" << endl;
+		exit(-1);
+}
+
 int main (int argc, char* argv[]) {
 	if (argc != 3) {
-		cout << "Usage: " << argv[0] << " <filename.c3d> <list|info|marker_id>" << endl;
-		exit(-1);
+		usage (argv[0]);
 	}
 
 	C3DFile c3dfile;
-	assert(c3dfile.load (argv[1]));
+	bool result = c3dfile.load (argv[1]);
+	if (!result) {
+		usage(argv[0]);
+	}
 
 	if (!strcmp("list", argv[2])) {
 		std::vector<std::string> marker_list = c3dfile.point_label;
