@@ -46,10 +46,10 @@ std::string find_mesh_file_by_name (const std::string &filename) {
 
 	std::vector<std::string> paths;
 	paths.push_back("./");
-	paths.push_back(std::string(BUILD_INSTALL_DIRECTORY) + "/glexp/share/");
+	paths.push_back(std::string(BUILD_INSTALL_DIRECTORY) + "/puppeteer/share/");
 	paths.push_back(std::string(BUILD_SOURCE_DIRECTORY) + "/");
 
-	paths.push_back("/usr/share/glexp/share/");
+	paths.push_back("/usr/share/puppeteer/share/");
 
 	if (getenv ("MESHUP_PATH")) {
 		std::string env_meshup_dir (getenv("MESHUP_PATH"));

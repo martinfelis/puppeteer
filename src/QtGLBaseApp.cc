@@ -489,7 +489,7 @@ void QtGLBaseApp::fitAnimation() {
 	bool success = true;
 	int i = 0;
 
-	for (i = 0; i < frame_count; i++) {
+	for (i = 0; i <= frame_count; i++) {
 		progress.setValue(i);
 		
 		bool fit_result = modelFitter->computeModelAnimationFromMarkers (markerModel->modelStateQ, animationData, markerData->getFirstFrame() + i, markerData->getFirstFrame() + i);
@@ -997,7 +997,7 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 		double last_frame = static_cast<double>(markerData->getLastFrame());
 		double frame_rate = static_cast<double>(markerData->getFrameRate());
 
-		double mocap_duration = (last_frame - first_frame - 1) / frame_rate;
+		double mocap_duration = (last_frame - first_frame) / frame_rate;
 		if (fabs(animationData->getDuration() - mocap_duration) > 1.0e-3) {
 			cerr << "Warning: duration mismatch: Animation = " << animationData->getDuration() << " Motion Capture data = " << mocap_duration << endl; 
 		}
