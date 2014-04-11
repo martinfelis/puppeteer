@@ -46,6 +46,7 @@ std::string find_mesh_file_by_name (const std::string &filename) {
 
 	std::vector<std::string> paths;
 	paths.push_back("./");
+	paths.push_back("/");
 	paths.push_back(std::string(BUILD_INSTALL_DIRECTORY) + "/puppeteer/share/");
 	paths.push_back(std::string(BUILD_SOURCE_DIRECTORY) + "/");
 
@@ -595,11 +596,13 @@ void MarkerModel::updateFromLua() {
 
 	for (int i = 1; i <= frame_count; i++) {
 		if (!(*luaTable)["frames"][i]["parent"].exists()) {
-			cerr << "Parent not defined for frame " << i << "." << endl;
+		  string body_name = (*luaTable)["frames"][i]["name"].getDefault<string>("");
+		  cerr << "Parent not defined for frame " << i << ".[" << frame_count << "]"<< endl;
 			abort();
 		}
 
 		string body_name = (*luaTable)["frames"][i]["name"].getDefault<string>("");
+		std::cout << "::" << body_name << "::" << i << "::" << std::endl;
 		string parent_name = (*luaTable)["frames"][i]["parent"].get<string>();
 		unsigned int parent_id = rbdlModel->GetBodyId(parent_name.c_str());
 		if (parent_id == std::numeric_limits<unsigned int>::max()) {

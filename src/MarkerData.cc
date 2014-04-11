@@ -74,12 +74,44 @@ bool MarkerData::loadFromFile(const char *filename) {
 
 	enableMarker ("PELO", Vector3f (1.f, 0.25, 0.9));
 
+	enableMarker ("LMAS", Vector3f (0.f, 0.f, 1.f));
+	enableMarker ("RMAS", Vector3f (0.f, 0.f, 1.f));
+	enableMarker ("HEAD", Vector3f (0.f, 0.f, 1.f));
+
+	enableMarker ("LHUMS", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LELBW", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LRAD", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LULN", Vector3f (0.f, 1.f, 0.f));
+
+	enableMarker ("RHUMS", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RELBW", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RRAD", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RULN", Vector3f (1.f, 0.f, 0.f));
+
+	enableMarker ("LMEP", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LTIB1", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LTIB2", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LTIB3", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LMMAL", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LD5T", Vector3f (0.f, 1.f, 0.f));
+	enableMarker ("LD2T", Vector3f (0.f, 1.f, 0.f));
+
+	enableMarker ("RMEP", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RTIB1", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RTIB2", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RTIB3", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RMMAL", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RD5T", Vector3f (1.f, 0.f, 0.f));
+	enableMarker ("RD2T", Vector3f (1.f, 0.f, 0.f));
+
+
 	return true;
 }
 
 void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	assert (c3dfile);
 
+	if (markerExists(marker_name)) {
 	MarkerObject* scene_marker = scene->createObject<MarkerObject>();
 	scene_marker->color.block<3,1>(0,0) = color;
 
@@ -91,6 +123,9 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	scene_marker->markerName = marker_name;
 
 	markers.push_back (scene_marker);
+	} else {
+	  std::cout << "!! WARNING::Marker " << marker_name << " does not exist" << std::endl;
+	}
 }
 
 bool MarkerData::markerExists(const char* marker_name) {

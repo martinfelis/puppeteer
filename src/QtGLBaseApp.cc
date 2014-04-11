@@ -682,21 +682,21 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 	// inertia row1
 	QtProperty *inertia_row1_property = vector3DPropertyManager->addProperty("1");
-	Vector3f inertia_row1 = inertia.block<3,1>(0,0).transpose();
+	Vector3f inertia_row1 = inertia.block(0,0,3,1);
 	vector3DPropertyManager->setValue (inertia_row1_property, QVector3D (inertia_row1[0], inertia_row1[1], inertia_row1[2]));
 	registerProperty (inertia_row1_property, "body_inertia_row1");
 	inertia_group->addSubProperty (inertia_row1_property);
 
 	// inertia row2
 	QtProperty *inertia_row2_property = vector3DPropertyManager->addProperty("2");
-	Vector3f inertia_row2 = inertia.block<3,1>(1,0).transpose();
+	Vector3f inertia_row2 = inertia.block(0,1,3,1);
 	vector3DPropertyManager->setValue (inertia_row2_property, QVector3D (inertia_row2[0], inertia_row2[1], inertia_row2[2]));
 	registerProperty (inertia_row2_property, "body_inertia_row2");
 	inertia_group->addSubProperty (inertia_row2_property);
 
 	// inertia row3
 	QtProperty *inertia_row3_property = vector3DPropertyManager->addProperty("3");
-	Vector3f inertia_row3 = inertia.block<3,1>(2,0).transpose();
+	Vector3f inertia_row3 = inertia.block(0,2,3,1);
 	vector3DPropertyManager->setValue (inertia_row3_property, QVector3D (inertia_row3[0], inertia_row3[1], inertia_row3[2]));
 	registerProperty (inertia_row3_property, "body_inertia_row3");
 	inertia_group->addSubProperty (inertia_row3_property);
