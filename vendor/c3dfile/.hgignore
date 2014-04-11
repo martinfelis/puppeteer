@@ -1,0 +1,10 @@
+syntax: glob
+c3dexport
+*.o
+*.csv
+.*.swp
+*.oct
+tags
+octave-core
+
+Debug/

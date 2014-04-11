@@ -95,7 +95,8 @@ public slots:
 		void assignMarkers();
 		void fitModel();
 		void fitAnimation();
-		void updateWidgetsFromObject (int object_id);
+
+		void updatePropertiesEditor (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
 
 		void playButtonClicked (bool checked);
@@ -111,6 +112,7 @@ public slots:
 		void displayModelMarkers (int display_state);
 		void displayBodySegments (int display_state);
 		void displayJoints (int display_state);
+		void displayPoints (int display_state);
 };
  
 #endif

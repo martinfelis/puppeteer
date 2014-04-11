@@ -44,6 +44,13 @@ struct JointObject : public SceneObject {
 	unsigned int rbdlBodyId;
 };
 
+struct ContactPointObject: public SceneObject {
+	int frameId;
+	int pointIndex;
+	Vector3f localCoords;
+	std::string name;
+};
+
 struct VisualsObject: public SceneObject {
 	VisualsObject(): 
 		frameId(0)
@@ -86,6 +93,7 @@ struct MarkerModel {
 	std::vector<JointObject*> joints;
 	std::vector<VisualsObject*> visuals;
 	std::vector<ModelMarkerObject*> modelMarkers;
+	std::vector<ContactPointObject*> contactPoints;
 
 	std::map<unsigned int, int> dofIndexToFrameId;
 	std::map<unsigned int, int> frameIdToRbdlId;
@@ -115,11 +123,22 @@ struct MarkerModel {
 		return false;
 	}
 
+	bool isContactPointObject (int objectid) {
+		for (size_t i = 0; i < contactPoints.size(); i++) {
+			if (contactPoints[i]->id == objectid)
+				return true;
+		}
+		return false;
+	}
+
 	bool isModelObject (int objectid) {
 		if (isModelMarkerObject(objectid))
 			return true;
 
 		if (isVisualsObject(objectid))
+			return true;
+
+		if (isContactPointObject(objectid))
 			return true;
 
 		return isJointObject(objectid);
@@ -135,6 +154,7 @@ struct MarkerModel {
 	JointObject* getJointObject (int frame_id);
 	VisualsObject* getVisualsObject (int frame_id, int visual_index);
 	ModelMarkerObject* getModelMarkerObject (int frame_id, const char* marker_name);
+	ContactPointObject* getContactPointObject (int contact_point_index);
 
 	int getFrameMarkerCount (int frame_id);
 	std::vector<Vector3f> getFrameMarkerCoords (int frame_id);
@@ -176,6 +196,10 @@ struct MarkerModel {
 	Vector3f getBodyCOM (int frame_id);
 	void setBodyInertia (int frame_id, const Matrix33f &inertia);
 	Matrix33f getBodyInertia (int frame_id);
+
+	void setContactPointGlobal (int contact_point_index, const Vector3f &global_coords);
+	void setContactPointLocal (int contact_point_index, const Vector3f &local_coords);
+	Vector3f getContactPointLocal (int contact_point_index) const;
 
 	bool loadFromFile (const char* filename);
 	void saveToFile (const char* filename);

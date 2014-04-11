@@ -102,9 +102,11 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	slideAnimationCheckBox->setEnabled(false);
 	slideMarkersCheckBox->setEnabled(false);
 
+	drawMocapMarkersCheckBox->setEnabled(false);
 	drawModelMarkersCheckBox->setEnabled(false);
 	drawBodySegmentsCheckBox->setEnabled(false);
 	drawJointsCheckBox->setEnabled(false);
+	drawPointsCheckBox->setEnabled(false);
 
 	connect (actionFrontView, SIGNAL (triggered()), glWidget, SLOT (set_front_view()));
 	connect (actionSideView, SIGNAL (triggered()), glWidget, SLOT (set_side_view()));
@@ -179,6 +181,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	connect (drawModelMarkersCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayModelMarkers(int)));
 	connect (drawBodySegmentsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayBodySegments(int)));
 	connect (drawJointsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayJoints(int)));
+	connect (drawPointsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayPoints(int)));
 
 	connect (toolButtonPlay, SIGNAL (clicked(bool)), this, SLOT (playButtonClicked(bool)));
 }
@@ -209,6 +212,7 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 		drawModelMarkersCheckBox->setEnabled(true);
 		drawBodySegmentsCheckBox->setEnabled(true);
 		drawJointsCheckBox->setEnabled(true);
+		drawPointsCheckBox->setEnabled(true);
 
 		displayModelMarkers (drawModelMarkersCheckBox->checkState());
 		displayBodySegments (drawBodySegmentsCheckBox->checkState());
@@ -223,10 +227,13 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 		updateModelStateEditor();
 	}
 
-	if (markerModel && markerData) {
-		modelFitter = new SugiharaFitter (markerModel, markerData);
-//		modelFitter = new LevenbergMarquardtFitter (markerModel, markerData);
-		autoIKButton->setEnabled(true);
+	if (markerData) {
+		drawMocapMarkersCheckBox->setEnabled(true);
+		if (markerModel) {
+			modelFitter = new SugiharaFitter (markerModel, markerData);
+			//		modelFitter = new LevenbergMarquardtFitter (markerModel, markerData);
+			autoIKButton->setEnabled(true);
+		}
 	}
 
 	return true;
@@ -412,7 +419,7 @@ void QtGLBaseApp::objectSelected (int object_id) {
 		activeModelFrame = markerModel->getFrameIdFromObjectId (object_id);
 	}
 
-	updateWidgetsFromObject (object_id);
+	updatePropertiesEditor (object_id);
 	updateModelStateEditor();
 }
 
@@ -439,7 +446,7 @@ void QtGLBaseApp::assignMarkers() {
 		markerModel->setFrameMarkerCoord (active_frame, selected_marker_names[i].c_str(), local_coords);
 	}
 
-	updateWidgetsFromObject (markerModel->getObjectIdFromFrameId (active_frame));
+	updatePropertiesEditor (markerModel->getObjectIdFromFrameId (active_frame));
 }
 
 void QtGLBaseApp::fitModel() {
@@ -482,7 +489,7 @@ void QtGLBaseApp::fitAnimation() {
 	bool success = true;
 	int i = 0;
 
-	for (i = 0; i < frame_count; i++) {
+	for (i = 0; i <= frame_count; i++) {
 		progress.setValue(i);
 		
 		bool fit_result = modelFitter->computeModelAnimationFromMarkers (markerModel->modelStateQ, animationData, markerData->getFirstFrame() + i, markerData->getFirstFrame() + i);
@@ -547,7 +554,9 @@ void QtGLBaseApp::updateModelStateEditor () {
 		modelStateEditor->setVisible(false);
 		return;
 	}
-	dockModelStateEditor->setVisible(true);
+
+	if (!dockModelStateEditor->isVisible())
+		return;
 
 	modelStateEditor->clear();
 
@@ -569,6 +578,9 @@ void QtGLBaseApp::updateModelStateEditor () {
 }
 
 void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
+	if (!dockPropertiesEditor->isVisible())
+		return;
+
 	QtBrowserItem *item = NULL;
 
 	// property browser: properties
@@ -758,7 +770,7 @@ void QtGLBaseApp::advanceFrame() {
 	}
 }
 
-void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
+void QtGLBaseApp::updatePropertiesEditor (int object_id) {
 	if (object_id < 0) {
 		propertiesBrowser->clear();
 		return;
@@ -801,6 +813,24 @@ void QtGLBaseApp::updateWidgetsFromObject (int object_id) {
 			QtProperty *marker_parent_property = stringManager->addProperty ("Parent");
 			stringManager->setValue (marker_parent_property, markerModel->getFrameName (marker_object->frameId).c_str());
 			propertiesBrowser->insertProperty (marker_parent_property, marker_name_property);
+		} else if (markerModel->isContactPointObject (object_id)) {
+			registerProperty (position_property, "contact_point_position_global");
+			ContactPointObject *contact_point_object = dynamic_cast<ContactPointObject*> (scene->getObject<SceneObject>(object_id));
+
+			QtProperty *contact_point_name_property = stringManager->addProperty ("Name");
+			stringManager->setValue (contact_point_name_property, contact_point_object->name.c_str());
+			propertiesBrowser->insertProperty (contact_point_name_property, 0);
+			QtProperty *contact_point_parent_property = stringManager->addProperty ("Parent");
+			stringManager->setValue (contact_point_parent_property, markerModel->getFrameName (contact_point_object->frameId).c_str());
+			propertiesBrowser->insertProperty (contact_point_parent_property, contact_point_name_property);
+
+			QtProperty *contact_point_local_property = vector3DPropertyManager->addProperty("Local Position");
+			Vector3f contact_point_local = markerModel->getContactPointLocal (contact_point_object->pointIndex);
+			vector3DPropertyManager->setValue (contact_point_local_property, QVector3D (contact_point_local[0], contact_point_local[1], contact_point_local[2]));
+			vector3DPropertyManager->setSingleStep (contact_point_local_property, 0.01);
+			registerProperty (contact_point_local_property, "contact_point_position_local");
+			item = propertiesBrowser->addProperty (contact_point_local_property);
+			propertiesBrowser->setExpanded (item, false);
 		} else {
 			updatePropertiesForFrame (frame_id);
 		}
@@ -823,7 +853,7 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	unsigned int state_index = propertyToStateIndex[property];
 
 	markerModel->setModelStateValue (state_index, value);	
-	updateWidgetsFromObject (activeObject);
+	updatePropertiesEditor (activeObject);
 }
 
 void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
@@ -896,6 +926,26 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 			qDebug() << "Warning! Unhandled value change of property " << property_name;
 		}
 		markerModel->setBodyInertia (activeModelFrame, inertia);
+	} else if (property_name.startsWith ("contact_point_position_global")) {
+		ContactPointObject* contact_point_object = dynamic_cast<ContactPointObject*>(scene->getObject<SceneObject>(activeObject));
+
+		if (!contact_point_object) {
+			cerr << "Cannot update contact point object: object id " << activeObject << " is not a contact point!" << endl;
+			abort();
+		}
+		
+		Vector3f coords_global (value.x(), value.y(), value.z());
+		markerModel->setContactPointGlobal (contact_point_object->pointIndex, coords_global);
+	} else if (property_name.startsWith ("contact_point_position_local")) {
+		ContactPointObject* contact_point_object = dynamic_cast<ContactPointObject*>(scene->getObject<SceneObject>(activeObject));
+
+		if (!contact_point_object) {
+			cerr << "Cannot update contact point object: object id " << activeObject << " is not a contact point!" << endl;
+			abort();
+		}
+		
+		Vector3f coords_local (value.x(), value.y(), value.z());
+		markerModel->setContactPointLocal (contact_point_object->pointIndex, coords_local);
 	} else {
 		qDebug() << "Warning! Unhandled value change of property " << property_name;
 	}
@@ -939,16 +989,15 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 		current_frame = markerData->getFirstFrame() + static_cast<int>(round(current_time * static_cast<double>(markerData->getFrameRate())));
 	}
 
-
 	if (activeObject >= 0)
-		updateWidgetsFromObject(activeObject);
+		updatePropertiesEditor(activeObject);
 
 	if (slideMarkersCheckBox->isChecked() && slideAnimationCheckBox->isChecked()) {
 		double first_frame = static_cast<double>(markerData->getFirstFrame());
 		double last_frame = static_cast<double>(markerData->getLastFrame());
 		double frame_rate = static_cast<double>(markerData->getFrameRate());
 
-		double mocap_duration = (last_frame - first_frame - 1) / frame_rate;
+		double mocap_duration = (last_frame - first_frame) / frame_rate;
 		if (fabs(animationData->getDuration() - mocap_duration) > 1.0e-3) {
 			cerr << "Warning: duration mismatch: Animation = " << animationData->getDuration() << " Motion Capture data = " << mocap_duration << endl; 
 		}
@@ -1033,5 +1082,15 @@ void QtGLBaseApp::displayJoints (int display_state) {
 
 	for (int i = 0; i < markerModel->joints.size(); i++) {
 		markerModel->joints[i]->noDraw = no_draw;
+	}
+}
+
+void QtGLBaseApp::displayPoints (int display_state) {
+	bool no_draw = false;
+	if (display_state != Qt::Checked)
+		no_draw = true;
+
+	for (int i = 0; i < markerModel->contactPoints.size(); i++) {
+		markerModel->contactPoints[i]->noDraw = no_draw;
 	}
 }
