@@ -53,6 +53,7 @@ struct MarkerData {
 	float getFrameRate ();
 	void setCurrentFrameNumber (int frame_number);
 	void updateMarkerSceneObjects();
+	void calcDataBoundingBox (Vector3f &min, Vector3f &max);
 
 	private:
 	MarkerData (const MarkerData &marker_data) {};
