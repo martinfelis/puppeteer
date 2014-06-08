@@ -420,9 +420,9 @@ void QtGLBaseApp::selectionChanged() {
 	std::list<int>::iterator selected_iter;
 
 	for (selected_iter = scene->selectedObjectIds.begin(); selected_iter != scene->selectedObjectIds.end(); selected_iter++) {
-		if (markerData->isMarkerObject (*selected_iter)) {
+		if (markerData && markerData->isMarkerObject (*selected_iter)) {
 			selected_markers_count ++;
-		} else if (markerModel->isModelObject(*selected_iter)) {
+		} else if (markerModel && markerModel->isModelObject(*selected_iter)) {
 			active_frame = markerModel->getFrameIdFromObjectId(*selected_iter);
 		}
 	}
