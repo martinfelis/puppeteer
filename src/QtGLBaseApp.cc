@@ -446,6 +446,7 @@ void QtGLBaseApp::objectUnSelected (int object_id) {
 }
 
 void QtGLBaseApp::objectSelected (int object_id) {
+	activeObject = object_id;
 	selectionChanged();
 
 	updatePropertiesEditor (object_id);
