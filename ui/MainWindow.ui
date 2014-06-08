@@ -144,7 +144,7 @@
            <property name="minimumSize">
             <size>
              <width>235</width>
-             <height>300</height>
+             <height>200</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -173,20 +173,20 @@
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>100</height>
+             <height>130</height>
             </size>
            </property>
            <property name="baseSize">
             <size>
              <width>0</width>
-             <height>230</height>
+             <height>250</height>
             </size>
            </property>
            <property name="autoFillBackground">
             <bool>true</bool>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="page_3">
             <property name="geometry">
@@ -194,7 +194,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>187</height>
+              <height>193</height>
              </rect>
             </property>
             <attribute name="label">
@@ -229,7 +229,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>187</height>
+              <height>193</height>
              </rect>
             </property>
             <attribute name="label">
@@ -265,7 +265,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>187</height>
+              <height>193</height>
              </rect>
             </property>
             <attribute name="label">
