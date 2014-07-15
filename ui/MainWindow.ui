@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>900</width>
-    <height>798</height>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -186,7 +186,7 @@
             <bool>true</bool>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>2</number>
            </property>
            <widget class="QWidget" name="page_3">
             <property name="geometry">
@@ -194,7 +194,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>193</height>
+              <height>126</height>
              </rect>
             </property>
             <attribute name="label">
@@ -228,8 +228,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>235</width>
-              <height>193</height>
+              <width>194</width>
+              <height>78</height>
              </rect>
             </property>
             <attribute name="label">
@@ -264,8 +264,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>235</width>
-              <height>193</height>
+              <width>222</width>
+              <height>158</height>
              </rect>
             </property>
             <attribute name="label">
@@ -685,7 +685,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Model State Editor</string>
