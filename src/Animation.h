@@ -1,6 +1,7 @@
 #ifndef ANIMATION_H
 #define ANIMATION_H
 
+
 #include <vector>
 
 #include "SimpleMath/SimpleMath.h"
@@ -35,6 +36,9 @@ struct Animation {
 
 	bool loadFromFile (const char* filename);
 	void saveToFile (const char* filename) const;
+  
+  const VectorNd getTimeLine() const;
+  const VectorNd getStateLine(const size_t _stateIdx) const;
 };
 
 /* ANIMATION_H */

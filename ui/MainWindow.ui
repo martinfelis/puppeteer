@@ -48,7 +48,7 @@
      <x>0</x>
      <y>0</y>
      <width>900</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -193,8 +193,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>235</width>
-              <height>187</height>
+              <width>220</width>
+              <height>78</height>
              </rect>
             </property>
             <attribute name="label">
@@ -228,8 +228,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>235</width>
-              <height>187</height>
+              <width>220</width>
+              <height>78</height>
              </rect>
             </property>
             <attribute name="label">
@@ -265,7 +265,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>187</height>
+              <height>199</height>
              </rect>
             </property>
             <attribute name="label">
@@ -577,6 +577,25 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dataChart">
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="chartLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_6">
+     <item>
+      <widget class="QVTKWidget" name="vtkChartContainer">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>200</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
@@ -711,8 +730,14 @@
   <zorder>dockPropertiesEditor</zorder>
   <zorder>dockWidgetSlider</zorder>
   <zorder>dockModelStateEditor</zorder>
+  <zorder>dataChart</zorder>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header>QVTKWidget.h</header>
+  </customwidget>
   <customwidget>
    <class>GLWidget</class>
    <extends>QWidget</extends>

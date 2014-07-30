@@ -7,6 +7,23 @@
 
 using namespace std;
 
+const VectorNd Animation::getTimeLine() const {
+  VectorNd timeLine = VectorNd::Zero(keyFrames.size());
+  for (size_t idx = 0; idx < keyFrames.size(); idx++) {
+    timeLine[idx] = keyFrames[idx].time;
+  }
+  return timeLine;
+}
+
+const VectorNd Animation::getStateLine(const size_t _stateIdx) const {
+  VectorNd stateLine = VectorNd::Zero(keyFrames.size());
+  for (size_t idx = 0; idx < keyFrames.size(); idx++) {
+    stateLine[idx] = keyFrames[idx].state[_stateIdx];
+  }
+  return stateLine;
+}
+
+
 void Animation::addPose (double time, const VectorNd &state) {
 	AnimationKeyFrame keyframe (time, state);
 

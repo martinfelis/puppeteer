@@ -9,6 +9,9 @@ SET (CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
 # The QT Interface
 SET( QT_USE_QTXML TRUE )
 SET( QT_USE_QTOPENGL TRUE )
@@ -18,61 +21,71 @@ FIND_PACKAGE (OpenGL)
 FIND_PACKAGE (RBDL REQUIRED)
 FIND_PACKAGE (Eigen3 REQUIRED)
 
+FIND_PACKAGE( Boost COMPONENTS system REQUIRED )
+
 ADD_DEFINITIONS (${QT_DEFINITIONS})
+
+INCLUDE_DIRECTORIES (  ${Boost_INCLUDE_DIRS} 
+  )
+
+LINK_DIRECTORIES(   ${Boost_LINKS_DIRS} 
+  )
 
 INCLUDE (${QT_USE_FILE})
 
 SET ( MainWindow_UIS
-	ui/MainWindow.ui
-	)
+  ui/MainWindow.ui
+  )
 
 QT4_WRAP_UI (MainWindow_UIS_H ${MainWindow_UIS})
 
 SET ( SCENEGL_SRCS
-	src/Camera.cc
-	src/Scene.cc
-	src/MeshVBO.cc
-	src/Shader.cc
-	src/MarkerModel.cc
-	src/MarkerData.cc
-	src/Animation.cc
-	src/ModelFitter.cc
-	)
+  src/Camera.cc
+  src/Scene.cc
+  src/MeshVBO.cc
+  src/Shader.cc
+  src/MarkerModel.cc
+  src/MarkerData.cc
+  src/Animation.cc
+  src/ModelFitter.cc
+  )
 
 SET ( QtGLBaseApp_SRCS
-	src/main.cc
-	src/GLWidget.cc
-	src/QtGLBaseApp.cc
-	glew/src/glew.c
-	)
+  src/main.cc
+  src/GLWidget.cc
+  src/QtGLBaseApp.cc
+  glew/src/glew.c
+  ## CHART STUFF
+  src/vtkChart/chartXY.cc
+  )
 
 QT4_WRAP_CPP ( QtGLBaseApp_MOC_SRCS
-	src/QtGLBaseApp.h
-	src/GLWidget.h
-	)
+  src/QtGLBaseApp.h
+  src/GLWidget.h
+  )
 
 ADD_LIBRARY ( SceneGL STATIC
-	${SCENEGL_SRCS}
-	)
+  ${SCENEGL_SRCS}
+  )
 
 ADD_LIBRARY ( glew STATIC
-	glew/src/glew.c
-	)
+  glew/src/glew.c
+  )
 
 ADD_EXECUTABLE ( puppeteer
-	${QtGLBaseApp_SRCS}
-	${QtGLBaseApp_MOC_SRCS}
-	${MainWindow_UIS_H}
-)
+  ${QtGLBaseApp_SRCS}
+  ${QtGLBaseApp_MOC_SRCS}
+  ${MainWindow_UIS_H}
+  )
 
 ADD_EXECUTABLE ( fit_motion
-	src/fit_motion.cc
-	)
+  src/fit_motion.cc
+  )
 
 INCLUDE_DIRECTORIES (
-	${QT_INCLUDE_DIR}
-	glew/include
-	)
+  ${QT_INCLUDE_DIR}
+  glew/include
+  )
 
 SET ( BUILD_SOURCE_DIRECTORY ${CMAKE_SOURCE_DIR} )
 SET ( BUILD_INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX} )
@@ -89,40 +102,68 @@ INCLUDE_DIRECTORIES (${RBDL_INCLUDE_DIR})
 INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
-	LINKER_LANGUAGE CXX
-	INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" 
-)
+  LINKER_LANGUAGE CXX
+  INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" 
+  )
 
 SUBDIRS (
-	tests
-	vendor/QtPropertyBrowser
-	vendor/c3dfile
-	)
+  tests
+  vendor/QtPropertyBrowser
+  vendor/c3dfile
+  )
 
 TARGET_LINK_LIBRARIES ( SceneGL
-	glew
-	${OPENGL_LIBRARIES}
-	${RBDL_LIBRARY}
-	${RBDL_LUAMODEL_LIBRARY}
-	c3dfile
-	)
+  glew
+  ${OPENGL_LIBRARIES}
+  ${RBDL_LIBRARY}
+  ${RBDL_LUAMODEL_LIBRARY}
+  c3dfile
+  )
 
-TARGET_LINK_LIBRARIES ( puppeteer
-	SceneGL
-	${QT_LIBRARIES}
-	QtPropertyBrowser
-	${OPENGL_LIBRARIES}
-)
+if(VTK_LIBRARIES)
+  if(${VTK_VERSION} VERSION_LESS "6")
+    target_link_libraries(puppeteer 
+      SceneGL
+      ${QT_LIBRARIES}
+      QtPropertyBrowser
+      ${OPENGL_LIBRARIES}
+      ${Boost_SYSTEM_LIBRARY}
+      ${VTK_LIBRARIES} QVTK
+      )
+  else()
+    target_link_libraries(puppeteer 
+      SceneGL
+      ${QT_LIBRARIES}
+      QtPropertyBrowser
+      ${Boost_SYSTEM_LIBRARY}
+      ${VTK_LIBRARIES}
+      )
+  endif()
+else()
+  target_link_libraries(
+    puppeteer
+    SceneGL
+    ${QT_LIBRARIES}
+    QtPropertyBrowser
+    ${Boost_SYSTEM_LIBRARY}
+    vtkHybrid 
+    QVTK 
+    vtkViews 
+    ${QT_LIBRARIES}
+    )
+endif()
+
+
 
 TARGET_LINK_LIBRARIES ( fit_motion
-	SceneGL
-	)
+  SceneGL
+  )
 
 # Installation
 INSTALL (TARGETS puppeteer fit_motion
-RUNTIME DESTINATION bin
-LIBRARY DESTINATION lib
-)
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  )
 
 # Packaging
 SET(CPACK_GENERATOR "DEB")
@@ -140,7 +181,7 @@ SET(CPACK_PACKAGE_VERSION_PATCH ${MESHUP_VERSION_PATCH})
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CPACK_PACKAGE ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
 SET(CPACK_PACKAGE_FILE_NAME "MeshUp-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 IF(UNIX)
-	SET(CPACK_STRIP_FILES "bin/puppeteer")
+  SET(CPACK_STRIP_FILES "bin/puppeteer")
   SET(CPACK_SOURCE_STRIP_FILES "")
 ENDIF(UNIX)
 SET(CPACK_PACKAGE_EXECUTABLES "puppeteer;Puppeteer")

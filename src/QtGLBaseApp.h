@@ -17,6 +17,10 @@
 #include "qteditorfactory.h"
 #include "ui_MainWindow.h"
 
+#include "vtkChart/chartXY.h"
+
+#include <boost/shared_ptr.hpp>
+
 struct Scene;
 struct MarkerModel;
 struct MarkerData;
@@ -48,6 +52,8 @@ protected:
 		int activeModelFrame;
 		int activeObject;
 
+		boost::shared_ptr<ChartContainer> dataChart;
+
 		QtVector3DPropertyManager *vector3DPropertyManager;
 		QtVector3DPropertyManager *vector3DReadOnlyPropertyManager;
 		QtVector3DPropertyManager *vector3DYXZPropertyManager;
@@ -57,11 +63,16 @@ protected:
 		QtStringPropertyManager *stringManager;
 		QtColorPropertyManager *colorManager;
 		QtDoublePropertyManager *doubleManagerModelStateEditor;
+		QtColorPropertyManager *colorManagerModelStateEditor;
+		QtEnumPropertyManager *enumManagerModelStateEditor;
+		QStringList visibility_types;
 
 		QtVector3DEditorFactory *vector3DEditorFactory;
 		QtVector3DEditorFactory *vector3DYXZEditorFactory;
 		QtDoubleSpinBoxFactory *doubleSpinBoxFactory;
 		QtDoubleSpinBoxFactory *doubleSpinBoxFactoryModelStateEditor;
+		QtEnumEditorFactory *enumFactoryModelStateEditor;
+		QtColorEditorFactory *colorEditFactoryModelStateEditor;
 		QtLineEditFactory *lineEditFactory;
 		QtColorEditorFactory *colorEditFactory;
 		QtGroupPropertyManager *groupManager;
@@ -73,6 +84,7 @@ protected:
 		QMap<QtProperty *, unsigned int> propertyToStateIndex;
 
 		void updateModelStateEditor();
+		void buildModelStateEditor();
 		void updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
 		void restoreExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id);
 		void registerProperty (QtProperty *property, const QString &name) {
@@ -83,6 +95,7 @@ protected:
 
 public slots:
 		void quitApplication();
+		void updateGraph();
 
 		void loadModelState();
 		void saveModelState();
@@ -103,6 +116,8 @@ public slots:
 		void advanceFrame ();
 
 		void modelStateValueChanged (QtProperty *property, double value);
+		void modelStatePlotVisibleChanged (QtProperty *property, int state);
+		void modelStatePlotColorChanged (QtProperty *property, QColor color);
 		void valueChanged(QtProperty *property, double value);
 		void valueChanged(QtProperty *property, QVector3D value);
 		void colorValueChanged(QtProperty *property, QColor value);

@@ -74,6 +74,7 @@ QtGLBaseApp::~QtGLBaseApp() {
 }
 
 QtGLBaseApp::QtGLBaseApp(QWidget *parent)
+  : dataChart(new ChartContainer("Joint Trajectories", "t in [s]", "Angle in [RAD]"))
 {
 	setupUi(this); // this sets up GUI
 
@@ -145,9 +146,18 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	vector3DYXZEditorFactory = new QtVector3DEditorFactory(propertiesBrowser);
 
 	// model state editor
+	colorManagerModelStateEditor = new QtColorPropertyManager(modelStateEditor);
+	colorEditFactoryModelStateEditor = new QtColorEditorFactory(modelStateEditor);
+	modelStateEditor->setFactoryForManager(colorManagerModelStateEditor, colorEditFactoryModelStateEditor);
+	
 	doubleManagerModelStateEditor = new QtDoublePropertyManager(modelStateEditor);
 	doubleSpinBoxFactoryModelStateEditor = new QtDoubleSpinBoxFactory(modelStateEditor);
 	modelStateEditor->setFactoryForManager (doubleManagerModelStateEditor, doubleSpinBoxFactoryModelStateEditor);
+
+	enumManagerModelStateEditor = new QtEnumPropertyManager(modelStateEditor);
+	visibility_types << "yes" << "no";
+	enumFactoryModelStateEditor = new QtEnumEditorFactory(modelStateEditor);
+	modelStateEditor->setFactoryForManager(enumManagerModelStateEditor, enumFactoryModelStateEditor);
 
 	// property browser: manager <-> editor
 	propertiesBrowser->setFactoryForManager (doubleManager, doubleSpinBoxFactory);
@@ -158,9 +168,24 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager, vector3DEditorFactory);
 	propertiesBrowser->setFactoryForManager (vector3DYXZPropertyManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
+	// setup chart container
+	
+	dataChart->registerParent(vtkChartContainer);
+	// VectorNd time = VectorNd::Zero(3);
+	// VectorNd state = VectorNd::Zero(3);
+	// state[1] = 0.5;
+	// state[2] = 1.0;
+	// time[1] = 0.5;
+	// time[2] = 1.0;
+
+	// dataChart->pushData("Title", time, state, 1.0, ChartColor(255,0,0,255));
+
 	// signals
 	connect (doubleManager, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (valueChanged (QtProperty *, double)));
 	connect (doubleManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, double)), this, SLOT (modelStateValueChanged (QtProperty *, double)));
+	connect (enumManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, int)), this, SLOT (modelStatePlotVisibleChanged (QtProperty *, int)));
+	connect (colorManagerModelStateEditor, SIGNAL (valueChanged(QtProperty *, QColor)), this, SLOT (modelStatePlotColorChanged (QtProperty *, QColor)));
+
 	connect (vector3DPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (colorManager, SIGNAL (valueChanged (QtProperty *, QColor)), this, SLOT (colorValueChanged (QtProperty *, QColor)));
@@ -246,6 +271,7 @@ bool QtGLBaseApp::loadModelFile (const char* filename) {
 	assert (markerModel);
 
 	bool result = markerModel->loadFromFile (filename);
+	buildModelStateEditor();
 	updateModelStateEditor();
 	return result;
 }
@@ -315,6 +341,8 @@ bool QtGLBaseApp::loadAnimationFile (const char* filename) {
 
 	updateSliderBounds();
 	captureFrameSliderChanged (captureFrameSlider->minimum());
+
+	updateGraph();
 
 	return true;
 }
@@ -449,6 +477,39 @@ void QtGLBaseApp::assignMarkers() {
 	updatePropertiesEditor (markerModel->getObjectIdFromFrameId (active_frame));
 }
 
+void QtGLBaseApp::updateGraph() {
+  if (animationData) {
+    std::vector<ChartColor> colorVec;
+    std::vector<bool> visibleVec;
+
+    colorVec.resize(markerModel->getModelState().size());
+    visibleVec.resize(markerModel->getModelState().size());
+
+    for (QMap<QtProperty*, unsigned int>::iterator propPtr = propertyToStateIndex.begin(); propPtr != propertyToStateIndex.end(); ++propPtr) {
+      if (enumManagerModelStateEditor == (propPtr.key()->propertyManager())) {
+	visibleVec[propPtr.value()] = ((dynamic_cast<QtEnumPropertyManager*>(propPtr.key()->propertyManager()))->value(propPtr.key()) == 0);  
+     }
+      if (colorManagerModelStateEditor == (propPtr.key()->propertyManager())) {
+	QColor plotColor = (dynamic_cast<QtColorPropertyManager*>(propPtr.key()->propertyManager()))->value(propPtr.key());
+
+	colorVec[propPtr.value()] = ChartColor(plotColor.red() , plotColor.green(), plotColor.blue(), plotColor.alpha());
+      }
+    }
+
+    vector<string> state_names = markerModel->getModelStateNames();
+    dataChart->reset();
+
+    VectorNd timeLine = animationData->getTimeLine();
+    for (size_t idx = 0; idx < visibleVec.size(); idx++) {
+      if (visibleVec[idx]) {
+	VectorNd stateLine = animationData->getStateLine(idx);
+
+	dataChart->pushData(state_names[idx], timeLine, stateLine, 0.50, colorVec[idx]);
+      }
+    }
+    dataChart->update();
+  }
+}
 void QtGLBaseApp::fitModel() {
 	if (!modelFitter)
 		return;
@@ -516,6 +577,7 @@ void QtGLBaseApp::fitAnimation() {
 	slideAnimationCheckBox->setChecked(true);
 
 	updateSliderBounds();
+	updateGraph();
 }
 
 void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
@@ -548,15 +610,11 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 			propertiesBrowser->setExpanded(item, idToExpanded[property_id]);
 	}
 }
-
-void QtGLBaseApp::updateModelStateEditor () {
+void QtGLBaseApp::buildModelStateEditor() {
 	if (!markerModel) {
 		modelStateEditor->setVisible(false);
 		return;
 	}
-
-	if (!dockModelStateEditor->isVisible())
-		return;
 
 	modelStateEditor->clear();
 
@@ -566,15 +624,55 @@ void QtGLBaseApp::updateModelStateEditor () {
 	assert (model_state.size() == state_names.size());
 
 	for (size_t i = 0; i < model_state.size(); i++) {
-		QtProperty *dof_property = doubleManagerModelStateEditor->addProperty (state_names[i].c_str());
+	  std::stringstream dofGroupStr;
+	  dofGroupStr << "DOF::" << state_names[i];
+	  //	  QtProperty *dof_group = groupManagerModelStateEditor->addProperty(dofGroupStr.str().c_str());
+	  
+	  QtProperty *dof_property = doubleManagerModelStateEditor->addProperty (dofGroupStr.str().c_str());
 		doubleManagerModelStateEditor->setValue (dof_property, model_state[i]);
 		doubleManagerModelStateEditor->setSingleStep (dof_property, 0.01);
+
+		QtProperty *dof_plot = enumManagerModelStateEditor->addProperty("Visible");
+		QtProperty *dof_color = colorManagerModelStateEditor->addProperty("Color");
+		enumManagerModelStateEditor->setEnumNames(dof_plot, visibility_types);
+		if ((i == 9) || (i == 15)) {
+		  enumManagerModelStateEditor->setValue(dof_plot, 0);
+		  if (i == 9) {
+		      colorManagerModelStateEditor->setValue(dof_color, QColor(255,0,0));
+		    } else {
+		      colorManagerModelStateEditor->setValue(dof_color, QColor(0,0,255));
+		    }
+		} else {
+		  enumManagerModelStateEditor->setValue(dof_plot, 1);
+		  colorManagerModelStateEditor->setValue(dof_color, QColor(50,50,50));
+		}
+
+		dof_property->addSubProperty (dof_plot);
+		dof_property->addSubProperty (dof_color);
 		QtBrowserItem* item = modelStateEditor->addProperty (dof_property);
 		if (markerModel->stateIndexIsFrameJointVariable(i, activeModelFrame)) {
 			modelStateEditor->setBackgroundColor (item, QColor (180., 255., 180.));
 		}
 		propertyToStateIndex[dof_property] = i;
+		propertyToStateIndex[dof_plot] = i;
+		propertyToStateIndex[dof_color] = i;
+		if (item->children().size() > 0) {
+		  for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {
+		    modelStateEditor->setExpanded ((*iter), false);
+		  }
+		}
+
 	}
+
+}
+
+void QtGLBaseApp::updateModelStateEditor () {
+  VectorNd model_state = markerModel->getModelState();
+    for (QMap<QtProperty*, unsigned int>::iterator propPtr = propertyToStateIndex.begin(); propPtr != propertyToStateIndex.end(); ++propPtr) {
+    if (doubleManagerModelStateEditor == (propPtr.key()->propertyManager())) {
+      doubleManagerModelStateEditor->setValue (propPtr.key(), model_state[propPtr.value()]);
+    }
+  }
 }
 
 void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
@@ -856,6 +954,29 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	updatePropertiesEditor (activeObject);
 }
 
+void QtGLBaseApp::modelStatePlotVisibleChanged (QtProperty *property, int state) {
+	assert (markerModel);
+
+	if (!propertyToStateIndex.contains(property)) {
+		return;
+	}
+
+	updateGraph();
+
+
+}
+
+void QtGLBaseApp::modelStatePlotColorChanged (QtProperty *property, QColor color) {
+  assert (markerModel);
+
+  if (!propertyToStateIndex.contains(property)) {
+    return;
+  }
+  updateGraph();
+
+}
+
+
 void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
 	if (!propertyToName.contains(property))
 		return;
@@ -984,6 +1105,8 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 
 	double current_time = static_cast<double>(value) / TIME_SLIDER_RATE;
 	int current_frame = 0;
+
+	dataChart->setTimePtr(current_time);
 	
 	if (markerData) {
 		current_frame = markerData->getFirstFrame() + static_cast<int>(round(current_time * static_cast<double>(markerData->getFrameRate())));
