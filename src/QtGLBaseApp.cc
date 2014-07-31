@@ -1179,7 +1179,9 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	double current_time = static_cast<double>(value) / TIME_SLIDER_RATE;
 	int current_frame = 0;
 
-	dataChart->setTimePtr(current_time);
+	if (dockDataChart->isVisible()) {
+	  dataChart->setTimePtr(current_time);
+	}
 	
 	if (markerData) {
 		current_frame = markerData->getFirstFrame() + static_cast<int>(round(current_time * static_cast<double>(markerData->getFrameRate())));
