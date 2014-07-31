@@ -2,6 +2,8 @@
 #include "MarkerData.h"
 #include "c3dfile.h"
 
+#include <limits>
+
 using namespace std;
 
 MarkerData::~MarkerData() {
@@ -195,4 +197,26 @@ void MarkerData::updateMarkerSceneObjects() {
 		Vector3f position = getMarkerCurrentPosition(markers[i]->markerName.c_str());
 		markers[i]->transformation.translation = position;
 	}
+}
+
+void MarkerData::calcDataBoundingBox(Vector3f &min, Vector3f &max) {
+	min = Vector3f (std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+	max = -min;
+
+	int current_frame_temp = currentFrame;
+
+	for (int frame = getFirstFrame(); frame <= getLastFrame(); frame++) {
+		setCurrentFrameNumber (frame);
+		
+		for (size_t mi = 0; mi < markers.size(); mi++) {
+			Vector3f pos = getMarkerCurrentPosition (markers[mi]->markerName.c_str());
+
+			for (size_t i = 0; i < 2; i++) {
+				min[i] = std::min(pos[i], min[i]);
+				max[i] = std::max(pos[i], max[i]);
+			}
+		}
+	}
+
+	setCurrentFrameNumber(current_frame_temp);
 }

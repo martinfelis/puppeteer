@@ -10,6 +10,7 @@
 #include <fstream>
 #include <clocale>
 #include <sys/stat.h>
+#include "luatables.h"
 
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
@@ -759,7 +760,7 @@ void MarkerModel::saveStateToFile (const char* filename) {
 	for (size_t i = 0; i < modelStateQ.size(); i++) {
 		state_table[i + 1] = modelStateQ[i];
 	}
-	string table_str = state_table.serialize();
+	string table_str = state_table.orderedSerialize();
 	ofstream outfile (filename);
 	outfile << table_str;
 	outfile.close();
@@ -792,7 +793,7 @@ void MarkerModel::saveToFile(const char* filename) {
 	assert (luaTable);
 	assert (rbdlModel);
 
-	string table_str = luaTable->serialize();
+	string table_str = luaTable->orderedSerialize();
 	ofstream outfile (filename);
 	outfile << table_str;
 	outfile.close();

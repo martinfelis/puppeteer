@@ -105,6 +105,8 @@ public slots:
 		void saveAnimation();
 		void collapseProperties();
 		void objectSelected(int object_id);
+		void objectUnSelected(int object_id);
+		void selectionChanged();
 		void assignMarkers();
 		void fitModel();
 		void fitAnimation();

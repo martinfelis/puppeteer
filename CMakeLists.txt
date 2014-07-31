@@ -12,7 +12,7 @@ SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
-# The QT Interface
+FIND_PACKAGE (Lua REQUIRED)
 SET( QT_USE_QTXML TRUE )
 SET( QT_USE_QTOPENGL TRUE )
 SET( QT_WRAP_CPP TRUE )
@@ -40,15 +40,15 @@ SET ( MainWindow_UIS
 QT4_WRAP_UI (MainWindow_UIS_H ${MainWindow_UIS})
 
 SET ( SCENEGL_SRCS
-  src/Camera.cc
-  src/Scene.cc
-  src/MeshVBO.cc
-  src/Shader.cc
-  src/MarkerModel.cc
-  src/MarkerData.cc
-  src/Animation.cc
-  src/ModelFitter.cc
-  )
+	src/Camera.cc
+	src/Scene.cc
+	src/MeshVBO.cc
+	src/Shader.cc
+	src/MarkerModel.cc
+	src/MarkerData.cc
+	src/Animation.cc
+	src/ModelFitter.cc
+	)
 
 SET ( QtGLBaseApp_SRCS
   src/main.cc
@@ -91,15 +91,21 @@ SET ( BUILD_SOURCE_DIRECTORY ${CMAKE_SOURCE_DIR} )
 SET ( BUILD_INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX} )
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/src/config.h.cmake ${CMAKE_BINARY_DIR}/src/config.h )
 
-INCLUDE_DIRECTORIES (${QT_INCLUDE_DIR}/QtOpenGL)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR})
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/vendor/QtPropertyBrowser/src)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/vendor/c3dfile/src)
-INCLUDE_DIRECTORIES (${CMAKE_BINARY_DIR}/src)
-INCLUDE_DIRECTORIES (${RBDL_INCLUDE_DIR})
-INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
+INCLUDE_DIRECTORIES (
+	${QT_INCLUDE_DIR}
+	glew/include
+	${QT_INCLUDE_DIR}/QtOpenGL
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/src
+	${CMAKE_CURRENT_SOURCE_DIR}/vendor/QtPropertyBrowser/src
+	${CMAKE_CURRENT_SOURCE_DIR}/vendor/c3dfile/src
+	${CMAKE_CURRENT_SOURCE_DIR}/vendor/luatables
+	${CMAKE_BINARY_DIR}/src
+	${RBDL_INCLUDE_DIR}
+	${EIGEN3_INCLUDE_DIR}
+	${LUA_INCLUDE_DIR}
+	)
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
   LINKER_LANGUAGE CXX
@@ -107,18 +113,21 @@ SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
   )
 
 SUBDIRS (
-  tests
-  vendor/QtPropertyBrowser
-  vendor/c3dfile
-  )
+	tests
+	vendor/QtPropertyBrowser
+	vendor/c3dfile
+	vendor/luatables
+	)
 
 TARGET_LINK_LIBRARIES ( SceneGL
-  glew
-  ${OPENGL_LIBRARIES}
-  ${RBDL_LIBRARY}
-  ${RBDL_LUAMODEL_LIBRARY}
-  c3dfile
-  )
+	glew
+	luatables
+	${LUA_LIBRARY}
+	${OPENGL_LIBRARIES}
+	${RBDL_LIBRARY}
+	${RBDL_LUAMODEL_LIBRARY}
+	c3dfile
+	)
 
 if(VTK_LIBRARIES)
   if(${VTK_VERSION} VERSION_LESS "6")

@@ -122,6 +122,7 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 
 	// object selection
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (objectSelected(int)));
+	connect (glWidget, SIGNAL(object_unselected(int)), this, SLOT (objectUnSelected(int)));
 
 	// property browser: managers
 	doubleReadOnlyManager = new QtDoublePropertyManager(propertiesBrowser);
@@ -439,13 +440,42 @@ void QtGLBaseApp::collapseProperties() {
 	}
 }
 
-void QtGLBaseApp::objectSelected (int object_id) {
+void QtGLBaseApp::selectionChanged() {
 	activeModelFrame = 0;
-	activeObject = object_id;
 
-	if (markerModel && markerModel->isModelObject(object_id)) {
-		activeModelFrame = markerModel->getFrameIdFromObjectId (object_id);
+	int active_frame = 0;
+	int selected_markers_count = 0;
+	std::list<int>::iterator selected_iter;
+
+	for (selected_iter = scene->selectedObjectIds.begin(); selected_iter != scene->selectedObjectIds.end(); selected_iter++) {
+		if (markerData && markerData->isMarkerObject (*selected_iter)) {
+			selected_markers_count ++;
+		} else if (markerModel && markerModel->isModelObject(*selected_iter)) {
+			active_frame = markerModel->getFrameIdFromObjectId(*selected_iter);
+		}
 	}
+
+	if (markerModel && active_frame != 0) {
+		activeModelFrame = active_frame;
+	}
+
+	if (activeModelFrame != 0 && selected_markers_count > 0) {
+		assignMarkersButton->setEnabled(true);
+	} else {
+		assignMarkersButton->setEnabled(false);
+	}
+}
+
+void QtGLBaseApp::objectUnSelected (int object_id) {
+	selectionChanged();
+
+	updatePropertiesEditor (object_id);
+	updateModelStateEditor();
+}
+
+void QtGLBaseApp::objectSelected (int object_id) {
+	activeObject = object_id;
+	selectionChanged();
 
 	updatePropertiesEditor (object_id);
 	updateModelStateEditor();
@@ -457,7 +487,6 @@ void QtGLBaseApp::assignMarkers() {
 	
 	int active_frame;
 	std::vector<string> selected_marker_names;
-
 	std::list<int>::iterator selected_iter;
 
 	for (selected_iter = scene->selectedObjectIds.begin(); selected_iter != scene->selectedObjectIds.end(); selected_iter++) {

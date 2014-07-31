@@ -79,6 +79,7 @@ class GLWidget : public QGLWidget
 	signals:
 		void camera_changed();
 		void object_selected(int object_id);
+		void object_unselected(int object_id);
 };
 
 #endif
