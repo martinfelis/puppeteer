@@ -20,6 +20,8 @@
 #include "vtkChart/chartXY.h"
 
 #include <boost/shared_ptr.hpp>
+// commandline interpreter for convenient configuration of the modeltest
+#include <tclap/CmdLine.h>
 
 struct Scene;
 struct MarkerModel;
@@ -37,7 +39,7 @@ public:
 
 		bool parseArgs(int argc, char* argv[]);
 		bool loadModelFile (const char* filename);
-		bool loadMocapFile (const char* filename);
+		bool loadMocapFile (const char* filename, const bool rotateZ = false);
 		bool loadAnimationFile (const char* filename);
 
 protected:

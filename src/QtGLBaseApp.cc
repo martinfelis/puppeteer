@@ -97,6 +97,8 @@ QtGLBaseApp::QtGLBaseApp(QWidget *parent)
 	previousPlaybackTime = new QTime();
 
 	dockModelStateEditor->setVisible(false);
+	dockDataChart->setVisible(false);
+	
 	dockWidgetSlider->setVisible(false);
 	autoIKButton->setEnabled(false);
 
@@ -217,19 +219,53 @@ void print_usage(const char* execname) {
 }
 
 bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
-	if (argc == 1)
-		return true;
+  try {
+    // the basic definition of the command parser line cites a description for the 
+    // program the delimiter to be applied on the command line as well as the
+    // version number of the program
+    TCLAP::CmdLine cmd(" --- ::: Puppeteer ::: Subject specific modeling and kinematic fitting tool");
+        
+    // now we have to populate the command line object by adding command line
+    // options to it. These command line options are adjusted to a specific
+    // data type by means of a template argument. The constructor features
+    // the following arguments by order:
+    // # (const char*) option
+    // # (const char*) name of the option
+    // # (const char*) description of the option
+    // # (const char*) boolean to specify whether the argument is required to startup
+    // # (const char*) a default value 
+    // # (const char*) the data type of the value in const char*
+    // In our case we will use an unlabeled command line options. The only
+    // difference is now that the option parameter is missing. 
+    //
+    // NOTE: The order the unlabeled command line options are added to the 
+    //  parser is the order by which they are then parsed on the command line
+        
+    // [mandatory] command line option to specify the experiment to be loaded
+    // this always comes last
+    TCLAP::UnlabeledMultiArg<std::string> files_Arg("intput_files", "<modelfile.lua> <mocapdata.c3d> <animation.csv>", true,"", "string");
 
-	for (int i = 1; i < argc; i++) {
-		std::string arg (argv[i]);
+    // [optional] command line option to specify overwrite the output simulation
+    TCLAP::SwitchArg rotateMoCap_Swi("r", "rotate", "rotate Motion capturing data", false);
+
+    // than we may add the command line option to the command line parser
+    cmd.add( files_Arg );
+    cmd.add( rotateMoCap_Swi );
+
+    // then we do parse the command line
+    cmd.parse(argc, argv);
+
+    std::vector<std::string> files = files_Arg.getValue();
+    for (std::vector<std::string>::iterator filePtr = files.begin(); filePtr != files.end(); filePtr++) {
+      std::string arg (*filePtr);
 		if (arg.substr(arg.size() - 4, 4) == ".lua")
 			loadModelFile (arg.c_str());
 		else if (arg.substr(arg.size() - 4, 4) == ".c3d")
-			loadMocapFile (arg.c_str());
+		  loadMocapFile (arg.c_str(), rotateMoCap_Swi.getValue());
 		else if (arg.substr(arg.size() - 4, 4) == ".csv")
 			loadAnimationFile (arg.c_str());
 		else {
-			print_usage (argv[0]);
+		  std::cerr << "!! WARNING::given file ::" << (*filePtr) << ":: is neither *.lua, *.c3d, *.csv" << std::endl;
 			return false;
 		}
 	}
@@ -261,7 +297,11 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 			autoIKButton->setEnabled(true);
 		}
 	}
-
+  } catch (TCLAP::ArgException &e) {  // here we treat exception that may come 
+    // due to corrupt command line options
+    std::cerr << "!! WARNING::error: " << e.error() << " for arg " << e.argId() << std::endl;
+    abort();
+  }
 	return true;
 }
 
@@ -277,7 +317,7 @@ bool QtGLBaseApp::loadModelFile (const char* filename) {
 	return result;
 }
 
-bool QtGLBaseApp::loadMocapFile (const char* filename) {
+bool QtGLBaseApp::loadMocapFile (const char* filename, const bool rotateZ) {
 	if (markerData)
 		delete markerData;
 	markerData = new MarkerData (scene);
@@ -320,6 +360,10 @@ bool QtGLBaseApp::loadMocapFile (const char* filename) {
 				markerData->updateMarkerSceneObjects();
 			}
 		}
+	} else if (rotateZ) {
+	  markerData->rotateZ = true;
+	  markerData->updateMarkerSceneObjects();
+	  std::cout << "-- INFO::Marker globally rotated about Z axis (as you requested)" << std::endl;
 	}
 
 	slideMarkersCheckBox->setEnabled(true);

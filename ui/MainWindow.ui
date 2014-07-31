@@ -48,7 +48,7 @@
      <x>0</x>
      <y>0</y>
      <width>900</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -71,6 +71,7 @@
     <addaction name="separator"/>
     <addaction name="actionToggleModelStateEditor"/>
     <addaction name="actionTogglePropertiesEditor"/>
+    <addaction name="actionTrajectoryChart"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuControl_Panels"/>
@@ -193,8 +194,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>220</width>
-              <height>78</height>
+              <width>235</width>
+              <height>199</height>
              </rect>
             </property>
             <attribute name="label">
@@ -228,8 +229,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>220</width>
-              <height>78</height>
+              <width>235</width>
+              <height>199</height>
              </rect>
             </property>
             <attribute name="label">
@@ -577,7 +578,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dataChart">
+  <widget class="QDockWidget" name="dockDataChart">
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
@@ -704,7 +705,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Model State Editor</string>
@@ -727,10 +728,21 @@
     <string>P</string>
    </property>
   </action>
+  <action name="actionTrajectoryChart">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Plot of Trajectories</string>
+   </property>
+   <property name="shortcut">
+    <string>T</string>
+   </property>
+  </action>
   <zorder>dockPropertiesEditor</zorder>
   <zorder>dockWidgetSlider</zorder>
   <zorder>dockModelStateEditor</zorder>
-  <zorder>dataChart</zorder>
+  <zorder>dockDataChart</zorder>
  </widget>
  <customwidgets>
   <customwidget>
@@ -782,6 +794,22 @@
     <hint type="destinationlabel">
      <x>772</x>
      <y>361</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionTrajectoryChart</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>dockDataChart</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>445</y>
     </hint>
    </hints>
   </connection>

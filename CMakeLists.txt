@@ -25,10 +25,16 @@ FIND_PACKAGE( Boost COMPONENTS system REQUIRED )
 
 ADD_DEFINITIONS (${QT_DEFINITIONS})
 
+FIND_PACKAGE( PkgConfig REQUIRED )
+PKG_CHECK_MODULES(LIBTCLAP REQUIRED tclap>=1.2.0)
+
+
 INCLUDE_DIRECTORIES (  ${Boost_INCLUDE_DIRS} 
+  ${LIBTCLAP_INCLUDE_DIRS}
   )
 
 LINK_DIRECTORIES(   ${Boost_LINKS_DIRS} 
+  ${LIBTCLAP_LIBRARY_DIRS}
   )
 
 INCLUDE (${QT_USE_FILE})
@@ -138,6 +144,8 @@ if(VTK_LIBRARIES)
       ${OPENGL_LIBRARIES}
       ${Boost_SYSTEM_LIBRARY}
       ${VTK_LIBRARIES} QVTK
+  ${LIBTCLAP_LIBRARIES}
+
       )
   else()
     target_link_libraries(puppeteer 
@@ -146,6 +154,8 @@ if(VTK_LIBRARIES)
       QtPropertyBrowser
       ${Boost_SYSTEM_LIBRARY}
       ${VTK_LIBRARIES}
+  ${LIBTCLAP_LIBRARIES}
+
       )
   endif()
 else()
@@ -159,6 +169,8 @@ else()
     QVTK 
     vtkViews 
     ${QT_LIBRARIES}
+  ${LIBTCLAP_LIBRARIES}
+
     )
 endif()
 
