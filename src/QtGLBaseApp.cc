@@ -74,7 +74,7 @@ QtGLBaseApp::~QtGLBaseApp() {
 }
 
 QtGLBaseApp::QtGLBaseApp(QWidget *parent)
-  : dataChart(new ChartContainer("Joint Trajectories", "t in [s]", "Angle in [RAD]"))
+  : dataChart(new ChartContainer("Joint Trajectories", "t in [s]", "Angle in [RAD]", true))
 {
 	setupUi(this); // this sets up GUI
 
@@ -730,6 +730,7 @@ void QtGLBaseApp::buildModelStateEditor() {
 		propertyToStateIndex[dof_plot] = i;
 		propertyToStateIndex[dof_color] = i;
 		if (item->children().size() > 0) {
+		  modelStateEditor->setExpanded (item, false);
 		  for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {
 		    modelStateEditor->setExpanded ((*iter), false);
 		  }
