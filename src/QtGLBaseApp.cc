@@ -223,7 +223,7 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
     // the basic definition of the command parser line cites a description for the 
     // program the delimiter to be applied on the command line as well as the
     // version number of the program
-    TCLAP::CmdLine cmd(" --- ::: Puppeteer ::: Subject specific modeling and kinematic fitting tool");
+    TCLAP::CmdLine cmd("::: Puppeteer ::: Subject specific modeling and kinematic fitting tool",' ', "0.1");
         
     // now we have to populate the command line object by adding command line
     // options to it. These command line options are adjusted to a specific
@@ -243,7 +243,7 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
         
     // [mandatory] command line option to specify the experiment to be loaded
     // this always comes last
-    TCLAP::UnlabeledMultiArg<std::string> files_Arg("intput_files", "<modelfile.lua> <mocapdata.c3d> <animation.csv>", true,"", "string");
+    TCLAP::UnlabeledMultiArg<std::string> files_Arg("files", "<modelfile.lua> <mocapdata.c3d> <animation.csv>", false,"", "string");
 
     // [optional] command line option to specify overwrite the output simulation
     TCLAP::SwitchArg rotateMoCap_Swi("r", "rotate", "rotate Motion capturing data", false);
