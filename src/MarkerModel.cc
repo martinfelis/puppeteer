@@ -603,7 +603,6 @@ void MarkerModel::updateFromLua() {
 		}
 
 		string body_name = (*luaTable)["frames"][i]["name"].getDefault<string>("");
-		std::cout << "::" << body_name << "::" << i << "::" << std::endl;
 		string parent_name = (*luaTable)["frames"][i]["parent"].get<string>();
 		unsigned int parent_id = rbdlModel->GetBodyId(parent_name.c_str());
 		if (parent_id == std::numeric_limits<unsigned int>::max()) {
