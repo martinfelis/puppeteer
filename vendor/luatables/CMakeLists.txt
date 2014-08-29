@@ -32,7 +32,3 @@ TARGET_LINK_LIBRARIES (example
 	luatables
 	${LUA_LIBRARIES}
 	)
-
-INSTALL ( TARGETS luatables 
-	LIBRARY DESTINATION lib
-	)

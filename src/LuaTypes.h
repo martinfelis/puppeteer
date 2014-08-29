@@ -213,51 +213,84 @@ template<> RigidBodyDynamics::Math::SpatialTransform LuaTableNode::getDefault<Ri
 }
 
 template<> RigidBodyDynamics::Joint LuaTableNode::getDefault<RigidBodyDynamics::Joint>(const RigidBodyDynamics::Joint &default_value) {
-	RigidBodyDynamics::Joint result = default_value;
+	using namespace RigidBodyDynamics;
+	using namespace RigidBodyDynamics::Math;
+
+	Joint result = default_value;
 
 	if (stackQueryValue()) {
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
 		int joint_dofs = vector_table.length();
 
+		if (joint_dofs == 1) {
+			std::string dof_string = vector_table[1].getDefault<std::string>("");
+			if (dof_string == "JointTypeSpherical") {
+				stackRestore();
+				return Joint(JointTypeSpherical);
+			} else if (dof_string == "JointTypeEulerZYX") {
+				stackRestore();
+				return Joint(JointTypeEulerZYX);
+			}
+			if (dof_string == "JointTypeEulerXYZ") {
+				stackRestore();
+				return Joint(JointTypeEulerXYZ);
+			}
+			if (dof_string == "JointTypeEulerYXZ") {
+				stackRestore();
+				return Joint(JointTypeEulerYXZ);
+			}
+			if (dof_string == "JointTypeTranslationXYZ") {
+				stackRestore();
+				return Joint(JointTypeTranslationXYZ);
+			}
+		}
+
+		if (joint_dofs > 0) {
+			if (vector_table[1].length() != 6) {
+				std::cerr << "LuaModel Error: invalid joint motion subspace description at " << this->keyStackToString() << std::endl;
+				abort();
+			}
+		}
+
 		switch (joint_dofs) {
-			case 0: result = RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeFixed);
+			case 0: result = Joint(JointTypeFixed);
 							break;
-			case 1: result = RigidBodyDynamics::Joint(vector_table[1].get<RigidBodyDynamics::Math::SpatialVector>());
+			case 1: result = Joint (vector_table[1].get<SpatialVector>());
 							break;
-			case 2: result = RigidBodyDynamics::Joint(
-									vector_table[1].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[2].get<RigidBodyDynamics::Math::SpatialVector>()
+			case 2: result = Joint(
+									vector_table[1].get<SpatialVector>(),
+									vector_table[2].get<SpatialVector>()
 									);
 							break;
-			case 3: result = RigidBodyDynamics::Joint(
-									vector_table[1].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[2].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[3].get<RigidBodyDynamics::Math::SpatialVector>()
+			case 3: result = Joint(
+									vector_table[1].get<SpatialVector>(),
+									vector_table[2].get<SpatialVector>(),
+									vector_table[3].get<SpatialVector>()
 									);
 							break;
-			case 4: result = RigidBodyDynamics::Joint(
-									vector_table[1].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[2].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[3].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[4].get<RigidBodyDynamics::Math::SpatialVector>()
+			case 4: result = Joint(
+									vector_table[1].get<SpatialVector>(),
+									vector_table[2].get<SpatialVector>(),
+									vector_table[3].get<SpatialVector>(),
+									vector_table[4].get<SpatialVector>()
 									);
 							break;
-			case 5: result = RigidBodyDynamics::Joint(
-									vector_table[1].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[2].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[3].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[4].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[5].get<RigidBodyDynamics::Math::SpatialVector>()
+			case 5: result = Joint(
+									vector_table[1].get<SpatialVector>(),
+									vector_table[2].get<SpatialVector>(),
+									vector_table[3].get<SpatialVector>(),
+									vector_table[4].get<SpatialVector>(),
+									vector_table[5].get<SpatialVector>()
 									);
 							break;
-			case 6: result = RigidBodyDynamics::Joint(
-									vector_table[1].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[2].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[3].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[4].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[5].get<RigidBodyDynamics::Math::SpatialVector>(),
-									vector_table[6].get<RigidBodyDynamics::Math::SpatialVector>()
+			case 6: result = Joint(
+									vector_table[1].get<SpatialVector>(),
+									vector_table[2].get<SpatialVector>(),
+									vector_table[3].get<SpatialVector>(),
+									vector_table[4].get<SpatialVector>(),
+									vector_table[5].get<SpatialVector>(),
+									vector_table[6].get<SpatialVector>()
 									);
 							break;
 			default:

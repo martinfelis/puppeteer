@@ -34,26 +34,23 @@
 
 extern "C"
 {
-   #include <lua.h>
-   #include <lauxlib.h>
-   #include <lualib.h>
+   #include "lua.h"
+   #include "lauxlib.h"
+   #include "lualib.h"
 }
 
 #include <stdio.h>  /* defines FILENAME_MAX */
-#ifdef WINDOWS
-    #include <direct.h>
-    #define get_current_dir _getcwd
-#else
-    #include <unistd.h>
-    #define get_current_dir getcwd
- #endif
 
 #if defined(WIN32) || defined (_WIN32)
-#define DIRECTORY_SEPARATOR "\\"
+	#include <direct.h>
+	#define get_current_dir _getcwd
+	#define DIRECTORY_SEPARATOR "\\"
 #elif defined(linux) || defined (__linux) || defined(__linux__) || defined(__APPLE__)
-#define DIRECTORY_SEPARATOR "/"
+	#include <unistd.h>
+	#define get_current_dir getcwd
+	#define DIRECTORY_SEPARATOR "/"
 #else
-#error Platform not supported!
+	#error Platform not supported!
 #endif
 
 using namespace std;
@@ -65,7 +62,6 @@ std::string get_file_directory (const char* filename) {
 	if (result == "")
 		result = "./";
 #if defined (WIN32) || defined (_WIN32)
-#warning get_file_directory() not yet tested under Windows!
 	else if (result.substr(1,2) != ":\\")
 		result = string(".\\") + result;
 #else
@@ -521,7 +517,11 @@ size_t LuaTableNode::length() {
 	size_t result = 0;
 
 	if (stackQueryValue()) {
+#if LUA_VERSION_NUM == 501
 		result = lua_objlen(luaTable->L, -1);
+#elif LUA_VERSION_NUM >= 502
+		result = lua_rawlen(luaTable->L, -1);
+#endif
 	}
 
 	stackRestore();
@@ -669,7 +669,11 @@ int LuaTable::length() {
 	}
 	size_t result = 0;
 
+#if LUA_VERSION_NUM == 501
 	result = lua_objlen(L, -1);
+#elif LUA_VERSION_NUM >= 502
+	result = lua_rawlen(L, -1);
+#endif
 
 	return result;
 }
