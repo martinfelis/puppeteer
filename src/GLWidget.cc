@@ -69,7 +69,7 @@ void GLWidget::toggle_draw_base_axes (bool status) {
 void GLWidget::toggle_draw_orthographic (bool status) {
 	camera.orthographic = status;
 
-	resizeGL (windowWidth, windowHeight);
+	resizeGL (static_cast<int>(windowWidth), static_cast<int>(windowHeight));
 }
 
 void GLWidget::set_front_view () {
@@ -252,19 +252,17 @@ void GLWidget::resizeGL(int width, int height)
 	colorPickingFrameBuffer = new QGLFramebufferObject(width, height, buffer_format);
 }
 
-void GLWidget::keyPressEvent(QKeyEvent* event) {
-}
-
 void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
 	if ((mousePressPos - event->pos()).manhattanLength() < 5) {
 		if (event->button() == Qt::LeftButton) {
 			if (!event->modifiers().testFlag(Qt::ControlModifier)) {
 				scene->clearSelection();
 			}
+
 			if (scene->objectIsSelected (scene->mouseOverObjectId)) {
 				scene->unselectObject (scene->mouseOverObjectId);
 				emit object_unselected (scene->mouseOverObjectId);
-			} else {
+			} else if (scene->mouseOverObjectId != -1) {
 				scene->selectObject (scene->mouseOverObjectId);
 				emit object_selected (scene->mouseOverObjectId);
 			}
@@ -303,7 +301,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	colorPickingFrameBuffer->bind();
 	paintColorPickingFrameBuffer();
 	Vector4f color;
-	glReadPixels (lastMousePos.x(), windowHeight - lastMousePos.y(), 1, 1, GL_RGBA, GL_FLOAT, color.data());
+	glReadPixels (lastMousePos.x(), static_cast<int>(windowHeight) - lastMousePos.y(), 1, 1, GL_RGBA, GL_FLOAT, color.data());
 	if (scene) {
 		scene->mouseOverObjectId = vector4_to_object_id(color);
 	}

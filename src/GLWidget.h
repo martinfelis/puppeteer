@@ -53,7 +53,6 @@ class GLWidget : public QGLWidget
 		void paintColorPickingFrameBuffer();
 		void resizeGL(int width, int height);
 
-		void keyPressEvent (QKeyEvent* event);
 		void mousePressEvent(QMouseEvent *event);
 		void mouseReleaseEvent(QMouseEvent *event);
 		void mouseMoveEvent(QMouseEvent *event);
