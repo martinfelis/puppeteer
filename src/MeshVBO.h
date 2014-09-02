@@ -117,4 +117,8 @@ inline MeshVBO CreateCube () {
 	return CreateCuboid (1.f, 1.f, 1.f);
 }
 
+MeshVBO CreateCylinder (unsigned int segments);
+
+MeshVBO CreateCapsule (unsigned int rows, unsigned int segments, float length_z, float radius);
+
 #endif

@@ -844,3 +844,86 @@ MeshVBO CreateGrid (unsigned int cells_u, unsigned int cells_v, const Vector3f &
 
 	return result;
 }
+
+MeshVBO CreateCylinder (unsigned int segments) {
+	MeshVBO result;
+	
+	result.begin();
+
+	float delta = 2. * M_PI / static_cast<float>(segments);
+	for (unsigned int i = 0; i < segments; i++) {
+		float r0 = (i - 0.5) * delta;
+		float r1 = (i + 0.5) * delta;
+
+		float c0 = cos (r0); 
+		float s0 = sin (r0); 
+
+		float c1 = cos (r1); 
+		float s1 = sin (r1); 
+
+		Vector3f normal0 (c0, s0, 0.f);
+		Vector3f normal1 (c1, s1, 0.f);
+
+		Vector3f p0 = normal0 - Vector3f (0., 0.,  0.5f);
+		Vector3f p1 = normal0 - Vector3f (0., 0., -0.5f);
+		Vector3f p2 = normal1 - Vector3f (0., 0.,  0.5f);
+		Vector3f p3 = normal1 - Vector3f (0., 0., -0.5f);
+
+		result.addVertex3fv (p0.data());
+		result.addNormalfv (normal0.data());
+
+		result.addVertex3fv (p1.data());
+		result.addNormalfv (normal0.data());
+
+		result.addVertex3fv (p2.data());
+		result.addNormalfv (normal1.data());
+
+		result.addVertex3fv (p2.data());
+		result.addNormalfv (normal1.data());
+
+		result.addVertex3fv (p1.data());
+		result.addNormalfv (normal0.data());
+
+		result.addVertex3fv (p3.data());
+		result.addNormalfv (normal1.data());
+	}
+
+	result.end();
+
+	return result;
+}
+
+MeshVBO CreateCapsule (unsigned int rows, unsigned int segments, float length_z, float radius) {
+
+	float cylinder_length = length_z - 2.f * radius;
+
+	MeshVBO result;
+	MeshVBO cylinder = CreateCylinder (segments);
+
+	result.join (SimpleMath::GL::ScaleMat44 (radius, radius, cylinder_length), cylinder);
+
+	MeshVBO sphere = CreateUVSphere (rows, segments);
+	MeshVBO half_sphere;
+
+	for (unsigned int i = 0; i < sphere.vertices.size() * 0.5; i++) {
+		half_sphere.addVertex4fv (sphere.vertices[i].data());
+		half_sphere.addNormalfv (sphere.normals[i].data());
+	}
+
+	result.join (
+			SimpleMath::GL::RotateMat44 (90, 1.f, 0.f, 0.f)
+			* SimpleMath::GL::ScaleMat44 (radius, radius, radius)
+		  * SimpleMath::GL::TranslateMat44(0.f, 0.f, cylinder_length * 0.5)
+			, half_sphere
+			);
+			 
+	result.join (
+			SimpleMath::GL::RotateMat44 (-90, 1.f, 0.f, 0.f)
+			* SimpleMath::GL::ScaleMat44 (radius, radius, radius)
+		  * SimpleMath::GL::TranslateMat44(0.f, 0.f, -cylinder_length * 0.5)
+			, half_sphere
+			);
+	
+	return result;
+}
+
