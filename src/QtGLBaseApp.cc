@@ -7,7 +7,6 @@
  */
 
 #include <QtGui> 
-#include <QFile>
 #include <QDir>
 #include <QFileDialog>
 #include <QProgressDialog>
@@ -41,30 +40,6 @@ using namespace std;
 using namespace SimpleMath::GL;
 
 const double TIME_SLIDER_RATE = 1000.;
-
-std::string vec3_to_string (const Vector3f vec3, unsigned int digits = 2) {
-	stringstream vec_stream ("");
-	vec_stream << std::fixed << std::setprecision(digits) << vec3[0] << ", " << vec3[1] << ", " << vec3[2];
-
-	return vec_stream.str();
-}
-
-Vector3f string_to_vec3 (const std::string &vec3_string) {
-	Vector3f result;
-
-	unsigned int token_start = 0;
-	unsigned int token_end = vec3_string.find(",");
-	for (unsigned int i = 0; i < 3; i++) {
-		string token = vec3_string.substr (token_start, token_end - token_start);
-
-		result[i] = static_cast<float>(atof(token.c_str()));
-
-		token_start = token_end + 1;
-		token_end = vec3_string.find (", ", token_start);
-	}
-
-	return result;
-}
 
 QtGLBaseApp::~QtGLBaseApp() {
 	if (scene)
@@ -329,7 +304,7 @@ bool QtGLBaseApp::loadMocapFile (const char* filename, const bool rotateZ) {
 	// check whether we want to rotate the data
 	if (markerData->markerExists ("LASI") && markerData->markerExists ("LPSI")) {
 
-		float fraction_negative = 0.;
+		float fraction_negative = 0.f;
 		int frame_count = markerData->getLastFrame() - markerData->getFirstFrame();
 
 		for (int i = markerData->getFirstFrame(); i < markerData->getLastFrame(); i++) {
@@ -529,7 +504,7 @@ void QtGLBaseApp::assignMarkers() {
 	assert (markerData);
 	assert (markerModel);
 	
-	int active_frame;
+	int active_frame = 0;
 	std::vector<string> selected_marker_names;
 	std::list<int>::iterator selected_iter;
 
@@ -583,6 +558,7 @@ void QtGLBaseApp::updateGraph() {
     dataChart->update();
   }
 }
+
 void QtGLBaseApp::fitModel() {
 	if (!modelFitter)
 		return;
@@ -737,16 +713,18 @@ void QtGLBaseApp::buildModelStateEditor() {
 		}
 
 	}
-
 }
 
 void QtGLBaseApp::updateModelStateEditor () {
-  VectorNd model_state = markerModel->getModelState();
-    for (QMap<QtProperty*, unsigned int>::iterator propPtr = propertyToStateIndex.begin(); propPtr != propertyToStateIndex.end(); ++propPtr) {
-    if (doubleManagerModelStateEditor == (propPtr.key()->propertyManager())) {
-      doubleManagerModelStateEditor->setValue (propPtr.key(), model_state[propPtr.value()]);
-    }
-  }
+	if (!dockModelStateEditor->isVisible())
+		return;
+
+	VectorNd model_state = markerModel->getModelState();
+	for (QMap<QtProperty*, unsigned int>::iterator propPtr = propertyToStateIndex.begin(); propPtr != propertyToStateIndex.end(); ++propPtr) {
+		if (doubleManagerModelStateEditor == (propPtr.key()->propertyManager())) {
+			doubleManagerModelStateEditor->setValue (propPtr.key(), model_state[propPtr.value()]);
+		}
+	}
 }
 
 void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
@@ -948,8 +926,6 @@ void QtGLBaseApp::updatePropertiesEditor (int object_id) {
 		return;
 	}
 
-	Vector3f zyx_rotation = scene->getObject<SceneObject>(object_id)->transformation.rotation.toEulerZYX();
-
 	updateExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 
 	// update properties browser
@@ -974,7 +950,7 @@ void QtGLBaseApp::updatePropertiesEditor (int object_id) {
 
 	if (markerModel && markerModel->isModelObject(object_id)) {
 		dockModelStateEditor->setEnabled(true);
-		unsigned int frame_id = markerModel->getFrameIdFromObjectId (object_id);
+		unsigned int frame_id = static_cast<unsigned int>(markerModel->getFrameIdFromObjectId (object_id));
 
 		if (markerModel->isModelMarkerObject(object_id)) {
 			ModelMarkerObject *marker_object = dynamic_cast<ModelMarkerObject*> (scene->getObject<SceneObject>(object_id));
@@ -1036,8 +1012,6 @@ void QtGLBaseApp::modelStatePlotVisibleChanged (QtProperty *property, int state)
 	}
 
 	updateGraph();
-
-
 }
 
 void QtGLBaseApp::modelStatePlotColorChanged (QtProperty *property, QColor color) {
@@ -1047,9 +1021,7 @@ void QtGLBaseApp::modelStatePlotColorChanged (QtProperty *property, QColor color
     return;
   }
   updateGraph();
-
 }
-
 
 void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
 	if (!propertyToName.contains(property))
