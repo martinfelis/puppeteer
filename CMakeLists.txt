@@ -46,7 +46,7 @@ SET ( SCENEGL_SRCS
 	src/Scene.cc
 	src/MeshVBO.cc
 	src/Shader.cc
-	src/MarkerModel.cc
+	src/Model.cc
 	src/MarkerData.cc
 	src/Animation.cc
 	src/ModelFitter.cc
@@ -55,14 +55,14 @@ SET ( SCENEGL_SRCS
 SET ( QtGLBaseApp_SRCS
   src/main.cc
   src/GLWidget.cc
-  src/QtGLBaseApp.cc
+  src/PuppeteerApp.cc
   glew/src/glew.c
   ## CHART STUFF
   src/vtkChart/chartXY.cc
   )
 
 QT4_WRAP_CPP ( QtGLBaseApp_MOC_SRCS
-  src/QtGLBaseApp.h
+  src/PuppeteerApp.h
   src/GLWidget.h
   )
 
