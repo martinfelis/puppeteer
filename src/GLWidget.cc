@@ -262,7 +262,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
 			if (scene->objectIsSelected (scene->mouseOverObjectId)) {
 				scene->unselectObject (scene->mouseOverObjectId);
 				emit object_unselected (scene->mouseOverObjectId);
-			} else if (scene->mouseOverObjectId != -1) {
+			} else {
 				scene->selectObject (scene->mouseOverObjectId);
 				emit object_selected (scene->mouseOverObjectId);
 			}
