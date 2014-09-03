@@ -7,8 +7,6 @@
  */
 
 #include <QtGui> 
-#include <QDir>
-#include <QFileDialog>
 #include <QProgressDialog>
 #include <QRegExp>
 #include <QRegExpValidator>
@@ -526,37 +524,37 @@ void QtGLBaseApp::assignMarkers() {
 }
 
 void QtGLBaseApp::updateGraph() {
-  if (animationData) {
-    std::vector<ChartColor> colorVec;
-    std::vector<bool> visibleVec;
+    if (animationData) {
+        std::vector<ChartColor> colorVec;
+        std::vector<bool> visibleVec;
 
-    colorVec.resize(markerModel->getModelState().size());
-    visibleVec.resize(markerModel->getModelState().size());
+        colorVec.resize(markerModel->getModelState().size());
+        visibleVec.resize(markerModel->getModelState().size());
 
-    for (QMap<QtProperty*, unsigned int>::iterator propPtr = propertyToStateIndex.begin(); propPtr != propertyToStateIndex.end(); ++propPtr) {
-      if (enumManagerModelStateEditor == (propPtr.key()->propertyManager())) {
-	visibleVec[propPtr.value()] = ((dynamic_cast<QtEnumPropertyManager*>(propPtr.key()->propertyManager()))->value(propPtr.key()) == 0);  
-     }
-      if (colorManagerModelStateEditor == (propPtr.key()->propertyManager())) {
-	QColor plotColor = (dynamic_cast<QtColorPropertyManager*>(propPtr.key()->propertyManager()))->value(propPtr.key());
+        for (QMap<QtProperty *, unsigned int>::iterator propPtr = propertyToStateIndex.begin(); propPtr != propertyToStateIndex.end(); ++propPtr) {
+            if (enumManagerModelStateEditor == (propPtr.key()->propertyManager())) {
+                visibleVec[propPtr.value()] = ((dynamic_cast<QtEnumPropertyManager *>(propPtr.key()->propertyManager()))->value(propPtr.key()) == 0);
+            }
+            if (colorManagerModelStateEditor == (propPtr.key()->propertyManager())) {
+                QColor plotColor = (dynamic_cast<QtColorPropertyManager *>(propPtr.key()->propertyManager()))->value(propPtr.key());
 
-	colorVec[propPtr.value()] = ChartColor(plotColor.red() , plotColor.green(), plotColor.blue(), plotColor.alpha());
-      }
+                colorVec[propPtr.value()] = ChartColor(plotColor.red(), plotColor.green(), plotColor.blue(), plotColor.alpha());
+            }
+        }
+
+        vector<string> state_names = markerModel->getModelStateNames();
+        dataChart->reset();
+
+        VectorNd timeLine = animationData->getTimeLine();
+        for (size_t idx = 0; idx < visibleVec.size(); idx++) {
+            if (visibleVec[idx]) {
+                VectorNd stateLine = animationData->getStateLine(idx);
+
+                dataChart->pushData(state_names[idx], timeLine, stateLine, 0.50, colorVec[idx]);
+            }
+        }
+        dataChart->update();
     }
-
-    vector<string> state_names = markerModel->getModelStateNames();
-    dataChart->reset();
-
-    VectorNd timeLine = animationData->getTimeLine();
-    for (size_t idx = 0; idx < visibleVec.size(); idx++) {
-      if (visibleVec[idx]) {
-	VectorNd stateLine = animationData->getStateLine(idx);
-
-	dataChart->pushData(state_names[idx], timeLine, stateLine, 0.50, colorVec[idx]);
-      }
-    }
-    dataChart->update();
-  }
 }
 
 void QtGLBaseApp::fitModel() {
@@ -700,7 +698,7 @@ void QtGLBaseApp::buildModelStateEditor() {
 		dof_property->addSubProperty (dof_color);
 		QtBrowserItem* item = modelStateEditor->addProperty (dof_property);
 		if (markerModel->stateIndexIsFrameJointVariable(i, activeModelFrame)) {
-			modelStateEditor->setBackgroundColor (item, QColor (180., 255., 180.));
+			modelStateEditor->setBackgroundColor (item, QColor (180, 255, 180));
 		}
 		propertyToStateIndex[dof_property] = i;
 		propertyToStateIndex[dof_plot] = i;
@@ -770,7 +768,7 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 
 	// visuals
 	QtProperty *visuals_group = groupManager->addProperty("Visuals");
-	for (size_t visual_id = 1; visual_id <= markerModel->getVisualsCount(frame_id); visual_id++) {
+	for (int visual_id = 1; visual_id <= markerModel->getVisualsCount(frame_id); visual_id++) {
 		ostringstream name_stream ("");
 		name_stream << visual_id;
 		string visual_name = name_stream.str();
