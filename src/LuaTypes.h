@@ -342,7 +342,7 @@ template<> VisualsData LuaTableNode::getDefault<VisualsData>(const VisualsData &
 		}
 		result.mesh_center = visuals_table["mesh_center"].getDefault(Vector3f (-1.f, -1.f, -1.f));
 		result.translate = visuals_table["translate"].getDefault(Vector3f (-1.f, -1.f, -1.f));
-		result.src = visuals_table["src"].get<std::string>();
+		result.src = visuals_table["src"].getDefault<std::string>("");
 	}
 
 	stackRestore();

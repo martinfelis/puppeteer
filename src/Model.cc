@@ -642,40 +642,81 @@ void Model::updateFromLua() {
 			joint_scene_object->frameId = i;
 
 			// add visuals
-			for (size_t vi = 0; vi < (*luaTable)["frames"][i]["visuals"].length(); vi++) {
-				VisualsData visual_data = (*luaTable)["frames"][i]["visuals"][vi + 1];
+			for (size_t vi = 1; vi <= (*luaTable)["frames"][i]["visuals"].length(); vi++) {
+				VisualsData visual_data = (*luaTable)["frames"][i]["visuals"][vi];
 
 				assert ((visual_data.scale - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.scale not (yet) supported!");
 				assert ((visual_data.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
 
 				// setup of the scene object
-				VisualsObject* visual_scene_object = getVisualsObject (i, vi + 1);
+				VisualsObject* visual_scene_object = getVisualsObject (i, vi);
 				visual_scene_object->frameId = i;
 				visual_scene_object->jointObject = joint_scene_object;
-				visual_scene_object->visualIndex = vi + 1;
+				visual_scene_object->visualIndex = vi;
 				visual_scene_object->color = visual_data.color;
 				visual_scene_object->color[3] = 0.8;
 				visual_scene_object->data = visual_data;
 
-				MeshVBO temp_mesh;
-				string mesh_filename = visual_data.src;
-				string submesh_name = "";
-				if (mesh_filename.find (':') != string::npos) {
-					submesh_name = mesh_filename.substr (mesh_filename.find(':') + 1, mesh_filename.size());
-					mesh_filename = mesh_filename.substr (0, mesh_filename.find(':'));
-					string mesh_file_location = find_mesh_file_by_name (mesh_filename);
+                MeshVBO temp_mesh;
 
-					if (!temp_mesh.loadOBJ(mesh_file_location.c_str(), submesh_name.c_str())) {
-						cerr << "Error: could not load submesh '" << submesh_name << "' from mesh file '" << mesh_file_location << "'!" << endl;
-						abort();
-					}
-				} else {
-					string mesh_file_location = find_mesh_file_by_name (mesh_filename);
-					if (!temp_mesh.loadOBJ(mesh_file_location.c_str())) {
-						cerr << "Error: could not load mesh file '" << mesh_file_location << "'!" << endl;
-						abort();
-					}
-				}
+                string mesh_filename = visual_data.src;
+                bool have_geometry = (*luaTable)["frames"][i]["visuals"][vi]["geometry"].exists();
+
+                if (have_geometry && mesh_filename != "") {
+                    cerr << "Error updating model: visual " << vi << " in frame " << i << ": attributes 'src' and 'geometry' are exclusive!" << endl;
+                    abort();
+                } else if (have_geometry) {
+                    if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["box"].exists()) {
+                        Vector3f dimensions = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["box"]["dimensions"].getDefault (Vector3f (1.f, 1.f, 1.f));
+                        temp_mesh = CreateCuboid(dimensions[0], dimensions[1], dimensions[2]);
+                    } else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"].exists()) {
+                        float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["radius"].getDefault (1.f);
+                        unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["rows"].getDefault (16.));
+                        unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["segments"].getDefault (16.));
+                        temp_mesh.join (SimpleMath::GL::ScaleMat44(radius, radius, radius), CreateUVSphere(rows, segments));
+                    } else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"].exists()) {
+                        float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["radius"].getDefault (1.f);
+                        float length = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["length"].getDefault (2.f);
+                        unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["rows"].getDefault (16.));
+                        unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["segments"].getDefault (16.));
+                        temp_mesh.join (SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f), CreateCapsule(rows, segments, length, radius));
+                    } else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"].exists()) {
+                        float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["radius"].getDefault (1.f);
+                        float length = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["length"].getDefault (2.f);
+                        unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["rows"].getDefault (16.));
+                        unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["segments"].getDefault (16.));
+                        temp_mesh.join (SimpleMath::GL::ScaleMat44(radius, radius, length) * SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f) , CreateCylinder(segments));
+                    } else {
+                        vector<LuaKey> keys = (*luaTable)["frames"][i]["visuals"][vi]["geometry"].keys();
+                        if (keys.size() == 1) {
+                            cerr << "Error updating model: visual " << vi << " in frame " << i << ": unknown geometry type '" << keys[0] << "'" << endl;
+                            abort();
+                        } else {
+                            cerr << "Error updating model: visual " << vi << " in frame " << i << ": invalid geometry description." << endl;
+                            abort();
+                        }
+                    }
+                } else if (mesh_filename != "") {
+                    if (mesh_filename.find (':') != string::npos) {
+                        string submesh_name = mesh_filename.substr (mesh_filename.find(':') + 1, mesh_filename.size());
+                        mesh_filename = mesh_filename.substr (0, mesh_filename.find(':'));
+                        string mesh_file_location = find_mesh_file_by_name (mesh_filename);
+
+                        if (!temp_mesh.loadOBJ(mesh_file_location.c_str(), submesh_name.c_str())) {
+                            cerr << "Error: could not load submesh '" << submesh_name << "' from mesh file '" << mesh_file_location << "'!" << endl;
+                            abort();
+                        }
+                    } else {
+                        string mesh_file_location = find_mesh_file_by_name (mesh_filename);
+                        if (!temp_mesh.loadOBJ(mesh_file_location.c_str())) {
+                            cerr << "Error: could not load mesh file '" << mesh_file_location << "'!" << endl;
+                            abort();
+                        }
+                    }
+                } else {
+                    cerr << "Error updating model: visual " << vi << " in frame " << i << ": neither 'src' nor 'geometry' found!" << endl;
+                    abort();
+                }
 
 				temp_mesh.center();
 				MeshVBO mesh;
