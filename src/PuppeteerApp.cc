@@ -13,11 +13,11 @@
 #include <QProgressDialog>
 
 #include "GLWidget.h" 
-#include "QtGLBaseApp.h"
+#include "PuppeteerApp.h"
 #include "QtVariantPropertyManager"
 
 #include "Scene.h"
-#include "MarkerModel.h"
+#include "Model.h"
 #include "MarkerData.h"
 #include "ModelFitter.h"
 #include "Animation.h"
@@ -39,14 +39,14 @@ using namespace SimpleMath::GL;
 
 const double TIME_SLIDER_RATE = 1000.;
 
-QtGLBaseApp::~QtGLBaseApp() {
+PuppeteerApp::~PuppeteerApp() {
 	if (scene)
 		delete scene;
 
 	scene = NULL;
 }
 
-QtGLBaseApp::QtGLBaseApp(QWidget *parent)
+PuppeteerApp::PuppeteerApp(QWidget *parent)
   : dataChart(new ChartContainer("Joint Trajectories", "t in [s]", "Angle in [RAD]", true))
 {
 	setupUi(this); // this sets up GUI
@@ -191,7 +191,7 @@ void print_usage(const char* execname) {
 	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> <animation.csv>" << endl;
 }
 
-bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
+bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
   try {
     // the basic definition of the command parser line cites a description for the 
     // program the delimiter to be applied on the command line as well as the
@@ -278,10 +278,10 @@ bool QtGLBaseApp::parseArgs(int argc, char* argv[]) {
 	return true;
 }
 
-bool QtGLBaseApp::loadModelFile (const char* filename) {
+bool PuppeteerApp::loadModelFile (const char* filename) {
 	if (markerModel)
 		delete markerModel;
-	markerModel = new MarkerModel (scene);
+	markerModel = new Model(scene);
 	assert (markerModel);
 
 	bool result = markerModel->loadFromFile (filename);
@@ -290,7 +290,7 @@ bool QtGLBaseApp::loadModelFile (const char* filename) {
 	return result;
 }
 
-bool QtGLBaseApp::loadMocapFile (const char* filename, const bool rotateZ) {
+bool PuppeteerApp::loadMocapFile (const char* filename, const bool rotateZ) {
 	if (markerData)
 		delete markerData;
 	markerData = new MarkerData (scene);
@@ -347,7 +347,7 @@ bool QtGLBaseApp::loadMocapFile (const char* filename, const bool rotateZ) {
 	return true;
 }
 
-bool QtGLBaseApp::loadAnimationFile (const char* filename) {
+bool PuppeteerApp::loadAnimationFile (const char* filename) {
 	if (animationData)
 		delete animationData;
 	
@@ -365,7 +365,7 @@ bool QtGLBaseApp::loadAnimationFile (const char* filename) {
 	return true;
 }
 
-void QtGLBaseApp::updateSliderBounds() {
+void PuppeteerApp::updateSliderBounds() {
 	if (markerData || animationData)
 		dockWidgetSlider->setVisible(true);
 	else
@@ -415,39 +415,39 @@ Vector3f parse_vec3_string (const std::string vec3_string) {
 	return result;
 }
 
-void QtGLBaseApp::quitApplication() {
+void PuppeteerApp::quitApplication() {
 	qApp->quit();
 }
 
-void QtGLBaseApp::loadModelState() {
+void PuppeteerApp::loadModelState() {
 	assert (markerModel);	
 	markerModel->loadStateFromFile ("model_state.lua");
 	updateModelStateEditor();
 }
 
-void QtGLBaseApp::saveModelState() {
+void PuppeteerApp::saveModelState() {
 	assert (markerModel);	
 	markerModel->saveStateToFile ("model_state.lua");
 }
 
-void QtGLBaseApp::loadModel() {
+void PuppeteerApp::loadModel() {
 	loadModelFile ("model.lua");
 }
 
-void QtGLBaseApp::saveModel() {
+void PuppeteerApp::saveModel() {
 	markerModel->saveToFile ("model.lua");
 }
 
-void QtGLBaseApp::loadAnimation() {
+void PuppeteerApp::loadAnimation() {
 	loadAnimationFile ("animation.csv");	
 }
 
-void QtGLBaseApp::saveAnimation() {
+void PuppeteerApp::saveAnimation() {
 	assert (animationData);
 	animationData->saveToFile ("animation.csv");
 }
 
-void QtGLBaseApp::collapseProperties() {
+void PuppeteerApp::collapseProperties() {
 	// collapse all items
 	QList<QtBrowserItem*>::ConstIterator prop_iter = propertiesBrowser->topLevelItems().constBegin();
 
@@ -457,7 +457,7 @@ void QtGLBaseApp::collapseProperties() {
 	}
 }
 
-void QtGLBaseApp::selectionChanged() {
+void PuppeteerApp::selectionChanged() {
 	activeModelFrame = 0;
 
 	int active_frame = 0;
@@ -483,14 +483,14 @@ void QtGLBaseApp::selectionChanged() {
 	}
 }
 
-void QtGLBaseApp::objectUnSelected (int object_id) {
+void PuppeteerApp::objectUnSelected (int object_id) {
 	selectionChanged();
 
 	updatePropertiesEditor (object_id);
 	updateModelStateEditor();
 }
 
-void QtGLBaseApp::objectSelected (int object_id) {
+void PuppeteerApp::objectSelected (int object_id) {
 	activeObject = object_id;
 	selectionChanged();
 
@@ -498,7 +498,7 @@ void QtGLBaseApp::objectSelected (int object_id) {
 	updateModelStateEditor();
 }
 
-void QtGLBaseApp::assignMarkers() {
+void PuppeteerApp::assignMarkers() {
 	assert (markerData);
 	assert (markerModel);
 	
@@ -523,7 +523,7 @@ void QtGLBaseApp::assignMarkers() {
 	updatePropertiesEditor (markerModel->getObjectIdFromFrameId (active_frame));
 }
 
-void QtGLBaseApp::updateGraph() {
+void PuppeteerApp::updateGraph() {
     if (animationData) {
         std::vector<ChartColor> colorVec;
         std::vector<bool> visibleVec;
@@ -557,7 +557,7 @@ void QtGLBaseApp::updateGraph() {
     }
 }
 
-void QtGLBaseApp::fitModel() {
+void PuppeteerApp::fitModel() {
 	if (!modelFitter)
 		return;
 
@@ -577,7 +577,7 @@ void QtGLBaseApp::fitModel() {
 	markerModel->updateSceneObjects();
 }
 
-void QtGLBaseApp::fitAnimation() {
+void PuppeteerApp::fitAnimation() {
 	if (!modelFitter)
 		return;
 
@@ -627,7 +627,7 @@ void QtGLBaseApp::fitAnimation() {
 	updateGraph();
 }
 
-void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
+void PuppeteerApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
 	QListIterator<QtBrowserItem *> it(list);
 	while (it.hasNext()) {
 		QtBrowserItem *item = it.next();
@@ -642,7 +642,7 @@ void QtGLBaseApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list
 	}
 }
 
-void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
+void PuppeteerApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {
 	QListIterator<QtBrowserItem *> it(list);
 	while (it.hasNext()) {
 		QtBrowserItem *item = it.next();
@@ -657,7 +657,7 @@ void QtGLBaseApp::restoreExpandStateRecursive (const QList<QtBrowserItem *> &lis
 			propertiesBrowser->setExpanded(item, idToExpanded[property_id]);
 	}
 }
-void QtGLBaseApp::buildModelStateEditor() {
+void PuppeteerApp::buildModelStateEditor() {
 	if (!markerModel) {
 		modelStateEditor->setVisible(false);
 		return;
@@ -713,7 +713,7 @@ void QtGLBaseApp::buildModelStateEditor() {
 	}
 }
 
-void QtGLBaseApp::updateModelStateEditor () {
+void PuppeteerApp::updateModelStateEditor () {
 	if (!dockModelStateEditor->isVisible())
 		return;
 
@@ -725,7 +725,7 @@ void QtGLBaseApp::updateModelStateEditor () {
 	}
 }
 
-void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
+void PuppeteerApp::updatePropertiesForFrame (unsigned int frame_id) {
 	if (!dockPropertiesEditor->isVisible())
 		return;
 
@@ -884,7 +884,7 @@ void QtGLBaseApp::updatePropertiesForFrame (unsigned int frame_id) {
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
-void QtGLBaseApp::playButtonClicked (bool checked) {
+void PuppeteerApp::playButtonClicked (bool checked) {
 	if (!toolButtonPlay->isChecked()) {
 		disconnect (playbackTimer, SIGNAL(timeout()), this, SLOT (advanceFrame()));
 		playbackTimer->stop();
@@ -900,7 +900,7 @@ void QtGLBaseApp::playButtonClicked (bool checked) {
 	}
 }
 
-void QtGLBaseApp::advanceFrame() {
+void PuppeteerApp::advanceFrame() {
 	int current_pos = captureFrameSlider->value();
 	int advancement = static_cast<int>(round(static_cast<double>(previousPlaybackTime->restart()) * playbackSpeedSpinBox->value()));
 
@@ -918,7 +918,7 @@ void QtGLBaseApp::advanceFrame() {
 	}
 }
 
-void QtGLBaseApp::updatePropertiesEditor (int object_id) {
+void PuppeteerApp::updatePropertiesEditor (int object_id) {
 	if (object_id < 0) {
 		propertiesBrowser->clear();
 		return;
@@ -989,7 +989,7 @@ void QtGLBaseApp::updatePropertiesEditor (int object_id) {
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
-void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
+void PuppeteerApp::modelStateValueChanged (QtProperty *property, double value) {
 	assert (markerModel);
 
 	if (!propertyToStateIndex.contains(property)) {
@@ -1002,7 +1002,7 @@ void QtGLBaseApp::modelStateValueChanged (QtProperty *property, double value) {
 	updatePropertiesEditor (activeObject);
 }
 
-void QtGLBaseApp::modelStatePlotVisibleChanged (QtProperty *property, int state) {
+void PuppeteerApp::modelStatePlotVisibleChanged (QtProperty *property, int state) {
 	assert (markerModel);
 
 	if (!propertyToStateIndex.contains(property)) {
@@ -1012,7 +1012,7 @@ void QtGLBaseApp::modelStatePlotVisibleChanged (QtProperty *property, int state)
 	updateGraph();
 }
 
-void QtGLBaseApp::modelStatePlotColorChanged (QtProperty *property, QColor color) {
+void PuppeteerApp::modelStatePlotColorChanged (QtProperty *property, QColor color) {
   assert (markerModel);
 
   if (!propertyToStateIndex.contains(property)) {
@@ -1021,7 +1021,7 @@ void QtGLBaseApp::modelStatePlotColorChanged (QtProperty *property, QColor color
   updateGraph();
 }
 
-void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
+void PuppeteerApp::valueChanged (QtProperty *property, double value) {
 	if (!propertyToName.contains(property))
 		return;
 
@@ -1034,7 +1034,7 @@ void QtGLBaseApp::valueChanged (QtProperty *property, double value) {
 	}
 }
 	
-void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
+void PuppeteerApp::valueChanged (QtProperty *property, QVector3D value) {
 	if (!propertyToName.contains(property))
 		return;
 
@@ -1116,7 +1116,7 @@ void QtGLBaseApp::valueChanged (QtProperty *property, QVector3D value) {
 	}
 }
 
-void QtGLBaseApp::colorValueChanged (QtProperty *property, QColor value) {
+void PuppeteerApp::colorValueChanged (QtProperty *property, QColor value) {
 	if (!propertyToName.contains(property))
 		return;
 
@@ -1144,7 +1144,7 @@ void QtGLBaseApp::colorValueChanged (QtProperty *property, QColor value) {
 	}
 }
 
-void QtGLBaseApp::captureFrameSliderChanged (int value) {
+void PuppeteerApp::captureFrameSliderChanged (int value) {
 	assert (markerData || animationData);
 
 	double current_time = static_cast<double>(value) / TIME_SLIDER_RATE;
@@ -1212,7 +1212,7 @@ void QtGLBaseApp::captureFrameSliderChanged (int value) {
 	updateModelStateEditor();
 }
 
-void QtGLBaseApp::displayMocapMarkers (int display_state) {
+void PuppeteerApp::displayMocapMarkers (int display_state) {
 	bool no_draw = false;
 	if (display_state != Qt::Checked)
 		no_draw = true;
@@ -1222,7 +1222,7 @@ void QtGLBaseApp::displayMocapMarkers (int display_state) {
 	}
 }
 
-void QtGLBaseApp::displayModelMarkers (int display_state) {
+void PuppeteerApp::displayModelMarkers (int display_state) {
 	bool no_draw = false;
 	if (display_state != Qt::Checked)
 		no_draw = true;
@@ -1232,7 +1232,7 @@ void QtGLBaseApp::displayModelMarkers (int display_state) {
 	}
 }
 
-void QtGLBaseApp::displayBodySegments (int display_state) {
+void PuppeteerApp::displayBodySegments (int display_state) {
 	bool no_draw = false;
 	if (display_state != Qt::Checked)
 		no_draw = true;
@@ -1242,7 +1242,7 @@ void QtGLBaseApp::displayBodySegments (int display_state) {
 	}
 }
 
-void QtGLBaseApp::displayJoints (int display_state) {
+void PuppeteerApp::displayJoints (int display_state) {
 	bool no_draw = false;
 	if (display_state != Qt::Checked)
 		no_draw = true;
@@ -1252,7 +1252,7 @@ void QtGLBaseApp::displayJoints (int display_state) {
 	}
 }
 
-void QtGLBaseApp::displayPoints (int display_state) {
+void PuppeteerApp::displayPoints (int display_state) {
 	bool no_draw = false;
 	if (display_state != Qt::Checked)
 		no_draw = true;

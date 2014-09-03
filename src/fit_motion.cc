@@ -2,14 +2,14 @@
 
 #include "timer.h"
 
-#include "MarkerModel.h"
+#include "Model.h"
 #include "MarkerData.h"
 #include "Animation.h"
 #include "ModelFitter.h"
 
 using namespace std;
 
-MarkerModel *model = NULL;
+Model *model = NULL;
 MarkerData *data = NULL;
 Animation *animation = NULL;
 ModelFitter *fitter = NULL;
@@ -26,7 +26,7 @@ bool parse_args (int argc, char* argv[]) {
 	for (int i = 1; i < argc; i++) {
 		std::string arg (argv[i]);
 		if (arg.substr(arg.size() - 4, 4) == ".lua") {
-			model = new MarkerModel();
+			model = new Model();
 			if (!model->loadFromFile (arg.c_str()))
 				return false;
 		} else if (arg.substr(arg.size() - 4, 4) == ".c3d") {

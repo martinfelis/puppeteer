@@ -4,14 +4,14 @@
 #include "SimpleMath/SimpleMath.h"
 
 struct MarkerData;
-struct MarkerModel;
+struct Model;
 struct Animation;
 
 struct ModelFitter {
 	struct ModelFitterInternal;
 
 	MarkerData *data;
-	MarkerModel *model;
+	Model *model;
 	ModelFitterInternal *internal;
 
 	double tolerance;
@@ -23,7 +23,7 @@ struct ModelFitter {
 	VectorNd residuals;
 
 	ModelFitter ();
-	ModelFitter (MarkerModel *model, MarkerData *data);
+	ModelFitter (Model *model, MarkerData *data);
 	~ModelFitter();
 
 	void setup();
@@ -38,21 +38,21 @@ struct ModelFitter {
 };
 
 struct SugiharaFitter : public ModelFitter {
-	SugiharaFitter (MarkerModel *model, MarkerData *data) :
+	SugiharaFitter (Model *model, MarkerData *data) :
 		ModelFitter (model, data) 
 	{}
 	virtual bool run (const VectorNd &initialState);
 };
 
 struct SugiharaTaskSpaceFitter : public ModelFitter {
-	SugiharaTaskSpaceFitter (MarkerModel *model, MarkerData *data) :
+	SugiharaTaskSpaceFitter (Model *model, MarkerData *data) :
 		ModelFitter (model, data) 
 	{}
 	virtual bool run (const VectorNd &initialState);
 };
 
 struct LevenbergMarquardtFitter : public ModelFitter {
-	LevenbergMarquardtFitter (MarkerModel *model, MarkerData *data, double lambda = 0.05):
+	LevenbergMarquardtFitter (Model *model, MarkerData *data, double lambda = 0.05):
 		ModelFitter (model, data),
 		lambda (lambda)
 	{}

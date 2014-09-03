@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "MarkerModel.h"
+#include "Model.h"
 #include "Scene.h"
 
 #include <assert.h>
@@ -18,7 +18,6 @@
 #include "LuaTypes.h"
 
 using namespace std;
-using namespace RigidBodyDynamics;
 
 typedef RigidBodyDynamics::Math::VectorNd RBDLVectorNd;
 typedef RigidBodyDynamics::Math::Vector3d RBDLVector3d;
@@ -110,7 +109,7 @@ Vector3f ConvertToSimpleMathVec3 (const RBDLVector3d &vec) {
 	return result;
 }
 
-MarkerModel::~MarkerModel() {
+Model::~Model() {
 	if (rbdlModel) {
 		delete rbdlModel;
 		rbdlModel = NULL;
@@ -130,11 +129,11 @@ MarkerModel::~MarkerModel() {
 	}
 }
 
-VectorNd MarkerModel::getModelState() {
+VectorNd Model::getModelState() {
 	return modelStateQ;
 }
 
-std::vector<std::string> MarkerModel::getModelStateNames () {
+std::vector<std::string> Model::getModelStateNames () {
 	std::vector<std::string> result (rbdlModel->q_size, "unnamed");
 
 	for (unsigned int i = 0; i < rbdlModel->q_size; i++) {
@@ -145,7 +144,7 @@ std::vector<std::string> MarkerModel::getModelStateNames () {
 	return result;
 }
 
-void MarkerModel::updateModelState() {
+void Model::updateModelState() {
 	RBDLVectorNd Q (rbdlModel->q_size);
 	for (size_t i = 0; i < rbdlModel->q_size; i++) {
 		Q[i] = modelStateQ[i];
@@ -153,7 +152,7 @@ void MarkerModel::updateModelState() {
 	RigidBodyDynamics::UpdateKinematicsCustom (*rbdlModel, &Q, NULL, NULL);
 }
 
-void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
+void Model::setModelStateValue (unsigned int state_index, double value) {
 	assert (state_index < rbdlModel->q_size);
 
 	modelStateQ[state_index] = value;
@@ -162,7 +161,7 @@ void MarkerModel::setModelStateValue (unsigned int state_index, double value) {
 	updateSceneObjects();
 }
 
-bool MarkerModel::stateIndexIsFrameJointVariable (unsigned int state_index, int frame_id) {
+bool Model::stateIndexIsFrameJointVariable (unsigned int state_index, int frame_id) {
 	if (dofIndexToFrameId[state_index] == frame_id) {
 		return true;	
 	}
@@ -170,7 +169,7 @@ bool MarkerModel::stateIndexIsFrameJointVariable (unsigned int state_index, int 
 	return false;
 }
 
-JointObject* MarkerModel::getJointObject (int frame_id) {
+JointObject*Model::getJointObject (int frame_id) {
 	for (size_t i = 0; i < joints.size(); i++) {
 		if (joints[i]->frameId == frame_id)
 			return joints[i];
@@ -182,7 +181,7 @@ JointObject* MarkerModel::getJointObject (int frame_id) {
 	return joint_object;
 }
 
-VisualsObject* MarkerModel::getVisualsObject (int frame_id, int visual_index) {
+VisualsObject*Model::getVisualsObject (int frame_id, int visual_index) {
 	for (size_t i = 0; i < visuals.size(); i++) {
 		if (visuals[i]->frameId == frame_id && visuals[i]->visualIndex == visual_index)
 			return visuals[i];
@@ -196,7 +195,7 @@ VisualsObject* MarkerModel::getVisualsObject (int frame_id, int visual_index) {
 	return visual_object;
 }
 
-ModelMarkerObject* MarkerModel::getModelMarkerObject (int frame_id, const char* marker_name) {
+ModelMarkerObject*Model::getModelMarkerObject (int frame_id, const char* marker_name) {
 	for (size_t i = 0; i < modelMarkers.size(); i++) {
 		if (modelMarkers[i]->frameId == frame_id && modelMarkers[i]->markerName == marker_name)
 			return modelMarkers[i];
@@ -210,7 +209,7 @@ ModelMarkerObject* MarkerModel::getModelMarkerObject (int frame_id, const char* 
 	return model_marker_object;
 }
 
-ContactPointObject* MarkerModel::getContactPointObject (int contact_point_index) {
+ContactPointObject*Model::getContactPointObject (int contact_point_index) {
 	for (size_t i = 0; i < contactPoints.size(); i++) {
 		if (contactPoints[i]->pointIndex == contact_point_index)
 			return contactPoints[i];
@@ -223,11 +222,11 @@ ContactPointObject* MarkerModel::getContactPointObject (int contact_point_index)
 	return contact_point_object;
 }
 
-int MarkerModel::getFrameMarkerCount(int frame_id) {
+int Model::getFrameMarkerCount(int frame_id) {
 	return (*luaTable)["frames"][frame_id]["markers"].length();
 }
 
-std::vector<std::string> MarkerModel::getFrameMarkerNames(int frame_id) {
+std::vector<std::string> Model::getFrameMarkerNames(int frame_id) {
 	vector<string> result;
 	vector<LuaKey> keys = (*luaTable)["frames"][frame_id]["markers"].keys();
 
@@ -240,7 +239,7 @@ std::vector<std::string> MarkerModel::getFrameMarkerNames(int frame_id) {
 	return result;
 }
 
-std::vector<Vector3f> MarkerModel::getFrameMarkerCoords (int frame_id) {
+std::vector<Vector3f> Model::getFrameMarkerCoords (int frame_id) {
 	vector<Vector3f> result;
 	vector<string> names = getFrameMarkerNames(frame_id);
 
@@ -251,7 +250,7 @@ std::vector<Vector3f> MarkerModel::getFrameMarkerCoords (int frame_id) {
 	return result;
 }
 
-Vector3f MarkerModel::calcMarkerLocalCoords (int frame_id, const Vector3f &coord) {
+Vector3f Model::calcMarkerLocalCoords (int frame_id, const Vector3f &coord) {
 	updateModelState();
 	RBDLVector3d rbdl_coords (coord[0], coord[1], coord[2]);
 	unsigned int body_id = frameIdToRbdlId[frame_id];
@@ -262,7 +261,7 @@ Vector3f MarkerModel::calcMarkerLocalCoords (int frame_id, const Vector3f &coord
 	return ConvertToSimpleMathVec3 (rbdl_local);
 }
 
-Vector3f MarkerModel::getMarkerPosition (int frame_id, const char* marker_name) {
+Vector3f Model::getMarkerPosition (int frame_id, const char* marker_name) {
 	updateModelState();
 	Vector3f marker_local_coords ((*luaTable)["frames"][frame_id]["markers"][marker_name].getDefault<Vector3f>(Vector3f (0.f, 0.f, 0.f)));
 
@@ -275,12 +274,12 @@ Vector3f MarkerModel::getMarkerPosition (int frame_id, const char* marker_name) 
 	return ConvertToSimpleMathVec3 (rbdl_global);
 }
 
-void MarkerModel::setFrameMarkerCoord (int frame_id, const char* marker_name, const Vector3f &coord) {
+void Model::setFrameMarkerCoord (int frame_id, const char* marker_name, const Vector3f &coord) {
 	(*luaTable)["frames"][frame_id]["markers"][marker_name] = coord;
 	updateFromLua();
 }
 
-void MarkerModel::updateSceneObjects() {
+void Model::updateSceneObjects() {
 	RBDLVectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(rbdlModel->q_size);
 
 	// first update joints as we can reuse its transformations for the
@@ -333,7 +332,7 @@ void MarkerModel::updateSceneObjects() {
 	}
 }
 
-int MarkerModel::getFrameIdFromObjectId (int object_id) {
+int Model::getFrameIdFromObjectId (int object_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
 		if (visuals[i]->id == object_id)
 			return visuals[i]->frameId;
@@ -347,7 +346,7 @@ int MarkerModel::getFrameIdFromObjectId (int object_id) {
 	return 0;
 }
 
-int MarkerModel::getParentFrameId(int frame_id) {
+int Model::getParentFrameId(int frame_id) {
 	if (frame_id == 0)
 		return 0;
 
@@ -363,7 +362,7 @@ int MarkerModel::getParentFrameId(int frame_id) {
 	abort();
 }
 
-int MarkerModel::getVisualsCount (int frame_id) {
+int Model::getVisualsCount (int frame_id) {
 	if (frame_id == 0)
 		return 0;
 
@@ -372,18 +371,18 @@ int MarkerModel::getVisualsCount (int frame_id) {
 	return (*luaTable)["frames"][frame_id]["visuals"].length();
 }
 
-int MarkerModel::getFrameCount() {
+int Model::getFrameCount() {
 	return (*luaTable)["frames"].length();
 }
 
-VisualsData MarkerModel::getVisualsData (int frame_id, int visuals_index) {
+VisualsData Model::getVisualsData (int frame_id, int visuals_index) {
 	assert (frame_id > 0);
 	assert (visuals_index > 0 && visuals_index <= getVisualsCount (frame_id));
 
 	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index];
 }
 
-int MarkerModel::getObjectIdFromFrameId (int frame_id) {
+int Model::getObjectIdFromFrameId (int frame_id) {
 	for (size_t i = 0; i < visuals.size(); i++) {
 		if (visuals[i]->frameId == frame_id)
 			return visuals[i]->id;
@@ -400,7 +399,7 @@ int MarkerModel::getObjectIdFromFrameId (int frame_id) {
 	return 0;
 }
 
-int MarkerModel::getFrameId (const char *frame_name) {
+int Model::getFrameId (const char *frame_name) {
 	int frame_count = (*luaTable)["frames"].length();
 
 	for (int i = 1; i <= frame_count; i++) {
@@ -414,15 +413,15 @@ int MarkerModel::getFrameId (const char *frame_name) {
 	return -1;
 }
 
-std::string MarkerModel::getFrameName (int frame_id) {
+std::string Model::getFrameName (int frame_id) {
 	return rbdlModel->GetBodyName(frameIdToRbdlId[frame_id]);
 }
 
-std::string MarkerModel::getParentName (int frame_id) {
+std::string Model::getParentName (int frame_id) {
 	return (*luaTable)["frames"][frame_id]["parent"].getDefault<string>("ROOT");
 }
 
-Vector3f MarkerModel::getFrameLocationGlobal (int frame_id) {
+Vector3f Model::getFrameLocationGlobal (int frame_id) {
 	updateModelState();
 
 	RBDLVectorNd Q (rbdlModel->q_size);
@@ -432,7 +431,7 @@ Vector3f MarkerModel::getFrameLocationGlobal (int frame_id) {
 	return Vector3f (position[0], position[1], position[2]);
 }
 
-Vector3f MarkerModel::getFrameOrientationGlobalEulerYXZ (int frame_id) {
+Vector3f Model::getFrameOrientationGlobalEulerYXZ (int frame_id) {
 	updateModelState();
 
 	RBDLVectorNd Q (rbdlModel->q_size);
@@ -449,46 +448,46 @@ Vector3f MarkerModel::getFrameOrientationGlobalEulerYXZ (int frame_id) {
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
 }
 
-Vector3f MarkerModel::getJointLocationLocal (int frame_id) {
+Vector3f Model::getJointLocationLocal (int frame_id) {
 	return (*luaTable)["frames"][frame_id]["joint_frame"]["r"].getDefault<Vector3f>(Vector3f::Zero());
 }
 
-Vector3f MarkerModel::getJointOrientationLocalEulerYXZ (int frame_id) {
+Vector3f Model::getJointOrientationLocalEulerYXZ (int frame_id) {
 	Matrix33f orientation = (*luaTable)["frames"][frame_id]["joint_frame"]["E"].getDefault<Matrix33f>(Matrix33f::Identity(3,3));
 	
 	return SimpleMath::GL::Quaternion::fromMatrix(orientation).toEulerYXZ();
 }
 
-void MarkerModel::setVisualDimensions (int frame_id, int visuals_index, const Vector3f &dimensions) {
+void Model::setVisualDimensions (int frame_id, int visuals_index, const Vector3f &dimensions) {
 	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["dimensions"] = dimensions;
 
 	updateFromLua();
 }
 
-Vector3f MarkerModel::getVisualDimensions (int frame_id, int visuals_index) {
+Vector3f Model::getVisualDimensions (int frame_id, int visuals_index) {
 	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["dimensions"] ;
 }
 
-void MarkerModel::setVisualCenter (int frame_id, int visuals_index, const Vector3f &center) {
+void Model::setVisualCenter (int frame_id, int visuals_index, const Vector3f &center) {
 	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_center"] = center;
 	cout << "Set center = " << center.transpose() << endl;
 	updateFromLua();
 }
 
-Vector3f MarkerModel::getVisualCenter(int frame_id, int visuals_index) {
+Vector3f Model::getVisualCenter(int frame_id, int visuals_index) {
 	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_center"] ;
 }
 
-void MarkerModel::setVisualColor (int frame_id, int visuals_index, const Vector3f &color) {
+void Model::setVisualColor (int frame_id, int visuals_index, const Vector3f &color) {
 	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["color"] = color;
 	updateFromLua();
 }
 
-Vector3f MarkerModel::getVisualColor(int frame_id, int visuals_index) {
+Vector3f Model::getVisualColor(int frame_id, int visuals_index) {
 	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["color"] ;
 }
 
-void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r) {
+void Model::adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r) {
 	/// \todo adjusting of parent visuals fails when mesh_center moves out of the bounding box of the original bbox.
 	Vector3f delta_r = new_r - old_r;
 	int parent_id = getParentFrameId (frame_id);
@@ -515,31 +514,31 @@ void MarkerModel::adjustParentVisualsScale (int frame_id, const Vector3f &old_r,
 	}
 }
 
-void MarkerModel::setBodyMass (int frame_id, double mass) {
+void Model::setBodyMass (int frame_id, double mass) {
 	(*luaTable)["frames"][frame_id]["body"]["mass"] = mass;
 }
 
-double MarkerModel::getBodyMass (int frame_id) {
+double Model::getBodyMass (int frame_id) {
 	return (*luaTable)["frames"][frame_id]["body"]["mass"].getDefault(0.);
 }
 
-void MarkerModel::setBodyCOM (int frame_id, const Vector3f &com) {
+void Model::setBodyCOM (int frame_id, const Vector3f &com) {
 	(*luaTable)["frames"][frame_id]["body"]["com"] = com;
 }
 
-Vector3f MarkerModel::getBodyCOM (int frame_id) {
+Vector3f Model::getBodyCOM (int frame_id) {
 	return (*luaTable)["frames"][frame_id]["body"]["com"].getDefault(Vector3f::Zero(3,3));
 }
 
-void MarkerModel::setBodyInertia (int frame_id, const Matrix33f &inertia) {
+void Model::setBodyInertia (int frame_id, const Matrix33f &inertia) {
 	(*luaTable)["frames"][frame_id]["body"]["inertia"] = inertia;
 }
 
-Matrix33f MarkerModel::getBodyInertia (int frame_id) {
+Matrix33f Model::getBodyInertia (int frame_id) {
 	return (*luaTable)["frames"][frame_id]["body"]["inertia"].getDefault(Matrix33f::Zero(3,3));
 }
 
-void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location) {
+void Model::setJointLocationLocal (int frame_id, const Vector3f &location) {
 	Vector3f old_location = (*luaTable)["frames"][frame_id]["joint_frame"]["r"];
 	(*luaTable)["frames"][frame_id]["joint_frame"]["r"] = location;
 
@@ -548,7 +547,7 @@ void MarkerModel::setJointLocationLocal (int frame_id, const Vector3f &location)
 	updateFromLua();
 }
 
-void MarkerModel::setContactPointGlobal (int contact_point_index, const Vector3f &global_coords) {
+void Model::setContactPointGlobal (int contact_point_index, const Vector3f &global_coords) {
 	ContactPointObject* contact_point = getContactPointObject (contact_point_index);
 
 	RBDLVectorNd Q = RBDLVectorNd::Zero(rbdlModel->q_size);
@@ -560,23 +559,23 @@ void MarkerModel::setContactPointGlobal (int contact_point_index, const Vector3f
 	updateFromLua();
 }
 
-void MarkerModel::setContactPointLocal (int contact_point_index, const Vector3f &local_coords) {
+void Model::setContactPointLocal (int contact_point_index, const Vector3f &local_coords) {
 	(*luaTable)["points"][contact_point_index]["point"] = local_coords;
 	updateFromLua();
 }
 
-Vector3f MarkerModel::getContactPointLocal (int contact_point_index) const {
+Vector3f Model::getContactPointLocal (int contact_point_index) const {
 	return (*luaTable)["points"][contact_point_index]["point"];
 }
 
-void MarkerModel::setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler) {
+void Model::setJointOrientationLocalEulerYXZ (int frame_id, const Vector3f &yxz_euler) {
 	Matrix33f matrix = SimpleMath::GL::Quaternion::fromEulerYXZ(yxz_euler).toMatrix().transpose();
 	(*luaTable)["frames"][frame_id]["joint_frame"]["E"] = matrix;
 
 	updateFromLua();
 }
 
-void MarkerModel::clearModel() {
+void Model::clearModel() {
 	delete rbdlModel;
 	rbdlModel = new RigidBodyDynamics::Model();
 
@@ -584,7 +583,7 @@ void MarkerModel::clearModel() {
 	frameIdToRbdlId.clear();
 }
 
-void MarkerModel::updateFromLua() {
+void Model::updateFromLua() {
 	clearModel();
 
 	assert (luaTable->L);
@@ -611,8 +610,8 @@ void MarkerModel::updateFromLua() {
 		}
 
 		SpatialTransform joint_frame = (*luaTable)["frames"][i]["joint_frame"].getDefault(SpatialTransform());
-		Joint joint = (*luaTable)["frames"][i]["joint"].getDefault(Joint(JointTypeFixed));
-		Body body = (*luaTable)["frames"][i]["body"].getDefault(Body());
+        RigidBodyDynamics::Joint joint = (*luaTable)["frames"][i]["joint"].getDefault(RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeFixed));
+        RigidBodyDynamics::Body body = (*luaTable)["frames"][i]["body"].getDefault(RigidBodyDynamics::Body());
 
 		for (size_t di = 0; di < joint.mDoFCount; di++) {
 			dofIndexToFrameId[rbdlModel->q_size + di] = i;
@@ -745,7 +744,7 @@ void MarkerModel::updateFromLua() {
 	updateSceneObjects();
 }
 
-void MarkerModel::loadStateFromFile (const char* filename) {
+void Model::loadStateFromFile (const char* filename) {
 	LuaTable state_table = LuaTable::fromFile (filename);
 	for (size_t i = 0; i < modelStateQ.size(); i++) {
 		modelStateQ[i] = state_table[i + 1];
@@ -754,7 +753,7 @@ void MarkerModel::loadStateFromFile (const char* filename) {
 	updateSceneObjects();
 }
 
-void MarkerModel::saveStateToFile (const char* filename) {
+void Model::saveStateToFile (const char* filename) {
 	LuaTable state_table = LuaTable::fromLuaExpression ("return {}");
 	for (size_t i = 0; i < modelStateQ.size(); i++) {
 		state_table[i + 1] = modelStateQ[i];
@@ -765,7 +764,7 @@ void MarkerModel::saveStateToFile (const char* filename) {
 	outfile.close();
 }
 
-bool MarkerModel::loadFromFile(const char* filename) {
+bool Model::loadFromFile(const char* filename) {
 	// ensure that we have a '.' as decimal point even in weird languages
 	// such as German
 	setlocale(LC_NUMERIC, "C");
@@ -788,7 +787,7 @@ bool MarkerModel::loadFromFile(const char* filename) {
 	return true;
 }
 
-void MarkerModel::saveToFile(const char* filename) {
+void Model::saveToFile(const char* filename) {
 	assert (luaTable);
 	assert (rbdlModel);
 

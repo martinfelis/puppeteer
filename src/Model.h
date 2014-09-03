@@ -72,18 +72,18 @@ struct ModelMarkerObject: public SceneObject {
  * \todo add support for the deletion of joints and visuals. Currently it
  * is assumed that the number of joints and visuals is constant.
  */
-struct MarkerModel {
-	MarkerModel():
+struct Model {
+	Model():
 		scene(NULL),
 		luaTable(NULL),
 		rbdlModel(NULL)
 	{}
-	MarkerModel(Scene* scene_) :
+	Model(Scene* scene_) :
 		scene (scene_),
 		luaTable (NULL),
 		rbdlModel (NULL)
 	{}
-	~MarkerModel();
+	~Model();
 
 	Scene *scene;
 	LuaTable *luaTable;
@@ -210,8 +210,8 @@ struct MarkerModel {
 	void updateSceneObjects();
 
 	private:
-		MarkerModel(const MarkerModel &model) {}
-		MarkerModel& operator=(const MarkerModel &model) { return *this; }
+		Model(const Model &model) {}
+		Model & operator=(const Model &model) { return *this; }
 };
 
 /* MARKER_MODEL_H */

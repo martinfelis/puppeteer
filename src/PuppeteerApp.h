@@ -24,18 +24,18 @@
 #include <tclap/CmdLine.h>
 
 struct Scene;
-struct MarkerModel;
+struct Model;
 struct MarkerData;
 struct ModelFitter;
 struct Animation;
 
-class QtGLBaseApp : public QMainWindow, public Ui::MainWindow
+class PuppeteerApp : public QMainWindow, public Ui::MainWindow
 {
     Q_OBJECT
 
 public:
-    QtGLBaseApp(QWidget *parent = 0);
-		virtual ~QtGLBaseApp();
+    PuppeteerApp(QWidget *parent = 0);
+		virtual ~PuppeteerApp();
 
 		bool parseArgs(int argc, char* argv[]);
 		bool loadModelFile (const char* filename);
@@ -47,7 +47,7 @@ protected:
 		QTimer *playbackTimer;
 		QTime *previousPlaybackTime;
 		Scene *scene;
-		MarkerModel *markerModel;
+		Model *markerModel;
 		MarkerData *markerData;
 		ModelFitter *modelFitter;
 		Animation *animationData;

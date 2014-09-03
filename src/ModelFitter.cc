@@ -1,6 +1,6 @@
 #include "ModelFitter.h"
 
-#include "MarkerModel.h"
+#include "Model.h"
 #include "MarkerData.h"
 #include "Animation.h"
 #include <fstream>
@@ -36,7 +36,7 @@ ModelFitter::ModelFitter() {
 	internal = new ModelFitterInternal();
 }
 
-ModelFitter::ModelFitter (MarkerModel *model, MarkerData *data) :
+ModelFitter::ModelFitter (Model *model, MarkerData *data) :
 		model (model),
 		data (data),
 		tolerance (1.0e-8),

@@ -1,7 +1,7 @@
 #ifndef MARKER_MODEL_LUA_TYPES
 #define MARKER_MODEL_LUA_TYPES
 
-#include "MarkerModel.h"
+#include "Model.h"
 #include <rbdl/rbdl_math.h>
 #include <rbdl/addons/luamodel/luatables.h>
 

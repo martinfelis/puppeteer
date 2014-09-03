@@ -8,7 +8,7 @@
 
 #include <QApplication>
 
-#include "QtGLBaseApp.h"
+#include "PuppeteerApp.h"
 
 #include <iostream>
 
@@ -17,7 +17,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
-	QtGLBaseApp *main_window = new QtGLBaseApp;
+	PuppeteerApp *main_window = new PuppeteerApp;
 
 	main_window->show();
 	if (!main_window->parseArgs (argc, argv)) {
