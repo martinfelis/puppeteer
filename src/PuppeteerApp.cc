@@ -196,7 +196,7 @@ bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
     // the basic definition of the command parser line cites a description for the 
     // program the delimiter to be applied on the command line as well as the
     // version number of the program
-    TCLAP::CmdLine cmd("::: Puppeteer ::: Subject specific modeling and kinematic fitting tool",' ', "0.1");
+    TCLAP::CmdLine cmd("Puppeteer - Subject specific modeling and kinematic fitting tool",' ', "0.1");
         
     // now we have to populate the command line object by adding command line
     // options to it. These command line options are adjusted to a specific
@@ -1005,20 +1005,20 @@ void PuppeteerApp::modelStateValueChanged (QtProperty *property, double value) {
 void PuppeteerApp::modelStatePlotVisibleChanged (QtProperty *property, int state) {
 	assert (markerModel);
 
-	if (!propertyToStateIndex.contains(property)) {
+	if (!propertyToStateIndex.contains(property) || !dockDataChart->isVisible()) {
 		return;
 	}
 
 	updateGraph();
 }
 
-void PuppeteerApp::modelStatePlotColorChanged (QtProperty *property, QColor color) {
-  assert (markerModel);
+void PuppeteerApp::modelStatePlotColorChanged(QtProperty *property, QColor color) {
+    assert (markerModel);
 
-  if (!propertyToStateIndex.contains(property)) {
-    return;
-  }
-  updateGraph();
+    if (!propertyToStateIndex.contains(property) || !dockDataChart->isVisible()) {
+        return;
+    }
+    updateGraph();
 }
 
 void PuppeteerApp::valueChanged (QtProperty *property, double value) {
