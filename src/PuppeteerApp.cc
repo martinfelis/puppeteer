@@ -782,12 +782,20 @@ void PuppeteerApp::updatePropertiesForFrame (unsigned int frame_id) {
 		registerProperty (center_property, (std::string ("visuals_") + visual_name + "_center").c_str());
 		visual_property->addSubProperty (center_property);
 
-		// dimensions
-		QtProperty *dimensions_property = vector3DPropertyManager->addProperty("dimensions");
-		Vector3f dimensions = markerModel->getVisualDimensions (frame_id, visual_id);
-		vector3DPropertyManager->setValue (dimensions_property, QVector3D (dimensions[0], dimensions[1], dimensions[2]));
-		registerProperty (dimensions_property, (std::string ("visuals_") + visual_name + "_dimensions").c_str());
-		visual_property->addSubProperty (dimensions_property);
+		// dimensions or scale
+		if (markerModel->visualUsesDimensions (frame_id, visual_id)) {
+			QtProperty *dimensions_property = vector3DPropertyManager->addProperty("dimensions");
+			Vector3f dimensions = markerModel->getVisualDimensions (frame_id, visual_id);
+			vector3DPropertyManager->setValue (dimensions_property, QVector3D (dimensions[0], dimensions[1], dimensions[2]));
+			registerProperty (dimensions_property, (std::string ("visuals_") + visual_name + "_dimensions").c_str());
+			visual_property->addSubProperty (dimensions_property);
+		} else {
+			QtProperty *scale_property = vector3DPropertyManager->addProperty("scale");
+			Vector3f scale = markerModel->getVisualScale (frame_id, visual_id);
+			vector3DPropertyManager->setValue (scale_property, QVector3D (scale[0], scale[1], scale[2]));
+			registerProperty (scale_property, (std::string ("visuals_") + visual_name + "_scale").c_str());
+			visual_property->addSubProperty (scale_property);
+		}
 
 		// color
 		QtProperty *color_property = colorManager->addProperty("color");
@@ -1070,6 +1078,9 @@ void PuppeteerApp::valueChanged (QtProperty *property, QVector3D value) {
 		if (visual_property == "dimensions") {
 			Vector3f dimensions (value.x(), value.y(), value.z());
 			markerModel->setVisualDimensions (activeModelFrame, visual_id, dimensions);
+		} else if (visual_property == "scale") {
+			Vector3f scale (value.x(), value.y(), value.z());
+			markerModel->setVisualScale (activeModelFrame, visual_id, scale);
 		} else if (visual_property == "center") {
 			Vector3f center (value.x(), value.y(), value.z());
 			markerModel->setVisualCenter (activeModelFrame, visual_id, center);

@@ -861,13 +861,13 @@ MeshVBO CreateCylinder (unsigned int segments) {
 		float c1 = cos (r1); 
 		float s1 = sin (r1); 
 
-		Vector3f normal0 (c0, s0, 0.f);
-		Vector3f normal1 (c1, s1, 0.f);
+		Vector3f normal0 (-c0, -s0, 0.f);
+		Vector3f normal1 (-c1, -s1, 0.f);
 
-		Vector3f p0 = normal0 - Vector3f (0., 0.,  0.5f);
-		Vector3f p1 = normal0 - Vector3f (0., 0., -0.5f);
-		Vector3f p2 = normal1 - Vector3f (0., 0.,  0.5f);
-		Vector3f p3 = normal1 - Vector3f (0., 0., -0.5f);
+		Vector3f p0 = normal0 + Vector3f (0., 0.,  0.5f);
+		Vector3f p1 = normal0 + Vector3f (0., 0., -0.5f);
+		Vector3f p2 = normal1 + Vector3f (0., 0.,  0.5f);
+		Vector3f p3 = normal1 + Vector3f (0., 0., -0.5f);
 
 		result.addVertex3fv (p0.data());
 		result.addNormalfv (normal0.data());

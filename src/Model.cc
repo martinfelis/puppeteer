@@ -468,14 +468,31 @@ Vector3f Model::getVisualDimensions (int frame_id, int visuals_index) {
 	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["dimensions"] ;
 }
 
+void Model::setVisualScale (int frame_id, int visuals_index, const Vector3f &scale) {
+	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["scale"] = scale;
+	updateFromLua();
+}
+
+Vector3f Model::getVisualScale (int frame_id, int visuals_index) {
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["scale"].getDefault(Vector3f (1.f, 1.f, 1.f)) ;
+}
+
 void Model::setVisualCenter (int frame_id, int visuals_index, const Vector3f &center) {
 	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_center"] = center;
-	cout << "Set center = " << center.transpose() << endl;
 	updateFromLua();
 }
 
 Vector3f Model::getVisualCenter(int frame_id, int visuals_index) {
 	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_center"] ;
+}
+
+void Model::setVisualTranslate (int frame_id, int visuals_index, const Vector3f &translate) {
+	(*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_translate"] = translate;
+	updateFromLua();
+}
+
+Vector3f Model::getVisualTranslate(int frame_id, int visuals_index) {
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["mesh_translate"] ;
 }
 
 void Model::setVisualColor (int frame_id, int visuals_index, const Vector3f &color) {
@@ -485,6 +502,14 @@ void Model::setVisualColor (int frame_id, int visuals_index, const Vector3f &col
 
 Vector3f Model::getVisualColor(int frame_id, int visuals_index) {
 	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["color"] ;
+}
+
+bool Model::visualUsesTranslate (int frame_id, int visuals_index) {
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["translate"].exists();
+}
+
+bool Model::visualUsesDimensions (int frame_id, int visuals_index) {
+	return (*luaTable)["frames"][frame_id]["visuals"][visuals_index]["dimensions"].exists();
 }
 
 void Model::adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r) {
@@ -657,82 +682,85 @@ void Model::updateFromLua() {
 				visual_scene_object->color[3] = 0.8;
 				visual_scene_object->data = visual_data;
 
-                MeshVBO temp_mesh;
+				MeshVBO temp_mesh;
 
-                string mesh_filename = visual_data.src;
-                bool have_geometry = (*luaTable)["frames"][i]["visuals"][vi]["geometry"].exists();
+				string mesh_filename = visual_data.src;
+				bool have_geometry = (*luaTable)["frames"][i]["visuals"][vi]["geometry"].exists();
 
-                if (have_geometry && mesh_filename != "") {
-                    cerr << "Error updating model: visual " << vi << " in frame " << i << ": attributes 'src' and 'geometry' are exclusive!" << endl;
-                    abort();
-                } else if (have_geometry) {
-                    if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["box"].exists()) {
-                        Vector3f dimensions = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["box"]["dimensions"].getDefault (Vector3f (1.f, 1.f, 1.f));
-                        temp_mesh = CreateCuboid(dimensions[0], dimensions[1], dimensions[2]);
-                    } else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"].exists()) {
-                        float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["radius"].getDefault (1.f);
-                        unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["rows"].getDefault (16.));
-                        unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["segments"].getDefault (16.));
-                        temp_mesh.join (SimpleMath::GL::ScaleMat44(radius, radius, radius), CreateUVSphere(rows, segments));
-                    } else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"].exists()) {
-                        float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["radius"].getDefault (1.f);
-                        float length = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["length"].getDefault (2.f);
-                        unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["rows"].getDefault (16.));
-                        unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["segments"].getDefault (16.));
-                        temp_mesh.join (SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f), CreateCapsule(rows, segments, length, radius));
-                    } else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"].exists()) {
-                        float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["radius"].getDefault (1.f);
-                        float length = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["length"].getDefault (2.f);
-                        unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["rows"].getDefault (16.));
-                        unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["segments"].getDefault (16.));
-                        temp_mesh.join (SimpleMath::GL::ScaleMat44(radius, radius, length) * SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f) , CreateCylinder(segments));
-                    } else {
-                        vector<LuaKey> keys = (*luaTable)["frames"][i]["visuals"][vi]["geometry"].keys();
-                        if (keys.size() == 1) {
-                            cerr << "Error updating model: visual " << vi << " in frame " << i << ": unknown geometry type '" << keys[0] << "'" << endl;
-                            abort();
-                        } else {
-                            cerr << "Error updating model: visual " << vi << " in frame " << i << ": invalid geometry description." << endl;
-                            abort();
-                        }
-                    }
-                } else if (mesh_filename != "") {
-                    if (mesh_filename.find (':') != string::npos) {
-                        string submesh_name = mesh_filename.substr (mesh_filename.find(':') + 1, mesh_filename.size());
-                        mesh_filename = mesh_filename.substr (0, mesh_filename.find(':'));
-                        string mesh_file_location = find_mesh_file_by_name (mesh_filename);
+				if (have_geometry && mesh_filename != "") {
+					cerr << "Error updating model: visual " << vi << " in frame " << i << ": attributes 'src' and 'geometry' are exclusive!" << endl;
+					abort();
+				} else if (have_geometry) {
+					if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["box"].exists()) {
+						Vector3f dimensions = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["box"]["dimensions"].getDefault (Vector3f (1.f, 1.f, 1.f));
+						temp_mesh = CreateCuboid(dimensions[0], dimensions[1], dimensions[2]);
+					} else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"].exists()) {
+						float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["radius"].getDefault (1.f);
+						unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["rows"].getDefault (16.));
+						unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["sphere"]["segments"].getDefault (16.));
+						temp_mesh.join (SimpleMath::GL::ScaleMat44(radius, radius, radius), CreateUVSphere(rows, segments));
+					} else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"].exists()) {
+						float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["radius"].getDefault (1.f);
+						float length = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["length"].getDefault (2.f);
+						unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["rows"].getDefault (16.));
+						unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["capsule"]["segments"].getDefault (16.));
+						temp_mesh.join (SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f), CreateCapsule(rows, segments, length, radius));
+					} else if ((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"].exists()) {
+						float radius = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["radius"].getDefault (1.f);
+						float length = (*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["length"].getDefault (2.f);
+						unsigned int rows = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["rows"].getDefault (16.));
+						unsigned int segments = static_cast<unsigned int>((*luaTable)["frames"][i]["visuals"][vi]["geometry"]["cylinder"]["segments"].getDefault (16.));
+						temp_mesh.join (SimpleMath::GL::ScaleMat44(radius, radius, length) * SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f) , CreateCylinder(segments));
+					} else {
+						vector<LuaKey> keys = (*luaTable)["frames"][i]["visuals"][vi]["geometry"].keys();
+						if (keys.size() == 1) {
+							cerr << "Error updating model: visual " << vi << " in frame " << i << ": unknown geometry type '" << keys[0] << "'" << endl;
+							abort();
+						} else {
+							cerr << "Error updating model: visual " << vi << " in frame " << i << ": invalid geometry description." << endl;
+							abort();
+						}
+					}
+				} else if (mesh_filename != "") {
+					if (mesh_filename.find (':') != string::npos) {
+						string submesh_name = mesh_filename.substr (mesh_filename.find(':') + 1, mesh_filename.size());
+						mesh_filename = mesh_filename.substr (0, mesh_filename.find(':'));
+						string mesh_file_location = find_mesh_file_by_name (mesh_filename);
 
-                        if (!temp_mesh.loadOBJ(mesh_file_location.c_str(), submesh_name.c_str())) {
-                            cerr << "Error: could not load submesh '" << submesh_name << "' from mesh file '" << mesh_file_location << "'!" << endl;
-                            abort();
-                        }
-                    } else {
-                        string mesh_file_location = find_mesh_file_by_name (mesh_filename);
-                        if (!temp_mesh.loadOBJ(mesh_file_location.c_str())) {
-                            cerr << "Error: could not load mesh file '" << mesh_file_location << "'!" << endl;
-                            abort();
-                        }
-                    }
-                } else {
-                    cerr << "Error updating model: visual " << vi << " in frame " << i << ": neither 'src' nor 'geometry' found!" << endl;
-                    abort();
-                }
+						if (!temp_mesh.loadOBJ(mesh_file_location.c_str(), submesh_name.c_str())) {
+							cerr << "Error: could not load submesh '" << submesh_name << "' from mesh file '" << mesh_file_location << "'!" << endl;
+							abort();
+						}
+					} else {
+						string mesh_file_location = find_mesh_file_by_name (mesh_filename);
+						if (!temp_mesh.loadOBJ(mesh_file_location.c_str())) {
+							cerr << "Error: could not load mesh file '" << mesh_file_location << "'!" << endl;
+							abort();
+						}
+					}
+				} else {
+					cerr << "Error updating model: visual " << vi << " in frame " << i << ": neither 'src' nor 'geometry' found!" << endl;
+					abort();
+				}
 
 				temp_mesh.center();
 				MeshVBO mesh;
 				mesh.join(SimpleMath::GL::RotateMat44(90.f, 1.f, 0.f, 0.f), temp_mesh);
 				visual_scene_object->mesh = mesh;
 
-				// setup of the transformation
 				Transformation object_transformation = joint_scene_object->transformation;
-				Vector3f bbox_size (mesh.bbox_max - mesh.bbox_min);
-				Vector3f scale (
-						fabs(visual_data.dimensions[0]) / bbox_size[0],
-						fabs(visual_data.dimensions[1]) / bbox_size[1],
-						fabs(visual_data.dimensions[2]) / bbox_size[2]
-						);
-
-				object_transformation.scaling = scale;
+				if ( visual_data.dimensions.norm() < 1.0e-8) {
+					object_transformation.scaling = visual_data.scale;
+				} else {
+					// setup of the transformation
+					Vector3f bbox_size (mesh.bbox_max - mesh.bbox_min);
+					Vector3f scale (
+							fabs(visual_data.dimensions[0]) / bbox_size[0],
+							fabs(visual_data.dimensions[1]) / bbox_size[1],
+							fabs(visual_data.dimensions[2]) / bbox_size[2]
+							);
+					object_transformation.scaling = scale;
+				}
 
 				object_transformation.translation = object_transformation.translation + object_transformation.rotation.rotate (visual_data.mesh_center);
 				

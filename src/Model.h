@@ -183,10 +183,17 @@ struct Model {
 
 	void setVisualDimensions (int frame_id, int visuals_index, const Vector3f &dimensions);
 	Vector3f getVisualDimensions (int frame_id, int visuals_index);
+	void setVisualScale (int frame_id, int visuals_index, const Vector3f &scale);
+	Vector3f getVisualScale (int frame_id, int visuals_index);
+	void setVisualTranslate (int frame_id, int visuals_index, const Vector3f &translate);
+	Vector3f getVisualTranslate(int frame_id, int visuals_index);
 	void setVisualCenter (int frame_id, int visuals_index, const Vector3f &center);
 	Vector3f getVisualCenter(int frame_id, int visuals_index);
 	void setVisualColor (int frame_id, int visuals_index, const Vector3f &color);
 	Vector3f getVisualColor(int frame_id, int visuals_index);
+
+	bool visualUsesTranslate (int frame_id, int visuals_index);
+	bool visualUsesDimensions (int frame_id, int visuals_index);
 
 	void adjustParentVisualsScale (int frame_id, const Vector3f &old_r, const Vector3f &new_r);
 

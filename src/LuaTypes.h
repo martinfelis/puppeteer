@@ -332,8 +332,8 @@ template<> VisualsData LuaTableNode::getDefault<VisualsData>(const VisualsData &
 	if (stackQueryValue()) {
 		LuaTable visuals_table = LuaTable::fromLuaState (luaTable->L);
 
-		result.scale = visuals_table["scale"].getDefault(Vector3f (-1.f, -1.f, -1.f));
-		result.dimensions = visuals_table["dimensions"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+		result.scale = visuals_table["scale"].getDefault(Vector3f (1.f, 1.f, 1.f));
+		result.dimensions = visuals_table["dimensions"].getDefault(Vector3f (0.f, 0.f, 0.f));
 		if (visuals_table["color"].length() == 4) 
 			result.color = visuals_table["color"].getDefault(Vector4f (-1.f, -1.f, -1.f, 1.f));
 		else {
