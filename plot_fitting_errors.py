@@ -4,10 +4,36 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import pylab
 import numpy
+import sys
 
-data_array = numpy.genfromtxt("fitting_log.csv", delimiter=',', names=True)
+def usage (arg0):
+    print ("Usage: {} [filename.log] [--pdf] [--png]".format(arg0))
+    print ("Plots fitting errors for the given filename.")
+    print ("--pdf     Save pdf of the plot as [filename].pdf")
+    print ("--png     Save png of the plot as [filename].png")
+    sys.exit(1)
 
-figure = plt.figure(figsize=(12,6))
+filename = "fitting_log.csv"
+save_pdf = False
+save_png = False
+if len(sys.argv) > 1:
+    filename = sys.argv[1]
+
+if len(sys.argv) > 2:
+    index = 2
+    while index < len(sys.argv):
+        arg = sys.argv[index]
+        if arg == "--pdf":
+            save_pdf = True
+        elif arg == "--png":
+            save_png = True
+        else:
+            usage (sys.argv[0])
+        index = index + 1
+
+data_array = numpy.genfromtxt(filename, delimiter=',', names=True)
+
+figure = plt.figure(figsize=(15,7))
 
 ax1 = plt.subplot(1, 3, 1)
 marker_names = data_array.dtype.names[2:]
@@ -30,7 +56,7 @@ ax1.legend()
 ax1.set_title ('Average Marker Errors')
 ax1.set_ylabel ('(m)')
 pylab.xlim([0, marker_count])
-pylab.ylim([0, 0.035])
+pylab.ylim([0, 0.08])
 
 ax2 = plt.subplot(1, 3, 2)
 
@@ -41,7 +67,7 @@ for col_name in sorted(marker_names):
 
 ax2.set_title ('Marker Error per Capture Frame')
 ax2.set_ylabel ('(m)')
-pylab.ylim([0, 0.035])
+pylab.ylim([0, 0.08])
 
 ax3 = plt.subplot(1, 3, 3)
 ax3.set_title ('IK Steps')
@@ -50,5 +76,13 @@ ax3.axhline(numpy.average(data_array['steps']), label="average", color="red")
 pylab.xlim ([0, len(data_array['frame'])])
 pylab.ylim ([0, 100])
 
+figure.canvas.set_window_title (filename)
+
 plt.subplots_adjust(left=0.08, right = 0.98)
+if save_pdf:
+    plt.savefig (filename[:-3] + "pdf", format='pdf')
+
+if save_png:
+    plt.savefig (filename[:-3] + "png", format='png')
+     
 plt.show()
