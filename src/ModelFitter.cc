@@ -81,7 +81,7 @@ bool LevenbergMarquardtIK (
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
-			rbdlMatrixNd G (3, model.qdot_size);
+			rbdlMatrixNd G (rbdlMatrixNd::Zero(3, model.qdot_size));
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
 
@@ -158,7 +158,7 @@ bool SugiharaIK (
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
-			rbdlMatrixNd G (3, model.qdot_size);
+			rbdlMatrixNd G (rbdlMatrixNd::Zero(3, model.qdot_size));
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
 
@@ -235,7 +235,7 @@ bool SugiharaTaskSpaceIK (
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
-			rbdlMatrixNd G (3, model.qdot_size);
+			rbdlMatrixNd G (rbdlMatrixNd::Zero(3, model.qdot_size));
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			rbdlVector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
 
