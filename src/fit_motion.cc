@@ -7,6 +7,17 @@
 #include "Animation.h"
 #include "ModelFitter.h"
 
+/* workaround when using ubuntu versions (e.g. 14.04) that are affected by
+ * https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers-319/+bug/1248642
+ * see also CMakeLists.txt where fit_motion is explicitly linked against
+ * pthread.
+ */
+#include <pthread.h>
+void fix_nvidia_linking_new_ubuntu () {
+	int i;
+	i = pthread_getconcurrency();
+}
+
 using namespace std;
 
 Model *model = NULL;

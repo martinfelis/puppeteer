@@ -25,13 +25,9 @@ FIND_PACKAGE( Boost COMPONENTS system REQUIRED )
 
 ADD_DEFINITIONS (${QT_DEFINITIONS})
 
-INCLUDE_DIRECTORIES (  ${Boost_INCLUDE_DIRS} 
-  ${LIBTCLAP_INCLUDE_DIRS}
-  )
+INCLUDE_DIRECTORIES (  ${Boost_INCLUDE_DIRS} )
 
-LINK_DIRECTORIES(   ${Boost_LINKS_DIRS} 
-  ${LIBTCLAP_LIBRARY_DIRS}
-  )
+LINK_DIRECTORIES(   ${Boost_LINKS_DIRS} )
 
 INCLUDE (${QT_USE_FILE})
 
@@ -140,9 +136,8 @@ if(VTK_LIBRARIES)
       QtPropertyBrowser
       ${OPENGL_LIBRARIES}
       ${Boost_SYSTEM_LIBRARY}
-      ${VTK_LIBRARIES} QVTK
-  ${LIBTCLAP_LIBRARIES}
-
+			${VTK_LIBRARIES} 
+			QVTK
       )
   else()
     target_link_libraries(puppeteer 
@@ -150,9 +145,7 @@ if(VTK_LIBRARIES)
       ${QT_LIBRARIES}
       QtPropertyBrowser
       ${Boost_SYSTEM_LIBRARY}
-      ${VTK_LIBRARIES}
-  ${LIBTCLAP_LIBRARIES}
-
+			${VTK_LIBRARIES}
       )
   endif()
 else()
@@ -165,16 +158,13 @@ else()
     vtkHybrid 
     QVTK 
     vtkViews 
-    ${QT_LIBRARIES}
-  ${LIBTCLAP_LIBRARIES}
-
+		${QT_LIBRARIES}
     )
 endif()
 
-
-
 TARGET_LINK_LIBRARIES ( fit_motion
   SceneGL
+	-lpthread # fix_nvidia_linking_new_ubuntu
   )
 
 # Installation
