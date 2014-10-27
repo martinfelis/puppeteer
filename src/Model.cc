@@ -304,7 +304,7 @@ void Model::updateSceneObjects() {
 		joint_transformation.translation = joint_transformation.translation + joint_transformation.rotation.rotate (mesh_center);
 
 		visuals[i]->transformation.translation = joint_transformation.translation;
-		visuals[i]->transformation.rotation = joint_transformation.rotation;
+		visuals[i]->transformation.rotation = joint_transformation.rotation * visuals[i]->data.orientation;
 	}
 
 	for (size_t i = 0; i < modelMarkers.size(); i++) {

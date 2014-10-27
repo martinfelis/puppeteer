@@ -27,6 +27,7 @@ struct VisualsData {
 		color (1.f, 1.f, 1.f, 1.f),
 		mesh_center (-1.f, -1.f, -1.f),
 		translate (-1.f, -1.f, -1.f),
+		orientation (),
 		src ("")
 	{}
 
@@ -35,9 +36,9 @@ struct VisualsData {
 	Vector4f color;
 	Vector3f mesh_center;
 	Vector3f translate;
+	SimpleMath::GL::Quaternion orientation;
 	std::string src;
 };
-
 
 struct JointObject : public SceneObject {
 	int frameId;

@@ -342,6 +342,14 @@ template<> VisualsData LuaTableNode::getDefault<VisualsData>(const VisualsData &
 		}
 		result.mesh_center = visuals_table["mesh_center"].getDefault(Vector3f (-1.f, -1.f, -1.f));
 		result.translate = visuals_table["translate"].getDefault(Vector3f (-1.f, -1.f, -1.f));
+
+		if (visuals_table["rotate"].exists()) {
+			Vector3f axis = visuals_table["rotate"]["axis"];
+			double angle = visuals_table["rotate"]["angle"];
+
+			result.orientation = SimpleMath::GL::Quaternion::fromGLRotate (angle, axis[0], axis[1], axis[2]);
+		}
+
 		result.src = visuals_table["src"].getDefault<std::string>("");
 	}
 
