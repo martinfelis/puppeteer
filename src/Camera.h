@@ -23,6 +23,9 @@ struct Camera {
 	Vector3f eye;
 	Vector3f up;
 
+	int width;
+	int height;
+
 	float phi;
 	float theta;
 	float r;
@@ -37,6 +40,7 @@ struct Camera {
 	void setFrontView();
 	void setSideView();
 	void setTopView();
+	void setSize (int width_, int height_);
 
 	void move (float screen_x, float screen_y);
 	void zoom (float screen_y);

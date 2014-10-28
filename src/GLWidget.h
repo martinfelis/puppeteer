@@ -13,6 +13,7 @@
 
 #include <QGLWidget>
 #include <QGLFramebufferObject>
+#include <QImage>
 
 #include <iostream>
 #include <SimpleMath/SimpleMath.h>
@@ -35,6 +36,7 @@ class GLWidget : public QGLWidget
 		void setCameraEye (const Vector3f &eye) { camera.eye = eye; }
 
 		void setScene (Scene* scene_ptr) { scene = scene_ptr; };
+		QImage renderContentOffscreen (int image_width, int image_height, bool use_alpha);
 
 		bool draw_base_axes;
 		bool draw_grid;

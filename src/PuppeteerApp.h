@@ -9,6 +9,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QTime>
 #include <QTimer>
 #include <QTimeLine>
 #include <QVector3D>
@@ -16,6 +17,12 @@
 #include "qtpropertymanager.h"
 #include "qteditorfactory.h"
 #include "ui_MainWindow.h"
+
+extern "C" {
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+}
 
 #include "vtkChart/chartXY.h"
 
@@ -37,20 +44,25 @@ public:
     PuppeteerApp(QWidget *parent = 0);
 		virtual ~PuppeteerApp();
 
-		bool parseArgs(int argc, char* argv[]);
-		bool loadModelFile (const char* filename);
-		bool loadMocapFile (const char* filename, const bool rotateZ = false);
-		bool loadAnimationFile (const char* filename);
-
-protected:
-		QTimer *drawTimer;
-		QTimer *playbackTimer;
-		QTime *previousPlaybackTime;
+		lua_State *L;
 		Scene *scene;
 		Model *markerModel;
 		MarkerData *markerData;
 		ModelFitter *modelFitter;
 		Animation *animationData;
+
+		bool parseArgs(int argc, char* argv[]);
+		bool loadModelFile (const char* filename);
+		bool loadMocapFile (const char* filename, const bool rotateZ = false);
+		bool loadAnimationFile (const char* filename);
+		bool saveScreenShot (const char* filename, int width, int height, bool alpha_channel);
+		double getCurrentTime ();
+
+protected:
+		QTimer *drawTimer;
+		QTimer *playbackTimer;
+		QTime updateTime;
+		QTime previousPlaybackTime;
 		int activeModelFrame;
 		int activeObject;
 
@@ -116,6 +128,7 @@ public slots:
 		void updatePropertiesEditor (int object_id);
 		void updatePropertiesForFrame (unsigned int frame_id);
 
+		void drawScene();
 		void playButtonClicked (bool checked);
 		void advanceFrame ();
 

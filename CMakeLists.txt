@@ -46,6 +46,7 @@ SET ( SCENEGL_SRCS
 	src/MarkerData.cc
 	src/Animation.cc
 	src/ModelFitter.cc
+	src/Scripting.cc
 	)
 
 SET ( QtGLBaseApp_SRCS

@@ -43,6 +43,7 @@ struct MarkerData {
 		}
 		return false;
 	}
+	void clearMarkers ();
 	void enableMarker (const char* marker_name, const Vector3f &color);
 	bool loadFromFile (const char* filename);
 	bool markerExists (const char* marker_name);

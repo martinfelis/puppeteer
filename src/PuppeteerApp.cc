@@ -21,6 +21,7 @@
 #include "MarkerData.h"
 #include "ModelFitter.h"
 #include "Animation.h"
+#include "Scripting.h"
 
 #include <sys/time.h>
 #include <ctime>
@@ -51,6 +52,8 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 {
 	setupUi(this); // this sets up GUI
 
+	L = NULL;
+
 	// create Scene
 	scene = new Scene;	
 	glWidget->setScene (scene);
@@ -67,7 +70,9 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	drawTimer->start(20);
 
 	playbackTimer = new QTimer (this);
-	previousPlaybackTime = new QTime();
+	previousPlaybackTime.start();
+	
+	updateTime.start();
 
 	dockModelStateEditor->setVisible(false);
 	dockDataChart->setVisible(false);
@@ -93,7 +98,7 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	connect (actionQuit, SIGNAL( triggered() ), this, SLOT( quitApplication() ));
 
 	// call the drawing function
-	connect (drawTimer, SIGNAL(timeout()), glWidget, SLOT (updateGL()));
+	connect (drawTimer, SIGNAL(timeout()), this, SLOT (drawScene()));
 
 	// object selection
 	connect (glWidget, SIGNAL(object_selected(int)), this, SLOT (objectSelected(int)));
@@ -188,60 +193,68 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 }
 
 void print_usage(const char* execname) {
-	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> <animation.csv>" << endl;
+	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> <animation.csv> [-s scriptfile.lua]" << endl;
 }
 
 bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
-  try {
-    // the basic definition of the command parser line cites a description for the 
-    // program the delimiter to be applied on the command line as well as the
-    // version number of the program
-    TCLAP::CmdLine cmd("Puppeteer - Subject specific modeling and kinematic fitting tool",' ', "0.1");
-        
-    // now we have to populate the command line object by adding command line
-    // options to it. These command line options are adjusted to a specific
-    // data type by means of a template argument. The constructor features
-    // the following arguments by order:
-    // # (const char*) option
-    // # (const char*) name of the option
-    // # (const char*) description of the option
-    // # (const char*) boolean to specify whether the argument is required to startup
-    // # (const char*) a default value 
-    // # (const char*) the data type of the value in const char*
-    // In our case we will use an unlabeled command line options. The only
-    // difference is now that the option parameter is missing. 
-    //
-    // NOTE: The order the unlabeled command line options are added to the 
-    //  parser is the order by which they are then parsed on the command line
-        
-    // [mandatory] command line option to specify the experiment to be loaded
-    // this always comes last
-    TCLAP::UnlabeledMultiArg<std::string> files_Arg("files", "<modelfile.lua> <mocapdata.c3d> <animation.csv>", false,"", "string");
+	string scripting_file = "";
 
-    // [optional] command line option to specify overwrite the output simulation
-    TCLAP::SwitchArg rotateMoCap_Swi("r", "rotate", "rotate Motion capturing data", false);
+	try {
+		// the basic definition of the command parser line cites a description for the 
+		// program the delimiter to be applied on the command line as well as the
+		// version number of the program
+		TCLAP::CmdLine cmd("puppeteer - motion capture fitting for the masses",' ', "0.1");
 
-    // than we may add the command line option to the command line parser
-    cmd.add( files_Arg );
-    cmd.add( rotateMoCap_Swi );
+		// now we have to populate the command line object by adding command line
+		// options to it. These command line options are adjusted to a specific
+		// data type by means of a template argument. The constructor features
+		// the following arguments by order:
+		// # (const char*) option
+		// # (const char*) name of the option
+		// # (const char*) description of the option
+		// # (const char*) boolean to specify whether the argument is required to startup
+		// # (const char*) a default value 
+		// # (const char*) the data type of the value in const char*
+		// In our case we will use an unlabeled command line options. The only
+		// difference is now that the option parameter is missing. 
+		//
+		// NOTE: The order the unlabeled command line options are added to the 
+		//  parser is the order by which they are then parsed on the command line
 
-    // then we do parse the command line
-    cmd.parse(argc, argv);
+		// [mandatory] command line option to specify the experiment to be loaded
+		// this always comes last
+		TCLAP::UnlabeledMultiArg<string> files_Arg("files", "<modelfile.lua> <mocapdata.c3d> <animation.csv>", false,"", "string");
 
-    std::vector<std::string> files = files_Arg.getValue();
-    for (std::vector<std::string>::iterator filePtr = files.begin(); filePtr != files.end(); filePtr++) {
-      std::string arg (*filePtr);
-		if (arg.substr(arg.size() - 4, 4) == ".lua")
-			loadModelFile (arg.c_str());
-		else if (arg.substr(arg.size() - 4, 4) == ".c3d")
-		  loadMocapFile (arg.c_str(), rotateMoCap_Swi.getValue());
-		else if (arg.substr(arg.size() - 4, 4) == ".csv")
-			loadAnimationFile (arg.c_str());
-		else {
-		  std::cerr << "!! WARNING::given file ::" << (*filePtr) << ":: is neither *.lua, *.c3d, *.csv" << std::endl;
-			return false;
+		// [optional] command line option to specify overwrite the output simulation
+		TCLAP::SwitchArg rotateMoCap_Swi("r", "rotate", "rotate Motion capturing data", false);
+
+		TCLAP::ValueArg<string> scripting_file_arg ("s", "script", "scripting file", false, "", "");
+
+		// than we may add the command line option to the command line parser
+		cmd.add( files_Arg );
+		cmd.add( rotateMoCap_Swi );
+		cmd.add( scripting_file_arg );
+
+		// then we do parse the command line
+		cmd.parse(argc, argv);
+
+		scripting_file = scripting_file_arg.getValue();
+
+		vector<string> files = files_Arg.getValue();
+		for (vector<string>::iterator filePtr = files.begin(); filePtr != files.end(); filePtr++) {
+			string arg (*filePtr);
+			if (arg.substr(arg.size() - 4, 4) == ".lua")
+				loadModelFile (arg.c_str());
+			else if (arg.substr(arg.size() - 4, 4) == ".c3d")
+				loadMocapFile (arg.c_str(), rotateMoCap_Swi.getValue());
+			else if (arg.substr(arg.size() - 4, 4) == ".csv")
+				loadAnimationFile (arg.c_str());
 		}
-	}
+	} catch (TCLAP::ArgException &e) {  // here we treat exception that may come 
+    // due to corrupt command line options
+    std::cerr << "Error: " << e.error() << " for arg " << e.argId() << std::endl;
+    abort();
+  }
 
 	if (markerModel) {
 		drawModelMarkersCheckBox->setEnabled(true);
@@ -270,11 +283,26 @@ bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
 			autoIKButton->setEnabled(true);
 		}
 	}
-  } catch (TCLAP::ArgException &e) {  // here we treat exception that may come 
-    // due to corrupt command line options
-    std::cerr << "!! WARNING::error: " << e.error() << " for arg " << e.argId() << std::endl;
-    abort();
-  }
+
+	if (scripting_file != "") {
+		scripting_init (this, scripting_file.c_str());
+	} else {
+		scripting_init (this, NULL);
+	}
+
+	if (L) {
+		int script_args_start = argc;
+		for (int i = 0; i < argc; i++) {
+			if (i < argc -2 && (string("-s") == argv[i] || string("--script") == argv[i])) {
+				script_args_start = i + 2;
+				break;
+			}
+		}
+		scripting_load (L, argc - script_args_start, &argv[script_args_start]);
+	}
+
+
+
 	return true;
 }
 
@@ -892,6 +920,13 @@ void PuppeteerApp::updatePropertiesForFrame (unsigned int frame_id) {
 	restoreExpandStateRecursive(propertiesBrowser->topLevelItems(), "");
 }
 
+void PuppeteerApp::drawScene() {
+	scripting_update (L, 1.0e-3f * static_cast<float>(updateTime.restart()) );
+	glWidget->updateGL();
+
+	scripting_draw (L);
+}
+
 void PuppeteerApp::playButtonClicked (bool checked) {
 	if (!toolButtonPlay->isChecked()) {
 		disconnect (playbackTimer, SIGNAL(timeout()), this, SLOT (advanceFrame()));
@@ -902,7 +937,7 @@ void PuppeteerApp::playButtonClicked (bool checked) {
 
 		playbackTimer->setSingleShot (false);
 		playbackTimer->start(20);
-		previousPlaybackTime->restart();
+		previousPlaybackTime.restart();
 
 		connect (playbackTimer, SIGNAL(timeout()), this, SLOT (advanceFrame()));
 	}
@@ -910,7 +945,7 @@ void PuppeteerApp::playButtonClicked (bool checked) {
 
 void PuppeteerApp::advanceFrame() {
 	int current_pos = captureFrameSlider->value();
-	int advancement = static_cast<int>(round(static_cast<double>(previousPlaybackTime->restart()) * playbackSpeedSpinBox->value()));
+	int advancement = static_cast<int>(round(static_cast<double>(previousPlaybackTime.restart()) * playbackSpeedSpinBox->value()));
 
 	if (current_pos + advancement > captureFrameSlider->maximum()) {
 		if (repeatCheckBox->checkState() == Qt::Checked) {
@@ -1271,4 +1306,13 @@ void PuppeteerApp::displayPoints (int display_state) {
 	for (int i = 0; i < markerModel->contactPoints.size(); i++) {
 		markerModel->contactPoints[i]->noDraw = no_draw;
 	}
+}
+
+bool PuppeteerApp::saveScreenShot (const char* filename, int width, int height, bool alpha_channel) {
+	QImage image = glWidget->renderContentOffscreen (width, height, alpha_channel);
+	image.save (filename, 0, -1);
+}
+
+double PuppeteerApp::getCurrentTime () {
+	return static_cast<double>(captureFrameSlider->value()) / TIME_SLIDER_RATE;
 }

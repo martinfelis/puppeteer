@@ -309,3 +309,42 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	colorPickingFrameBuffer->release();
 }
 
+QImage GLWidget::renderContentOffscreen (int image_width, int image_height, bool use_alpha) {
+	makeCurrent();
+
+	// set up the actual format (alpha channel, depth buffer)
+	QGLFramebufferObjectFormat buffer_format;
+	if (use_alpha)
+		buffer_format.setInternalTextureFormat(GL_RGBA);
+	else
+		buffer_format.setInternalTextureFormat(GL_RGB);
+	buffer_format.setAttachment (QGLFramebufferObject::Depth );
+
+	// create the buffer object
+	QGLFramebufferObject *fb = new QGLFramebufferObject(image_width, image_height, buffer_format);
+
+	// future drawing shall be performed into this buffer
+	fb->bind();
+
+	// resize to the desired size, draw, release, and resize again to the
+	// previous size
+
+	int old_width = width();
+	int old_height = height(); 
+
+	camera.setSize (image_width, image_height);
+	resizeGL(image_width, image_height);
+	paintGL();
+
+	fb->release();
+
+	resizeGL (old_width, old_height);
+
+	// now grab the buffer
+	QImage result = fb->toImage();
+
+	delete fb;
+
+	return result;
+}
+

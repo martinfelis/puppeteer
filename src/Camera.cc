@@ -53,7 +53,6 @@ void Camera::update(int width, int height) {
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
 
-	fov = 45;
 	GLfloat aspect = (GLfloat) width / (GLfloat) height;
 
 	if (orthographic) {
@@ -127,6 +126,11 @@ void Camera::setTopView () {
 		phi = 0. * M_PI / 180.;
 		theta = 180. * M_PI / 180.;
 	}
+}
+
+void Camera::setSize (int width_, int height_) {
+	width = width_;
+	height = height_;
 }
 
 void Camera::move (float screen_x, float screen_y) {

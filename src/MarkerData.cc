@@ -106,8 +106,15 @@ bool MarkerData::loadFromFile(const char *filename) {
 	enableMarker ("RD5T", Vector3f (1.f, 0.f, 0.f));
 	enableMarker ("RD2T", Vector3f (1.f, 0.f, 0.f));
 
-
 	return true;
+}
+
+void MarkerData::clearMarkers () {
+	for (unsigned int i = 0; i < markers.size(); i++) {
+		scene->destroyObject<MarkerObject>(markers[i]);
+	}
+
+	markers.clear();
 }
 
 void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {

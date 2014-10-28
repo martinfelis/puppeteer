@@ -48,12 +48,14 @@ struct Light {
 struct Scene {
 	Scene() :
 		lastObjectId (0),
-		mouseOverObjectId (-1)
+		mouseOverObjectId (-1),
+		lightingEnabled (true)
 	{}
 
 	int lastObjectId;
 	std::list<int> selectedObjectIds;
 	int mouseOverObjectId;
+	bool lightingEnabled;
 
 	void initShaders();
 	void draw();
