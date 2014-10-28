@@ -301,8 +301,6 @@ bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
 		scripting_load (L, argc - script_args_start, &argv[script_args_start]);
 	}
 
-
-
 	return true;
 }
 
@@ -921,10 +919,12 @@ void PuppeteerApp::updatePropertiesForFrame (unsigned int frame_id) {
 }
 
 void PuppeteerApp::drawScene() {
-	scripting_update (L, 1.0e-3f * static_cast<float>(updateTime.restart()) );
+	if (L)
+		scripting_update (L, 1.0e-3f * static_cast<float>(updateTime.restart()) );
 	glWidget->updateGL();
 
-	scripting_draw (L);
+	if (L)
+		scripting_draw (L);
 }
 
 void PuppeteerApp::playButtonClicked (bool checked) {
@@ -1315,4 +1315,9 @@ bool PuppeteerApp::saveScreenShot (const char* filename, int width, int height, 
 
 double PuppeteerApp::getCurrentTime () {
 	return static_cast<double>(captureFrameSlider->value()) / TIME_SLIDER_RATE;
+}
+
+void PuppeteerApp::setCurrentTime (double time_in_seconds) {
+	int value = static_cast<int>(time_in_seconds * TIME_SLIDER_RATE);
+	captureFrameSlider->setValue (value);
 }

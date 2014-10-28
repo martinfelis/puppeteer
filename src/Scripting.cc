@@ -437,11 +437,22 @@ static int puppeteer_getCurrentTime (lua_State *L) {
 	return 1;
 }
 
+///
+// @function puppeteer.setCurrentTime(time_in_seconds)
+static int puppeteer_setCurrentTime (lua_State *L) {
+	double time_argument = luaL_checknumber (L, 1);
+	app_ptr->setCurrentTime (time_argument);
+	lua_pushnumber (L, app_ptr->getCurrentTime());
+
+	return 1;
+}
+
 static const struct luaL_Reg puppeteer_f[] = {
 	{ "loadModel", puppeteer_loadModel},
 	{ "loadMarkerData", puppeteer_loadMarkerData},
 	{ "saveScreenShot", puppeteer_saveScreenShot},
 	{ "getCurrentTime", puppeteer_getCurrentTime},
+	{ "setCurrentTime", puppeteer_setCurrentTime},
 	{ NULL, NULL}
 };
 

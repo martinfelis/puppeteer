@@ -195,8 +195,6 @@ void GLWidget::paintGL() {
 	glVertex3f (0.f, 0.f, 1.f);
 	glEnd();
 
-	
-
 	drawScene();
 
 	glDisable(GL_LIGHTING);

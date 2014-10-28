@@ -57,6 +57,7 @@ public:
 		bool loadAnimationFile (const char* filename);
 		bool saveScreenShot (const char* filename, int width, int height, bool alpha_channel);
 		double getCurrentTime ();
+		void setCurrentTime (double time_in_seconds);
 
 protected:
 		QTimer *drawTimer;
