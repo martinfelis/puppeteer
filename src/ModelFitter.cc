@@ -36,12 +36,13 @@ ModelFitter::ModelFitter() {
 	internal = new ModelFitterInternal();
 }
 
-ModelFitter::ModelFitter (Model *model, MarkerData *data) :
+ModelFitter::ModelFitter (Model *model, MarkerData *data, unsigned int maxSteps) :
 		model (model),
 		data (data),
 		tolerance (1.0e-8),
 		success (false),
-		steps (0)
+		steps (0),
+		maxSteps (maxSteps)
 	{
 		internal = new ModelFitterInternal();
 	}
@@ -480,7 +481,7 @@ bool LevenbergMarquardtFitter::run (const VectorNd &_initialState) {
 
 	setup();
 
-	success = LevenbergMarquardtIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, lambda, 100, &steps, &residuals);
+	success = LevenbergMarquardtIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, lambda, maxSteps, &steps, &residuals);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
 
 	return success;
@@ -491,7 +492,7 @@ bool SugiharaFitter::run (const VectorNd &_initialState) {
 
 	setup();
 
-	success = SugiharaIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, 100, &steps, &residuals);
+	success = SugiharaIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, maxSteps, &steps, &residuals);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
 
 	return success;
@@ -502,7 +503,7 @@ bool SugiharaTaskSpaceFitter::run (const VectorNd &_initialState) {
 
 	setup();
 
-	success = SugiharaTaskSpaceIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, 100, &steps, &residuals);
+	success = SugiharaTaskSpaceIK (*(model->rbdlModel), internal->Qinit, internal->body_ids, internal->body_points, internal->target_pos, internal->Qres, tolerance, maxSteps, &steps, &residuals);
 	fittedState = ConvertVector<VectorNd, rbdlVectorNd> (internal->Qres);
 
 	return success;

@@ -74,7 +74,7 @@ ax3.set_title ('IK Steps')
 plt.plot(data_array['frame'], data_array['steps'], 'x')
 ax3.axhline(numpy.average(data_array['steps']), label="average", color="red")
 pylab.xlim ([0, len(data_array['frame'])])
-pylab.ylim ([0, 100])
+pylab.ylim ([0, 200])
 
 figure.canvas.set_window_title (filename)
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include "timer.h"
 
@@ -26,9 +27,12 @@ Animation *animation = NULL;
 ModelFitter *fitter = NULL;
 string fitter_method = "sugihara";
 bool analyze_mode = false;
+unsigned int max_steps = 100;
 
 void print_usage(const char* execname) {
-	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> [motion.csv] [--levenberg]" << endl;
+	cout << "Usage: " << execname << " <modelfile.lua> <mocapdata.c3d> [motion.csv] [--levenberg] [-s count]" << endl;
+	cout << "-s count    : sets the maximum number of IK steps to count (default 200)." << endl;
+	cout << "" << endl;
 	cout << "Note: when specifying motion file no inverse kinematics is performed. Instead it" << endl
 		<< "analyzes the the motion file and saves the result to the file fitting_log.csv" << endl;
 }
@@ -36,7 +40,15 @@ void print_usage(const char* execname) {
 bool parse_args (int argc, char* argv[]) {
 	for (int i = 1; i < argc; i++) {
 		std::string arg (argv[i]);
-		if (arg.substr(arg.size() - 4, 4) == ".lua") {
+		if ((arg == "-s") && (argc > i)) {
+			istringstream convert (argv[i + 1]);
+			if (!(convert >> max_steps)) {
+				cerr << "Error: cannot parse number argument of -s: " << argv[i+1] << endl;
+				return false;
+			}
+			i++;
+			continue;
+		} else if (arg.substr(arg.size() - 4, 4) == ".lua") {
 			model = new Model();
 			if (!model->loadFromFile (arg.c_str()))
 				return false;
@@ -53,7 +65,6 @@ bool parse_args (int argc, char* argv[]) {
 		} else if (arg == "--sugiharats") {
 			fitter_method = "sugiharats";
 		} else {
-			print_usage (argv[0]);
 			return false;
 		}
 	}
@@ -68,11 +79,11 @@ int main (int argc, char* argv[]) {
 		print_usage(argv[0]);
 
 	if (fitter_method == "sugihara") {
-		fitter = new SugiharaFitter(model, data);
+		fitter = new SugiharaFitter(model, data, max_steps);
 	} else if (fitter_method == "sugiharats") {
-		fitter = new SugiharaTaskSpaceFitter(model, data);
+		fitter = new SugiharaTaskSpaceFitter(model, data, max_steps);
 	} else {
-		fitter = new LevenbergMarquardtFitter (model, data);
+		fitter = new LevenbergMarquardtFitter (model, data, max_steps);
 	}
 
 	if (analyze_mode) {
