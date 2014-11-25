@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>PuppeteerMainWindow</class>
+ <widget class="QMainWindow" name="PuppeteerMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>900</width>
-    <height>798</height>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,7 @@
      <x>0</x>
      <y>0</y>
      <width>900</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -145,7 +145,7 @@
            <property name="minimumSize">
             <size>
              <width>235</width>
-             <height>300</height>
+             <height>250</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -195,7 +195,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>199</height>
+              <height>89</height>
              </rect>
             </property>
             <attribute name="label">
@@ -230,7 +230,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>199</height>
+              <height>89</height>
              </rect>
             </property>
             <attribute name="label">
@@ -265,8 +265,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>235</width>
-              <height>199</height>
+              <width>222</width>
+              <height>158</height>
              </rect>
             </property>
             <attribute name="label">

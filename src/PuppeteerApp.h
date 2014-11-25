@@ -16,7 +16,7 @@
 #include "QtVariantPropertyManager"
 #include "qtpropertymanager.h"
 #include "qteditorfactory.h"
-#include "ui_MainWindow.h"
+#include "ui_PuppeteerMainWindow.h"
 
 extern "C" {
 #include <lua.h>
@@ -36,7 +36,7 @@ struct MarkerData;
 struct ModelFitter;
 struct Animation;
 
-class PuppeteerApp : public QMainWindow, public Ui::MainWindow
+class PuppeteerApp : public QMainWindow, public Ui::PuppeteerMainWindow
 {
     Q_OBJECT
 
