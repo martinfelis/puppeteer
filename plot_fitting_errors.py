@@ -33,7 +33,7 @@ if len(sys.argv) > 2:
 
 data_array = numpy.genfromtxt(filename, delimiter=',', names=True)
 
-figure = plt.figure(figsize=(15,7))
+figure = plt.figure(figsize=(13,4))
 
 ax1 = plt.subplot(1, 3, 1)
 marker_names = data_array.dtype.names[2:]
@@ -78,7 +78,7 @@ pylab.ylim ([0, 200])
 
 figure.canvas.set_window_title (filename)
 
-plt.subplots_adjust(left=0.08, right = 0.98)
+plt.subplots_adjust(left=0.08, right = 0.98, bottom=0.2)
 if save_pdf:
     plt.savefig (filename[:-3] + "pdf", format='pdf')
 
