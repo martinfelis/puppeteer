@@ -848,9 +848,6 @@ bool Model::loadFromFile(const char* filename) {
 	LuaTable luatable_temp = LuaTable::fromFile (filename);
 	*luaTable = luatable_temp;
 
-	luatable_temp.deleteLuaState = false;
-	luaTable->deleteLuaState = true;
-
 	updateFromLua();
 	
 	return true;

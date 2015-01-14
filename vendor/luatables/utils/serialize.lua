@@ -80,7 +80,7 @@ function serialize (o, tabs, sorted)
   elseif type(o) == "boolean" then
     result = result .. tostring(o)
   elseif type(o) == "string" then
-    result = result .. string.format("%q", o)
+		result = result .. "\"" .. o .. "\""
 	elseif type(o) == "table" and islist(o) then
 		result = result .. "{"
 		local last_was_subtable = false
@@ -88,9 +88,11 @@ function serialize (o, tabs, sorted)
 			last_was_subtable = false
 			if type(v) == "table" then
 				last_was_subtable = true
-        result = result .. "\n" .. tabs .. "  " .. serialize(v, tabs .. "  ", sorted) .. ","
+				result = result .. "\n" .. tabs .. "  " .. serialize (v, tabs .. "  ", sorted) .. ","
+			elseif type(v) == "string" then
+				result = result .. " \"" .. v .. "\","
 			else
-				result = result .. " " .. tostring(v) .. ","
+				result = result .. " " .. tostring (v) .. ","
 			end
 		end
 		if last_was_subtable then
@@ -98,7 +100,7 @@ function serialize (o, tabs, sorted)
 		end
 		result = result .. "}"
   elseif type(o) == "table" then
-    if o.dont_serialize_me then
+   if o.dont_serialize_me then
       return "{}"
     end
     result = result .. "{\n"
@@ -107,12 +109,12 @@ function serialize (o, tabs, sorted)
         -- make sure that numbered keys are properly are indexified
         if type(k) == "number" then
 				  if type(v) == "number" then
-	          result = result .. tabs .. "  " .. "[" .. tostring(k) .. "] = " .. tostring(v) .. ",\n"
+						result = result .. tabs .. "  [" .. tostring(k) .. "] = " .. tostring(v) .. ",\n"
 					else
-	          result = result .. tabs .. "  " .. "[" .. tostring(k) .. "] = " .. serialize(v, tabs .. "  ", sorted) .. ",\n"
+						result = result .. tabs .. "  [" .. tostring(k) .. "] = " .. serialize (v, tabs .. "  ", sorted) .. ",\n"
 					end
         else
-          result = result .. tabs .. "  " .. k .. " = " .. serialize(v, tabs .. "  ", sorted) .. ",\n"
+					result = result .. tabs .. "  " .. tostring (k) .. " = " .. serialize(v, tabs .. "  ", sorted) .. ",\n"
         end
       end
     end

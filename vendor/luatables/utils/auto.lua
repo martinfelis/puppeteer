@@ -7,11 +7,11 @@
 local max_width = 18
 local pattern = [[
 // [%s]
-const unsigned char %s[] = 
+const char %s[] = 
 {
 %s
 }; // [%s]
-}]]
+]]
 --formatting parameters:
 -- - input file name
 -- - c variable name

@@ -177,13 +177,39 @@ template<> void LuaTableNode::set<float>(const float &value);
 template<> void LuaTableNode::set<double>(const double &value);
 template<> void LuaTableNode::set<std::string>(const std::string &value);
 
-struct LuaTable {
-	LuaTable() :
-		filename (""),
+/// Reference counting Lua state
+struct LuaStateRef {
+	LuaStateRef () :
 		L (NULL),
-		deleteLuaState (false)
+		count (0),
+		freeOnZeroRefs(true)
 	{}
-	LuaTable& operator= (const LuaTable &luatable);
+
+	LuaStateRef* acquire() {
+		count = count + 1;
+		return this;
+	}
+
+	int release() {
+		count = count - 1;
+		return count;
+	}
+
+	lua_State *L;
+	unsigned int count;
+	bool freeOnZeroRefs;
+};
+
+struct LuaTable {
+	LuaTable () :
+		filename (""),
+		luaStateRef (NULL),
+		luaRef(-1),
+		L (NULL),
+		referencesGlobal (false)
+	{}
+	LuaTable (const LuaTable &other);
+	LuaTable& operator= (const LuaTable &other);
 	~LuaTable();
 
 	LuaTableNode operator[] (const char* key) {
@@ -205,15 +231,28 @@ struct LuaTable {
 	int length();
 	void addSearchPath (const char* path);
 	std::string serialize ();
+
+	/// Serializes the data in a predictable ordering.
 	std::string orderedSerialize ();
+
+	/// Pushes the Lua table onto the stack of the internal Lua state.
+	//  I.e. makes the Lua table active that is associated with this
+	//  LuaTable.
+	void pushRef();
+	/// Pops the Lua table from the stack of the internal Lua state.
+	//  Cleans up a previous pushRef()
+	void popRef();
 
 	static LuaTable fromFile (const char *_filename);
 	static LuaTable fromLuaExpression (const char* lua_expr);
 	static LuaTable fromLuaState (lua_State *L);
 
 	std::string filename;
+	LuaStateRef *luaStateRef;
+	int luaRef;
 	lua_State *L;
-	bool deleteLuaState;
+
+	bool referencesGlobal;
 };
 
 /* LUATABLES_H */

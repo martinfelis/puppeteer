@@ -56,12 +56,6 @@ TEST ( TestSimpleFalseBool ) {
 	CHECK (!ltable["myvalue"].getDefault<bool>(false));
 }
 
-TEST ( TestGlobalValueExpression ) {
-	LuaTable ltable = LuaTable::fromLuaExpression (" global_value = true");
-
-	CHECK (ltable["global_value"].exists());
-}
-
 TEST ( TestSimpleSetBool ) {
 	LuaTable ltable = LuaTable::fromLuaExpression ("return { myvalue = false }");
 
@@ -100,28 +94,6 @@ TEST ( TestNestedSetBool ) {
 	CHECK (ltable["nested"]["newvalue"].getDefault<bool>(false));
 }
 
-TEST ( TestGlobalNestedSetBool ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("");
-
-	CHECK (!ltable["nested"]["newvalue"].exists());
-	CHECK (!ltable["nested"]["newvalue"].getDefault<bool>(false));
-
-	ltable["nested"]["newvalue"].set(true);
-	CHECK (ltable["nested"]["newvalue"].exists());
-	CHECK (ltable["nested"]["newvalue"].getDefault<bool>(false));
-}
-
-TEST ( TestGlobalNestedExistingSetBool ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("existing_table = { newvalue = \"bla\"}");
-
-	CHECK (ltable["existing_table"]["newvalue"].exists());
-	CHECK (ltable["existing_table"]["newvalue"].getDefault<bool>(false));
-
-	ltable["existing_table"]["newvalue"].set(false);
-	CHECK (ltable["existing_table"]["newvalue"].exists());
-	CHECK (!ltable["existing_table"]["newvalue"].getDefault<bool>(false));
-}
-
 TEST ( TestSimpleGetDouble ) {
 	LuaTable ltable = LuaTable::fromLuaExpression ("return { myvalue = 42.}");
 
@@ -142,61 +114,6 @@ TEST ( TestSimpleRemove ) {
 	CHECK (!ltable["value"].exists());	
 }
 
-TEST ( TestGlobalRemove ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("value = false");
-
-	CHECK (ltable["value"].exists());	
-	ltable["value"].remove();
-	CHECK (!ltable["value"].exists());	
-}
-
-TEST ( TestSerialize ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("return { value1 = \"yoyo\",\n value2 = true}");
-
-	ltable["baem"]["nested"]["somevalue"].set<string>("hello");
-
-	string serialized = ltable.serialize();
-
-	string reference = "return {\n\
-  value2 = true,\n\
-  baem = {\n\
-    nested = {\n\
-      somevalue = \"hello\",\n\
-    },\n\
-  },\n\
-  value1 = \"yoyo\",\n\
-}";
-
-	CHECK_EQUAL (reference, serialized);
-}
-
-TEST ( TestOrderedSerialize ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("return { value2 = \"yoyo\",\n value1 = true}");
-
-	string serialized = ltable.orderedSerialize();
-
-	string reference = "return {\n\
-  value1 = true,\n\
-  value2 = \"yoyo\",\n\
-}";
-
-	CHECK_EQUAL (reference, serialized);
-}
-
-TEST ( TestOrderedSerializeHoles ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("return { [2] = \"yoyo\",\n [1] = true}");
-	ltable[4].set<string>("hello");
-	string serialized = ltable.orderedSerialize();
-
-	// TODO: properly align lists with holes
-	string reference = "return {\n\
-  [1] = true,\n\
-  [2] = \"yoyo\",\n\
-  [4] = \"hello\",\n\
-}";
-
-	CHECK_EQUAL (reference, serialized);
-}
 TEST ( TestTemplatedGet ) {
 	LuaTable ltable = LuaTable::fromLuaExpression ("return { myvalue = true }");
 
@@ -240,6 +157,153 @@ return { nested = sometable }");
 	CHECK_EQUAL (string("joe"), keys[3].string_value);
 }
 
+TEST ( TestTableLength ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { 1., 2., 3., 4., 5., 6., 7., 8., 9., 0. }");
+
+	CHECK_EQUAL (10., ltable.length());
+}
+
+TEST ( TestGlobalValueExpression ) {
+	LuaTable ltable = LuaTable::fromLuaExpression (" global_value = true");
+
+	CHECK (ltable["global_value"].exists());
+}
+
+TEST ( TestGlobalNestedSetBool ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("");
+
+	CHECK (!ltable["nested"]["newvalue"].exists());
+	CHECK (!ltable["nested"]["newvalue"].getDefault<bool>(false));
+
+	ltable["nested"]["newvalue"].set(true);
+	CHECK (ltable["nested"]["newvalue"].exists());
+	CHECK (ltable["nested"]["newvalue"].getDefault<bool>(false));
+}
+
+TEST ( TestGlobalNestedExistingSetBool ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("existing_table = { newvalue = \"bla\"}");
+
+	CHECK (ltable["existing_table"]["newvalue"].exists());
+	CHECK (ltable["existing_table"]["newvalue"].getDefault<bool>(false));
+
+	ltable["existing_table"]["newvalue"].set(false);
+	CHECK (ltable["existing_table"]["newvalue"].exists());
+	CHECK (!ltable["existing_table"]["newvalue"].getDefault<bool>(false));
+}
+
+TEST ( TestGlobalRemove ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("value = false");
+
+	CHECK (ltable["value"].exists());	
+	ltable["value"].remove();
+	CHECK (!ltable["value"].exists());	
+}
+
+TEST ( TestSerialize ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { value1 = \"yoyo\",\n value2 = 2.3}");
+
+	ltable["baem"]["nested"]["somevalue"].set<string>("hello");
+
+	string serialized = ltable.serialize();
+
+	string reference = "return {\n\
+  value2 = 2.3,\n\
+  baem = {\n\
+    nested = {\n\
+      somevalue = \"hello\",\n\
+    },\n\
+  },\n\
+  value1 = \"yoyo\",\n\
+}";
+
+	CHECK_EQUAL (reference, serialized);
+}
+
+TEST ( TestOrderedSerialize ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { value2 = \"yoyo\",\n value1 = true}");
+
+	string serialized = ltable.orderedSerialize();
+
+	string reference = "return {\n\
+  value1 = true,\n\
+  value2 = \"yoyo\",\n\
+}";
+
+	CHECK_EQUAL (reference, serialized);
+}
+
+TEST ( TestOrderedSerializeHoles ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { [2] = \"yoyo\",\n [1] = true}");
+	ltable[4].set<string>("hello");
+	string serialized = ltable.orderedSerialize();
+
+	// TODO: properly align lists with holes
+	string reference = "return {\n\
+  [1] = true,\n\
+  [2] = \"yoyo\",\n\
+  [4] = \"hello\",\n\
+}";
+
+	CHECK_EQUAL (reference, serialized);
+}
+
+struct Vector3 {
+	double data[3];
+};
+
+void stack_print (const char *file, int line, lua_State *L);
+
+template<> Vector3 LuaTableNode::getDefault<Vector3>(const Vector3 &default_value) {
+	Vector3 result = default_value;
+
+	if (stackQueryValue()) {
+		LuaTable custom_table = LuaTable::fromLuaState (luaTable->L);
+
+		result.data[0] = custom_table[1];
+		result.data[1] = custom_table[2];
+		result.data[2] = custom_table[3];
+	}
+
+	stackRestore();
+
+	return result;
+}
+
+template<> void LuaTableNode::set<Vector3>(const Vector3 &value) {
+	LuaTable custom_table = stackCreateLuaTable();
+
+	// set the fields of the custom type
+	custom_table[1] = value.data[0];
+	custom_table[2] = value.data[1];
+	custom_table[3] = value.data[2];
+}
+
+TEST ( TestGetVec3 ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { vector = { 1., 2., 3.} }");
+
+	Vector3 vector = ltable["vector"];
+
+	CHECK_EQUAL (1., vector.data[0]);
+	CHECK_EQUAL (2., vector.data[1]);
+	CHECK_EQUAL (3., vector.data[2]);
+}
+
+TEST ( TestSetVec3 ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { vector = { 1., 2., 3.} }");
+
+	Vector3 vector;
+	vector.data[0] = -1.;
+	vector.data[1] = -2.;
+	vector.data[2] = -3.;
+
+	ltable["othervector"] = vector;
+	Vector3 othervector = ltable["othervector"];
+
+	CHECK_EQUAL (-1., othervector.data[0]);
+	CHECK_EQUAL (-2., othervector.data[1]);
+	CHECK_EQUAL (-3., othervector.data[2]);
+}
+
 struct CustomType {
 	string name;
 	double age;
@@ -276,9 +340,6 @@ template<> void LuaTableNode::set<CustomType>(const CustomType &value) {
 	custom_table["position"][1] = value.position[0];
 	custom_table["position"][2] = value.position[1];
 	custom_table["position"][3] = value.position[2];
-
-	// restore the stack
-	stackRestore();
 }
 
 TEST ( TestSetCustomType ) {
@@ -323,66 +384,29 @@ TEST ( TestGetCustomType ) {
 	CHECK (agent007.position[2] == other_agent.position[2]);
 }
 
-struct Vector3 {
-	double data[3];
-};
+TEST ( TestCopyConstructor ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { myvalue = true }");
+	LuaTable other_table = ltable;
 
-template<> Vector3 LuaTableNode::getDefault<Vector3>(const Vector3 &default_value) {
-	Vector3 result = default_value;
-
-	if (stackQueryValue()) {
-		LuaTable custom_table = LuaTable::fromLuaState (luaTable->L);
-
-		result.data[0] = custom_table[1];
-		result.data[1] = custom_table[2];
-		result.data[2] = custom_table[3];
-	}
-
-	stackRestore();
-
-	return result;
+	CHECK (ltable["myvalue"].getDefault<bool>(false));
 }
 
-template<> void LuaTableNode::set<Vector3>(const Vector3 &value) {
-	LuaTable custom_table = stackCreateLuaTable();
+TEST ( TestAssignmentOperator ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { myvalue = true }");
+	LuaTable other_table;
+	other_table = ltable;
 
-	// set the fields of the custom type
-	custom_table[1] = value.data[0];
-	custom_table[2] = value.data[1];
-	custom_table[3] = value.data[2];
-
-	// restore the stack
-	stackRestore();
+	CHECK (ltable["myvalue"].getDefault<bool>(false));
 }
 
-TEST ( TestGetVec3 ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("return { vector = { 1., 2., 3.} }");
+TEST ( TestSerializeListOfStrings ) {
+	LuaTable ltable = LuaTable::fromLuaExpression ("return { string_list = { \"somestring\" } }");
 
-	Vector3 vector = ltable["vector"];
+	string reference = "return {\n\
+  string_list = { \"somestring\",},\n\
+}";
+	string serialized = ltable.serialize();
 
-	CHECK_EQUAL (1., vector.data[0]);
-	CHECK_EQUAL (2., vector.data[1]);
-	CHECK_EQUAL (3., vector.data[2]);
+	CHECK_EQUAL (reference, serialized);
 }
 
-TEST ( TestSetVec3 ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("return { vector = { 1., 2., 3.} }");
-
-	Vector3 vector;
-	vector.data[0] = -1.;
-	vector.data[1] = -2.;
-	vector.data[2] = -3.;
-
-	ltable["othervector"] = vector;
-	Vector3 othervector = ltable["othervector"];
-
-	CHECK_EQUAL (-1., othervector.data[0]);
-	CHECK_EQUAL (-2., othervector.data[1]);
-	CHECK_EQUAL (-3., othervector.data[2]);
-}
-
-TEST ( TestTableLength ) {
-	LuaTable ltable = LuaTable::fromLuaExpression ("return { 1., 2., 3., 4., 5., 6., 7., 8., 9., 0. }");
-
-	CHECK_EQUAL (10., ltable.length());
-}
