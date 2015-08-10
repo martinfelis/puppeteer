@@ -56,7 +56,7 @@ ax1.legend()
 ax1.set_title ('Average Marker Errors')
 ax1.set_ylabel ('(m)')
 pylab.xlim([0, marker_count])
-pylab.ylim([0, 0.08])
+pylab.ylim([0, 0.06])
 
 ax2 = plt.subplot(1, 3, 2)
 
@@ -67,7 +67,8 @@ for col_name in sorted(marker_names):
 
 ax2.set_title ('Marker Error per Capture Frame')
 ax2.set_ylabel ('(m)')
-pylab.ylim([0, 0.08])
+pylab.ylim([0, 0.06])
+pylab.xlim ([0, len(data_array['frame'])])
 
 ax3 = plt.subplot(1, 3, 3)
 ax3.set_title ('IK Steps')
