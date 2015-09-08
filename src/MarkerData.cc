@@ -146,19 +146,19 @@ void MarkerData::enableMarker (const char* marker_name, const Vector3f &color) {
 	assert (c3dfile);
 
 	if (markerExists(marker_name)) {
-	MarkerObject* scene_marker = scene->createObject<MarkerObject>();
-	scene_marker->color.block<3,1>(0,0) = color;
+		MarkerObject* scene_marker = scene->createObject<MarkerObject>();
+		scene_marker->color.block<3,1>(0,0) = color;
 
-	Vector3f position = getMarkerCurrentPosition(marker_name);
-	scene_marker->transformation.translation = position;
-	scene_marker->mesh = CreateUVSphere (4, 8);
-	scene_marker->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
-	scene_marker->noDepthTest = true;
-	scene_marker->markerName = marker_name;
+		Vector3f position = getMarkerCurrentPosition(marker_name);
+		scene_marker->transformation.translation = position;
+		scene_marker->mesh = CreateUVSphere (4, 8);
+		scene_marker->transformation.scaling = Vector3f (0.02f, 0.02f, 0.02f);
+		scene_marker->noDepthTest = true;
+		scene_marker->markerName = marker_name;
 
-	markers.push_back (scene_marker);
+		markers.push_back (scene_marker);
 	} else {
-	  std::cout << "!! WARNING::Marker " << marker_name << " does not exist" << std::endl;
+		std::cout << "Warning: marker " << marker_name << " does not exist" << std::endl;
 	}
 }
 

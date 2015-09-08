@@ -212,7 +212,7 @@ void scripting_draw (lua_State *L) {
 
 /***
  * Closes puppeteer
- * @function puppeteer.draw()
+ * @function puppeteer.quit()
  */
 void scripting_quit (lua_State *L) {
 	assert (lua_gettop(L) == 0);
