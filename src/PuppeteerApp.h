@@ -43,7 +43,6 @@ extern "C" {
 
 #include "vtkChart/chartXY.h"
 
-#include <boost/shared_ptr.hpp>
 // commandline interpreter for convenient configuration of the modeltest
 #include <tclap/CmdLine.h>
 
@@ -84,7 +83,7 @@ protected:
 		int activeModelFrame;
 		int activeObject;
 
-		boost::shared_ptr<ChartContainer> dataChart;
+		ChartContainer* dataChart;
 
 		QtVector3DPropertyManager *vector3DPropertyManager;
 		QtVector3DPropertyManager *vector3DReadOnlyPropertyManager;

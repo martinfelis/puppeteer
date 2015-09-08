@@ -58,14 +58,21 @@ using namespace SimpleMath::GL;
 const double TIME_SLIDER_RATE = 1000.;
 
 PuppeteerApp::~PuppeteerApp() {
-	if (scene)
+	if (scene) {
 		delete scene;
+		scene = NULL;
+	}
+
+	if (dataChart) {
+		delete dataChart;
+		dataChart = NULL;
+	}
+
 
 	scene = NULL;
 }
 
 PuppeteerApp::PuppeteerApp(QWidget *parent)
-  : dataChart(new ChartContainer("Joint Trajectories", "t in [s]", "Angle in [RAD]", true))
 {
 	setupUi(this); // this sets up GUI
 
@@ -90,6 +97,8 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	previousPlaybackTime.start();
 	
 	updateTime.start();
+
+	dataChart = new ChartContainer("Joint Trajectories", "t in [s]", "Angle in [RAD]", true);
 
 	dockModelStateEditor->setVisible(false);
 	dockDataChart->setVisible(false);
