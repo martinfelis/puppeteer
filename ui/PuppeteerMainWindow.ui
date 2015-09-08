@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
+    <width>1000</width>
     <height>700</height>
    </rect>
   </property>
@@ -47,7 +47,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
+     <width>1000</width>
      <height>25</height>
     </rect>
    </property>
@@ -82,6 +82,12 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>255</width>
+     <height>444</height>
+    </size>
    </property>
    <property name="maximumSize">
     <size>
@@ -144,7 +150,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>235</width>
+             <width>150</width>
              <height>250</height>
             </size>
            </property>
@@ -187,7 +193,7 @@
             <bool>true</bool>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="page_3">
             <property name="geometry">
@@ -195,7 +201,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>89</height>
+              <height>139</height>
              </rect>
             </property>
             <attribute name="label">
@@ -230,7 +236,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>89</height>
+              <height>139</height>
              </rect>
             </property>
             <attribute name="label">
@@ -522,9 +528,15 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockModelStateEditor">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="minimumSize">
     <size>
-     <width>202</width>
+     <width>150</width>
      <height>70</height>
     </size>
    </property>
@@ -573,12 +585,28 @@
       </layout>
      </item>
      <item>
-      <widget class="QtTreePropertyBrowser" name="modelStateEditor" native="true"/>
+      <widget class="QtTreePropertyBrowser" name="modelStateEditor" native="true">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockDataChart">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>0</height>
+    </size>
+   </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
