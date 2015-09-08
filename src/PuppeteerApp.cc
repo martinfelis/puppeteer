@@ -100,7 +100,7 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 
 	dataChart = new ChartContainer("Joint Trajectories", "t in [s]", "Angle in [RAD]", true);
 
-	dockModelStateEditor->setVisible(false);
+	dockModelStateEditor->setVisible(true);
 	dockDataChart->setVisible(false);
 	
 	dockWidgetSlider->setVisible(false);
@@ -741,48 +741,6 @@ void PuppeteerApp::buildModelStateEditor() {
 		}
 		propertyToStateIndex[dof_property] = i;
 	}
-
-//	for (size_t i = 0; i < model_state.size(); i++) {
-//	  std::stringstream dofGroupStr;
-//	  dofGroupStr << "DOF::" << state_names[i];
-//	  //	  QtProperty *dof_group = groupManagerModelStateEditor->addProperty(dofGroupStr.str().c_str());
-//	  
-//	  QtProperty *dof_property = doubleManagerModelStateEditor->addProperty (dofGroupStr.str().c_str());
-//		doubleManagerModelStateEditor->setValue (dof_property, model_state[i]);
-//		doubleManagerModelStateEditor->setSingleStep (dof_property, 0.01);
-//
-//		QtProperty *dof_plot = enumManagerModelStateEditor->addProperty("Visible");
-//		QtProperty *dof_color = colorManagerModelStateEditor->addProperty("Color");
-//		enumManagerModelStateEditor->setEnumNames(dof_plot, visibility_types);
-//		if ((i == 9) || (i == 15)) {
-//		  enumManagerModelStateEditor->setValue(dof_plot, 0);
-//		  if (i == 9) {
-//		      colorManagerModelStateEditor->setValue(dof_color, QColor(255,0,0));
-//		    } else {
-//		      colorManagerModelStateEditor->setValue(dof_color, QColor(0,0,255));
-//		    }
-//		} else {
-//		  enumManagerModelStateEditor->setValue(dof_plot, 1);
-//		  colorManagerModelStateEditor->setValue(dof_color, QColor(50,50,50));
-//		}
-//
-//		dof_property->addSubProperty (dof_plot);
-//		dof_property->addSubProperty (dof_color);
-//		QtBrowserItem* item = modelStateEditor->addProperty (dof_property);
-//		if (markerModel->stateIndexIsFrameJointVariable(i, activeModelFrame)) {
-//			modelStateEditor->setBackgroundColor (item, QColor (180, 255, 180));
-//		}
-//		propertyToStateIndex[dof_property] = i;
-//		propertyToStateIndex[dof_plot] = i;
-//		propertyToStateIndex[dof_color] = i;
-//		if (item->children().size() > 0) {
-//		  modelStateEditor->setExpanded (item, false);
-//		  for (QList<QtBrowserItem*>::const_iterator iter = item->children().constBegin(); iter != item->children().constEnd(); iter++) {
-//		    modelStateEditor->setExpanded ((*iter), false);
-//		  }
-//		}
-//	}
-
 }
 
 void PuppeteerApp::updateModelStateEditor () {
@@ -806,12 +764,6 @@ void PuppeteerApp::updateModelStateEditor () {
 		}
 		propertyToStateIndex[dof_property] = i;
 	}
-
-//	for (QMap<QtProperty*, unsigned int>::iterator propPtr = propertyToStateIndex.begin(); propPtr != propertyToStateIndex.end(); ++propPtr) {
-//		if (doubleManagerModelStateEditor == (propPtr.key()->propertyManager())) {
-//			doubleManagerModelStateEditor->setValue (propPtr.key(), model_state[propPtr.value()]);
-//		}
-//	}
 }
 
 void PuppeteerApp::updatePropertiesForFrame (unsigned int frame_id) {
