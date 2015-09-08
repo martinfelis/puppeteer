@@ -368,6 +368,9 @@ bool PuppeteerApp::loadMocapFile (const char* filename, const bool rotateZ) {
 				fraction_negative = fraction_negative + 1.f / static_cast<float>(frame_count);
 		}
 
+		// reset current frame
+		markerData->setCurrentFrameNumber (markerData->getFirstFrame());
+
 		if (fraction_negative > 0.5) {
 			QMessageBox rotate_message_box;
 			rotate_message_box.setText("Backwards orientation detected.");
