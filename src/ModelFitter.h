@@ -50,7 +50,7 @@ struct ModelFitter {
 
 	ModelFitter ();
 	ModelFitter (Model *model, MarkerData *data, unsigned int maxSteps);
-	~ModelFitter();
+	virtual ~ModelFitter();
 
 	void setup();
 	virtual bool run (const VectorNd &initialState) = 0;
@@ -67,6 +67,7 @@ struct SugiharaFitter : public ModelFitter {
 	SugiharaFitter (Model *model, MarkerData *data, unsigned int maxSteps = 200) :
 		ModelFitter (model, data, maxSteps) 
 	{}
+	virtual ~SugiharaFitter() {};
 	virtual bool run (const VectorNd &initialState);
 };
 
@@ -74,6 +75,7 @@ struct SugiharaTaskSpaceFitter : public ModelFitter {
 	SugiharaTaskSpaceFitter (Model *model, MarkerData *data, unsigned int maxSteps = 200) :
 		ModelFitter (model, data, maxSteps) 
 	{}
+	virtual ~SugiharaTaskSpaceFitter() {};
 	virtual bool run (const VectorNd &initialState);
 };
 
@@ -82,9 +84,10 @@ struct LevenbergMarquardtFitter : public ModelFitter {
 		ModelFitter (model, data, maxSteps),
 		lambda (lambda)
 	{}
-	double lambda;
-
+	virtual ~LevenbergMarquardtFitter() {};
 	virtual bool run (const VectorNd &initialState);
+
+	double lambda;
 };
 
 /* MODEL_FITTER_H */
