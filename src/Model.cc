@@ -34,6 +34,7 @@
 #include <sstream>
 #include <fstream>
 #include <clocale>
+#include <algorithm>
 #include <sys/stat.h>
 #include "luatables.h"
 
@@ -254,6 +255,7 @@ int Model::getFrameMarkerCount(int frame_id) {
 std::vector<std::string> Model::getFrameMarkerNames(int frame_id) {
 	vector<string> result;
 	vector<LuaKey> keys = (*luaTable)["frames"][frame_id]["markers"].keys();
+	std::sort (keys.begin(), keys.end());
 
 	for (size_t i = 0; i < keys.size(); i++) {
 		if (keys[i].type == LuaKey::String) {
@@ -794,6 +796,8 @@ void Model::updateFromLua() {
 
 			// add model markers
 			vector<LuaKey> marker_keys = (*luaTable)["frames"][i]["markers"].keys();
+			std::sort (marker_keys.begin(), marker_keys.end());
+
 			for (size_t mi = 0; mi < marker_keys.size(); mi++) {
 				if (marker_keys[mi].type != LuaKey::String) {	
 					cerr << "Warning: invalid marker name: " << marker_keys[mi].int_value << " but string expected!" << endl;

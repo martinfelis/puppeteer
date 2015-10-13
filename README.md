@@ -7,16 +7,21 @@ Tip of the day: try the new scripting feature by running
 
 # Dependencies
 
-Puppeteer uses the following libraries and includes some of them in the
-`vendor/` folder. The following libraries come with the code:
+Puppeteer requires RBDL, the Rigid Body Dynamics Library that you can
+obtain from https://rbdl.bitbucket.org (open-source, zlib).
+
+Additionally Puppeteer uses the following libraries and includes them in
+the `vendor/` folder:
 
   * c3dfile (c3d file parsing, MIT license)
   * LuaTables++ (LuaModel reading/writing, MIT License)
 	* TCLAP (command line parsing, MIT license)
 	* QtPropertyBrowser (Property widget, BSD license)
 
-In addition Puppeteer uses RBDL, the Rigid Body Dynamics Library that you
-can obtain from https://rbdl.bitbucket.org (open-source, zlib).
+# Changelog
+
+	* 2015-10-13: ensure that model markers are always sorted alphabetically
+		in the GUI
 
 # License
 
