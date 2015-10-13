@@ -42,7 +42,7 @@ The library is published under the zlib free software license. Here is the
 full license text:
 
     LuaTables++
-    Copyright (c) 2013-2014 Martin Felis <martin@fyxs.org>.
+    Copyright (c) 2013-2014 Martin Felis <martin@fysx.org>.
     All rights reserved.
     
     Permission is hereby granted, free of charge, to any person obtaining

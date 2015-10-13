@@ -21,7 +21,7 @@ INCLUDE_DIRECTORIES (
 	src/
 )
 
-ADD_LIBRARY (luatables STATIC luatables.cc)
+ADD_LIBRARY (luatables SHARED luatables.cc)
 ADD_EXECUTABLE ( example main.cc )
 
 SUBDIRS (
