@@ -1,6 +1,6 @@
 /*
  * LuaTables++
- * Copyright (c) 2013-2015 Martin Felis <martin@fysx.org>.
+ * Copyright (c) 2013-2014 Martin Felis <martin@fyxs.org>.
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -627,7 +627,7 @@ void LuaTable::addSearchPath(const char* path) {
 	}
 
 	string package_path = lua_tostring (luaStateRef->L, -1);
-	package_path = package_path + string(path) + "?.lua;";
+	package_path = package_path + string (";") + string(path) + "?.lua;";
 
 	lua_pushstring(luaStateRef->L, package_path.c_str());
 	lua_setfield (luaStateRef->L, -3, "path");

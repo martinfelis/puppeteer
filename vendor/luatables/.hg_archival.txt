@@ -1,5 +1,5 @@
 repo: 9d9bff908be8f9cb8c8e6599a8892dab4df87f8e
-node: 77681f3e7c621ae0cfaf131f8701ac3afb68bd5f
+node: 67653bd1309db4a6825e6d86c6937b120e196cc2
 branch: default
 latesttag: null
 latesttagdistance: 68
