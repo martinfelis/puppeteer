@@ -136,7 +136,8 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	stringManager = new QtStringPropertyManager(propertiesBrowser);
 	colorManager = new QtColorPropertyManager(propertiesBrowser);
 	groupManager = new QtGroupPropertyManager(propertiesBrowser);
-	vector3DPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
+	vector3DPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);
+
 	vector3DReadOnlyPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
 	vector3DYXZPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
 	vector3DYXZReadOnlyPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);
@@ -735,6 +736,7 @@ void PuppeteerApp::buildModelStateEditor() {
 		QtProperty *dof_property = doubleManagerModelStateEditor->addProperty (state_names[i].c_str());
 		doubleManagerModelStateEditor->setValue (dof_property, model_state[i]);
 		doubleManagerModelStateEditor->setSingleStep (dof_property, 0.01);
+		doubleManagerModelStateEditor->setDecimals (dof_property, 4);
 		QtBrowserItem* item = modelStateEditor->addProperty (dof_property);
 		if (markerModel->stateIndexIsFrameJointVariable(i, activeModelFrame)) {
 			modelStateEditor->setBackgroundColor (item, QColor (180., 255., 180.));
@@ -758,6 +760,7 @@ void PuppeteerApp::updateModelStateEditor () {
 		QtProperty *dof_property = doubleManagerModelStateEditor->addProperty (state_names[i].c_str());
 		doubleManagerModelStateEditor->setValue (dof_property, model_state[i]);
 		doubleManagerModelStateEditor->setSingleStep (dof_property, 0.01);
+		doubleManagerModelStateEditor->setDecimals (dof_property, 4);
 		QtBrowserItem* item = modelStateEditor->addProperty (dof_property);
 		if (markerModel->stateIndexIsFrameJointVariable(i, activeModelFrame)) {
 			modelStateEditor->setBackgroundColor (item, QColor (180., 255., 180.));
