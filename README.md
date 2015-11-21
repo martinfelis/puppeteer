@@ -5,6 +5,14 @@ Tip of the day: try the new scripting feature by running
 
     ./puppeteer subject3m.lua -s scripts/motionsickness.lua
 
+# Usage
+
+Puppeteer comes with an example model and motion capture data. To load them
+pass both model and motion capture data as arguments to the Puppeteer
+executable, e.g.:
+
+    ./puppeteer model.lua data/testdata.c3d
+
 # Dependencies
 
 Puppeteer requires RBDL, the Rigid Body Dynamics Library that you can
