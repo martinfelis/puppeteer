@@ -638,7 +638,7 @@ void Model::clearModel() {
 void Model::updateFromLua() {
 	clearModel();
 
-	assert (luaTable->L);
+//	assert (luaTable->L);
 
 	if ((*luaTable)["gravity"].exists()) {
 		rbdlModel->gravity = (*luaTable)["gravity"].get<RigidBodyDynamics::Math::Vector3d>();
@@ -697,7 +697,7 @@ void Model::updateFromLua() {
 			for (size_t vi = 1; vi <= (*luaTable)["frames"][i]["visuals"].length(); vi++) {
 				VisualsData visual_data = (*luaTable)["frames"][i]["visuals"][vi];
 
-				assert ((visual_data.scale - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.scale not (yet) supported!");
+				assert ((visual_data.scale + Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.scale not (yet) supported!");
 				assert ((visual_data.translate - Vector3f (-1.f, -1.f, -1.f)).squaredNorm() < 1.0e-5 && "visuals.translate not (yet) supported!");
 
 				// setup of the scene object
