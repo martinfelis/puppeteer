@@ -1,5 +1,5 @@
 Puppeteer - A Motion Capture Mapping Tool
-Copyright (c) 2013-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2013-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 Tip of the day: try the new scripting feature by running
 
@@ -40,7 +40,7 @@ bug fixes, improvements, or other changes are most welcome!
 Here is the full license text:
 
     Puppeteer - A Motion Capture Mapping Tool
-    Copyright (c) 2013-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>.
+    Copyright (c) 2013-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>.
     All rights reserved.
     
     Permission is hereby granted, free of charge, to any person obtaining

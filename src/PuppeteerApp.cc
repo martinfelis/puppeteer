@@ -1,6 +1,6 @@
 /* 
  * Puppeteer - A Motion Capture Mapping Tool
- * Copyright (c) 2013-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>.
+ * Copyright (c) 2013-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>.
  * All rights reserved.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining
