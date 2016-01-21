@@ -25,7 +25,10 @@ FIND_PACKAGE (Eigen3 REQUIRED)
 
 ADD_DEFINITIONS (${QT_DEFINITIONS})
 
-QT4_WRAP_UI (PuppeteerMainWindow_UIS_H ${CMAKE_CURRENT_SOURCE_DIR}/ui/PuppeteerMainWindow.ui)
+QT4_WRAP_UI (PuppeteerMainWindow_UIS_H 
+	${CMAKE_CURRENT_SOURCE_DIR}/ui/PuppeteerMainWindow.ui
+	${CMAKE_CURRENT_SOURCE_DIR}/ui/PuppeteerAboutDialog.ui
+	)
 
 MESSAGE (STATUS "out ${PuppeteerMainWindow_UIS_H}")
 
@@ -52,6 +55,7 @@ SET ( QtGLBaseApp_SRCS
 
 QT4_WRAP_CPP ( QtGLBaseApp_MOC_SRCS
   src/PuppeteerApp.h
+	src/PuppeteerAboutDialog.h
   src/GLWidget.h
   )
 

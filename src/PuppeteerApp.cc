@@ -25,6 +25,7 @@
 
 #include <QtGui> 
 #include <QProgressDialog>
+#include <QFileDialog>
 #include <QRegExp>
 #include <QRegExpValidator>
 #include <QProgressDialog>
@@ -68,7 +69,6 @@ PuppeteerApp::~PuppeteerApp() {
 		dataChart = NULL;
 	}
 
-
 	scene = NULL;
 }
 
@@ -81,6 +81,8 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	// create Scene
 	scene = new Scene;	
 	glWidget->setScene (scene);
+
+	aboutDialog = new PuppeteerAboutDialog(this);
 
 	markerModel = NULL;
 	markerData = NULL;
@@ -122,6 +124,7 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 
 	// actionQuit() makes sure to set the settings before we quit
 	connect (actionQuit, SIGNAL( triggered() ), this, SLOT( quitApplication() ));
+	connect (actionAbout, SIGNAL( triggered() ), this, SLOT( execAboutDialog() ));
 
 	// call the drawing function
 	connect (drawTimer, SIGNAL(timeout()), this, SLOT (drawScene()));
@@ -198,10 +201,17 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	connect (vector3DYXZPropertyManager, SIGNAL (valueChanged(QtProperty *, QVector3D)), this, SLOT (valueChanged (QtProperty *, QVector3D)));
 	connect (colorManager, SIGNAL (valueChanged (QtProperty *, QColor)), this, SLOT (colorValueChanged (QtProperty *, QColor)));
 
+	// Loading and saving of model and animation data
 	connect (saveModelStateButton, SIGNAL (clicked()), this, SLOT (saveModelState()));
 	connect (loadModelStateButton, SIGNAL (clicked()), this, SLOT (loadModelState()));
-	connect (saveModelButton, SIGNAL (clicked()), this, SLOT(saveModel()));
-	connect (loadModelButton, SIGNAL (clicked()), this, SLOT(loadModel()));
+	connect (actionSaveModel, SIGNAL (triggered()), this, SLOT(saveModel()));
+	connect (actionSaveModelAs, SIGNAL (triggered()), this, SLOT(saveModelDialog()));
+	connect (actionLoadModel, SIGNAL (triggered(bool)), this, SLOT(loadModelDialog()));
+	connect (actionLoadMotionCaptureData, SIGNAL (triggered(bool)), this, SLOT(loadMotionCaptureDataDialog()));
+	connect (actionExportAnimationAsCSV, SIGNAL (triggered()), this, SLOT(exportAnimationDialog()));
+	connect (this, SIGNAL(model_loaded()), this, SLOT( updateWidgetValidity()));
+	connect (this, SIGNAL(motion_capture_data_loaded()), this, SLOT( updateWidgetValidity()));
+	connect (this, SIGNAL(animation_fitting_complete()), this, SLOT( updateWidgetValidity()));
 	
 	connect (assignMarkersButton, SIGNAL (clicked()), this, SLOT (assignMarkers()));
 	connect (autoIKButton, SIGNAL (clicked()), this, SLOT (fitModel()));
@@ -217,6 +227,8 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	connect (drawPointsCheckBox, SIGNAL (stateChanged(int)), this, SLOT (displayPoints(int)));
 
 	connect (toolButtonPlay, SIGNAL (clicked(bool)), this, SLOT (playButtonClicked(bool)));
+
+	updateWidgetValidity();
 }
 
 void print_usage(const char* execname) {
@@ -283,34 +295,6 @@ bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
     abort();
   }
 
-	if (markerModel) {
-		drawModelMarkersCheckBox->setEnabled(true);
-		drawBodySegmentsCheckBox->setEnabled(true);
-		drawJointsCheckBox->setEnabled(true);
-		drawPointsCheckBox->setEnabled(true);
-
-		displayModelMarkers (drawModelMarkersCheckBox->checkState());
-		displayBodySegments (drawBodySegmentsCheckBox->checkState());
-		displayJoints (drawJointsCheckBox->checkState());
-	}
-
-	if (markerModel && animationData) {
-		VectorNd state = animationData->getCurrentPose();
-		markerModel->modelStateQ = state;
-		markerModel->updateModelState();
-		markerModel->updateSceneObjects();
-		updateModelStateEditor();
-	}
-
-	if (markerData) {
-		drawMocapMarkersCheckBox->setEnabled(true);
-		if (markerModel) {
-			modelFitter = new SugiharaFitter (markerModel, markerData);
-			//		modelFitter = new LevenbergMarquardtFitter (markerModel, markerData);
-			autoIKButton->setEnabled(true);
-		}
-	}
-
 	if (scripting_file != "") {
 		scripting_init (this, scripting_file.c_str());
 	} else {
@@ -328,6 +312,8 @@ bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
 		scripting_load (L, argc - script_args_start, &argv[script_args_start]);
 	}
 
+	updateWidgetValidity();
+
 	return true;
 }
 
@@ -338,8 +324,12 @@ bool PuppeteerApp::loadModelFile (const char* filename) {
 	assert (markerModel);
 
 	bool result = markerModel->loadFromFile (filename);
+	markerModel->fileName = filename;
 	buildModelStateEditor();
 	updateModelStateEditor();
+
+	emit model_loaded();
+
 	return result;
 }
 
@@ -399,6 +389,8 @@ bool PuppeteerApp::loadMocapFile (const char* filename, const bool rotateZ) {
 	slideMarkersCheckBox->setChecked(true);
 
 	updateSliderBounds();
+
+	emit motion_capture_data_loaded();
 
 	return true;
 }
@@ -471,6 +463,10 @@ Vector3f parse_vec3_string (const std::string vec3_string) {
 	return result;
 }
 
+void PuppeteerApp::execAboutDialog() {
+	aboutDialog->exec();
+}
+
 void PuppeteerApp::quitApplication() {
 	qApp->quit();
 }
@@ -491,7 +487,10 @@ void PuppeteerApp::loadModel() {
 }
 
 void PuppeteerApp::saveModel() {
-	markerModel->saveToFile ("model.lua");
+	if (markerModel->fileName != "") {
+		saveModel();
+		markerModel->saveToFile (markerModel->fileName.c_str());
+	}
 }
 
 void PuppeteerApp::loadAnimation() {
@@ -619,6 +618,94 @@ void PuppeteerApp::updateGraph() {
     }
 }
 
+void PuppeteerApp::updateWidgetValidity() {
+	if (animationData && animationData->keyFrames.size() > 0) {
+		actionExportAnimationAsCSV->setEnabled(true);
+	} else {
+		actionExportAnimationAsCSV->setEnabled(false);
+	}
+
+	if (markerModel) {
+		actionSaveModel->setEnabled(true);
+		actionSaveModelAs->setEnabled(true);
+
+		drawModelMarkersCheckBox->setEnabled(true);
+		drawBodySegmentsCheckBox->setEnabled(true);
+		drawJointsCheckBox->setEnabled(true);
+		drawPointsCheckBox->setEnabled(true);
+
+		displayModelMarkers (drawModelMarkersCheckBox->checkState());
+		displayBodySegments (drawBodySegmentsCheckBox->checkState());
+		displayJoints (drawJointsCheckBox->checkState());
+	} else {
+		actionSaveModel->setEnabled(false);
+		actionSaveModelAs->setEnabled(false);
+	}
+	
+	if (markerData) {
+		drawMocapMarkersCheckBox->setEnabled(true);
+		if (markerModel) {
+			modelFitter = new SugiharaFitter (markerModel, markerData);
+			//		modelFitter = new LevenbergMarquardtFitter (markerModel, markerData);
+			autoIKButton->setEnabled(true);
+		}
+	}
+
+	if (markerModel && animationData) {
+		VectorNd state = animationData->getCurrentPose();
+		markerModel->modelStateQ = state;
+		markerModel->updateModelState();
+		markerModel->updateSceneObjects();
+		updateModelStateEditor();
+	}
+
+
+}
+
+void PuppeteerApp::saveModelDialog() {
+	QString file_name = QFileDialog::getSaveFileName(this, tr("Save Model"),
+			"./",
+			tr("LuaModel Files (*.lua)"));
+
+	if (file_name == "")
+		return;
+
+	markerModel->fileName = file_name.toStdString();
+	saveModel();
+}
+
+void PuppeteerApp::loadModelDialog() {
+	QString file_name = QFileDialog::getOpenFileName(this,
+    tr("Open Model"), "./", tr("LuaModel Files (*.lua)"));
+
+	if (file_name == "")
+		return;
+
+	loadModelFile (file_name.toLocal8Bit());
+}
+
+void PuppeteerApp::loadMotionCaptureDataDialog() {
+	QString file_name = QFileDialog::getOpenFileName(this,
+    tr("Open Motion Capture Data"), "./", tr("C3D Motion Capture Data (*.c3d)"));
+
+	if (file_name == "")
+		return;
+
+	loadMocapFile (file_name.toLocal8Bit());
+}
+
+void PuppeteerApp::exportAnimationDialog() {
+	QString file_name = QFileDialog::getSaveFileName(this, tr("Export Animation As .CSV File..."),
+			"./",
+			tr("CSV files (*.csv)"));
+
+	if (file_name == "")
+		return;
+
+	assert (animationData);
+	animationData->saveToFile (file_name.toLocal8Bit());
+}
+
 void PuppeteerApp::fitModel() {
 	if (!modelFitter)
 		return;
@@ -687,6 +774,8 @@ void PuppeteerApp::fitAnimation() {
 
 	updateSliderBounds();
 	updateGraph();
+
+	emit animation_fitting_complete();
 }
 
 void PuppeteerApp::updateExpandStateRecursive (const QList<QtBrowserItem *> &list, const QString &parent_property_id) {

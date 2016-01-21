@@ -55,6 +55,12 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionLoadModel"/>
+    <addaction name="actionLoadMotionCaptureData"/>
+    <addaction name="actionSaveModel"/>
+    <addaction name="actionSaveModelAs"/>
+    <addaction name="actionExportAnimationAsCSV"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuControl_Panels">
@@ -73,8 +79,15 @@
     <addaction name="actionTogglePropertiesEditor"/>
     <addaction name="actionTrajectoryChart"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuControl_Panels"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QDockWidget" name="dockPropertiesEditor">
    <property name="sizePolicy">
@@ -118,25 +131,7 @@
         <enum>Qt::Vertical</enum>
        </property>
        <widget class="QWidget" name="verticalLayoutWidget">
-        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,100">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0">
-           <item>
-            <widget class="QPushButton" name="loadModelButton">
-             <property name="text">
-              <string>Load Model</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="saveModelButton">
-             <property name="text">
-              <string>Save Model</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
+        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="100">
          <item>
           <widget class="QtTreePropertyBrowser" name="propertiesBrowser" native="true">
            <property name="enabled">
@@ -201,7 +196,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>139</height>
+              <height>101</height>
              </rect>
             </property>
             <attribute name="label">
@@ -236,7 +231,7 @@
               <x>0</x>
               <y>0</y>
               <width>235</width>
-              <height>139</height>
+              <height>101</height>
              </rect>
             </property>
             <attribute name="label">
@@ -536,7 +531,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>150</width>
+     <width>196</width>
      <height>70</height>
     </size>
    </property>
@@ -603,8 +598,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>0</width>
-     <height>0</height>
+     <width>218</width>
+     <height>243</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
@@ -765,6 +760,39 @@
    </property>
    <property name="shortcut">
     <string>T</string>
+   </property>
+  </action>
+  <action name="actionLoadModel">
+   <property name="text">
+    <string>Load Model...</string>
+   </property>
+  </action>
+  <action name="actionLoadMotionCaptureData">
+   <property name="text">
+    <string>Load Motion Capture Data...</string>
+   </property>
+  </action>
+  <action name="actionSaveModel">
+   <property name="text">
+    <string>Save Model</string>
+   </property>
+   <property name="shortcut">
+    <string>S</string>
+   </property>
+  </action>
+  <action name="actionSaveModelAs">
+   <property name="text">
+    <string>Save Model As ...</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionExportAnimationAsCSV">
+   <property name="text">
+    <string>Export Animation as CSV...</string>
    </property>
   </action>
   <zorder>dockPropertiesEditor</zorder>

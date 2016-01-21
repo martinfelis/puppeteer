@@ -34,6 +34,7 @@
 #include "qtpropertymanager.h"
 #include "qteditorfactory.h"
 #include "ui_PuppeteerMainWindow.h"
+#include "PuppeteerAboutDialog.h"
 
 extern "C" {
 #include <lua.h>
@@ -66,6 +67,8 @@ public:
 		MarkerData *markerData;
 		ModelFitter *modelFitter;
 		Animation *animationData;
+
+		PuppeteerAboutDialog *aboutDialog;
 
 		bool parseArgs(int argc, char* argv[]);
 		bool loadModelFile (const char* filename);
@@ -125,8 +128,16 @@ protected:
 		void updateSliderBounds ();
 
 public slots:
+		void execAboutDialog();
+
 		void quitApplication();
 		void updateGraph();
+		void updateWidgetValidity();
+
+		void saveModelDialog();
+		void loadModelDialog();
+		void loadMotionCaptureDataDialog();
+		void exportAnimationDialog();
 
 		void loadModelState();
 		void saveModelState();
@@ -162,6 +173,12 @@ public slots:
 		void displayBodySegments (int display_state);
 		void displayJoints (int display_state);
 		void displayPoints (int display_state);
+
+	signals:
+		void animation_fitting_complete();
+		void model_loaded();
+		void motion_capture_data_loaded ();
+
 };
  
 #endif

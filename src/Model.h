@@ -100,17 +100,20 @@ struct ModelMarkerObject: public SceneObject {
  */
 struct Model {
 	Model():
+		fileName(""),
 		scene(NULL),
 		luaTable(NULL),
 		rbdlModel(NULL)
 	{}
 	Model(Scene* scene_) :
+		fileName(""),
 		scene (scene_),
 		luaTable (NULL),
 		rbdlModel (NULL)
 	{}
 	~Model();
 
+	std::string fileName;
 	Scene *scene;
 	LuaTable *luaTable;
 	RigidBodyDynamics::Model *rbdlModel;
