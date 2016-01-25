@@ -9,7 +9,7 @@ LIST ( APPEND CMAKE_MODULE_PATH
 # This line adds the directory PATH_TO/LIBRARY/include to our compiler include path.
 INCLUDE_DIRECTORIES ("include/")
 
-ADD_LIBRARY ( c3dfile SHARED
+ADD_LIBRARY ( c3dfile STATIC
 	src/c3dfile.cc
 	src/c3dutils.cc
 	)
@@ -28,9 +28,4 @@ TARGET_LINK_LIBRARIES ( c3dexport
 
 SUBDIRS (
 	tests
-	)
-
-INSTALL ( TARGETS c3dexport c3dfile
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
 	)
