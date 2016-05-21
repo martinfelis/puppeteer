@@ -488,7 +488,6 @@ void PuppeteerApp::loadModel() {
 
 void PuppeteerApp::saveModel() {
 	if (markerModel->fileName != "") {
-		saveModel();
 		markerModel->saveToFile (markerModel->fileName.c_str());
 	}
 }
