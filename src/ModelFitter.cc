@@ -119,14 +119,14 @@ bool LevenbergMarquardtIK (
 
 				e[k * 3 + i] = target_pos[k][i] - point_base[i];
 			}
+		}
 
-			// abort if we are getting "close"
-			if (e.norm() < step_tol) {
-				*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
-				*steps = ik_iter;
+		// abort if we are getting "close"
+		if (e.norm() < step_tol) {
+			*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+			*steps = ik_iter;
 
-				return true;
-			}
+			return true;
 		}
 
 		rbdlMatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * rbdlMatrixNd::Identity(e.size(), e.size());
@@ -273,14 +273,14 @@ bool SugiharaTaskSpaceIK (
 
 				e[k * 3 + i] = target_pos[k][i] - point_base[i];
 			}
+		}
 
-			// abort if we are getting "close"
-			if (e.norm() < step_tol) {
-				*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
-				*steps = ik_iter;
+		// abort if we are getting "close"
+		if (e.norm() < step_tol) {
+			*residuals = ConvertVector<VectorNd, rbdlVectorNd> (e);
+			*steps = ik_iter;
 
-				return true;
-			}
+			return true;
 		}
 
 		double wn = 1.0e-3;
