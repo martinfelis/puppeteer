@@ -35,9 +35,9 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_BINARY_DIR}
   )
   
-QT4_WRAP_UI(KIT_UI_CPP ${KIT_UI_FORMS})
-QT4_WRAP_CPP(KIT_MOC_CPP ${KIT_MOC_SRCS})
-QT4_ADD_RESOURCES(KIT_QRC_SRCS ${KIT_resources})
+QT5_WRAP_UI(KIT_UI_CPP ${KIT_UI_FORMS})
+QT5_WRAP_CPP(KIT_MOC_CPP ${KIT_MOC_SRCS})
+QT5_ADD_RESOURCES(KIT_QRC_SRCS ${KIT_resources})
 
 SET(libname ${PROJECT_NAME})
 ADD_LIBRARY(${libname} STATIC
@@ -69,7 +69,7 @@ SET(KIT_MOC_CPP)
 FOREACH(file ${KIT_HEADERS_MOC_SRCS})
   get_filename_component(filename_we ${file} NAME_WE)
   SET(output_file moc_${filename_we}.cpp)
-  QT4_GENERATE_MOC(${file} ${output_file})
+  QT5_GENERATE_MOC(${file} ${output_file})
   LIST(APPEND KIT_MOC_CPP ${output_file})
 ENDFOREACH()
 
@@ -83,7 +83,7 @@ SET(KIT_CPP_MOC_SRCS
 FOREACH(file ${KIT_CPP_MOC_SRCS})
   get_filename_component(filename_we ${file} NAME_WE)
   SET(output_file ${filename_we}.moc)
-  QT4_GENERATE_MOC(${file} ${output_file})
+  QT5_GENERATE_MOC(${file} ${output_file})
   LIST(APPEND KIT_MOC_CPP ${output_file})
 ENDFOREACH()
 

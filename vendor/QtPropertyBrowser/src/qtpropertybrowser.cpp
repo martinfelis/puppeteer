@@ -1,11 +1,12 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
 **
-** This file is part of the Qt Solutions component.
+** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** $QT_BEGIN_LICENSE:BSD$
+** This file is part of a Qt Solutions component.
+**
 ** You may use this file under the terms of the BSD license as follows:
 **
 ** "Redistribution and use in source and binary forms, with or without
@@ -17,10 +18,10 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
+**   * Neither the name of Nokia Corporation and its Subsidiary(-ies) nor
+**     the names of its contributors may be used to endorse or promote
+**     products derived from this software without specific prior written
+**     permission.
 **
 ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -34,16 +35,13 @@
 ** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 **
-** $QT_END_LICENSE$
-**
 ****************************************************************************/
 
 
 #include "qtpropertybrowser.h"
-#include <QSet>
-#include <QMap>
-#include <QIcon>
-#include <QLineEdit>
+#include <QtCore/QSet>
+#include <QtCore/QMap>
+#include <QtGui/QIcon>
 
 #if defined(Q_CC_MSVC)
 #    pragma warning(disable: 4786) /* MS VS 6: truncating debug info after 255 characters */
@@ -56,10 +54,7 @@ QT_BEGIN_NAMESPACE
 class QtPropertyPrivate
 {
 public:
-    QtPropertyPrivate(QtAbstractPropertyManager *manager)
-        : m_enabled(true),
-          m_modified(false),
-          m_manager(manager) {}
+    QtPropertyPrivate(QtAbstractPropertyManager *manager) : m_enabled(true), m_modified(false), m_manager(manager) {}
     QtProperty *q_ptr;
 
     QSet<QtProperty *> m_parentItems;
@@ -69,6 +64,7 @@ public:
     QString m_statusTip;
     QString m_whatsThis;
     QString m_name;
+    QString m_id;
     bool m_enabled;
     bool m_modified;
 
@@ -245,6 +241,16 @@ QString QtProperty::propertyName() const
 }
 
 /*!
+    Returns the property's id.
+
+    \sa setPropertyId()
+*/
+QString QtProperty::propertyId() const
+{
+    return d_ptr->m_id;
+}
+
+/*!
     Returns whether the property is enabled.
 
     \sa setEnabled()
@@ -301,16 +307,19 @@ QString QtProperty::valueText() const
 }
 
 /*!
-    Returns the display text according to the echo-mode set on the editor.
+    Returns True if this property is equal to \a otherProperty
 
-    When the editor is a QLineEdit, this will return a string equal to what
-    is displayed.
-
-    \sa QtAbstractPropertyManager::valueText()
+    The list of parent or sub properties are not considered in the comparison.
 */
-QString QtProperty::displayText() const
+bool QtProperty::compare(QtProperty* otherProperty)const
 {
-    return d_ptr->m_manager->displayText(this);
+  return (this->propertyId() == otherProperty->propertyId()
+          && this->propertyName() == otherProperty->propertyName()
+          && this->toolTip() == otherProperty->toolTip()
+          && this->statusTip() == otherProperty->statusTip()
+          && this->whatsThis() == otherProperty->whatsThis()
+          && this->isEnabled() == otherProperty->isEnabled()
+          && this->isModified() == otherProperty->isModified());
 }
 
 /*!
@@ -372,6 +381,21 @@ void QtProperty::setPropertyName(const QString &text)
 }
 
 /*!
+    \fn void QtProperty::setPropertyId(const QString &id)
+
+    Sets the property's  id to the given \a id.
+
+    \sa propertyId()
+*/
+void QtProperty::setPropertyId(const QString &text)
+{
+    if (d_ptr->m_id == text)
+        return;
+
+    d_ptr->m_id = text;
+}
+
+/*!
     Enables or disables the property according to the passed \a enable value.
 
     \sa isEnabled()
@@ -397,6 +421,14 @@ void QtProperty::setModified(bool modified)
 
     d_ptr->m_modified = modified;
     propertyChanged();
+}
+
+/*!
+    Returns whether the property is sub property.
+*/
+bool QtProperty::isSubProperty()const
+{
+  return d_ptr->m_parentItems.count();
 }
 
 /*!
@@ -736,35 +768,6 @@ QString QtAbstractPropertyManager::valueText(const QtProperty *property) const
 }
 
 /*!
-    Returns a string representing the current state of the given \a
-    property.
-
-    The default implementation of this function returns an empty
-    string.
-
-    \sa QtProperty::valueText()
-*/
-QString QtAbstractPropertyManager::displayText(const QtProperty *property) const
-{
-    Q_UNUSED(property)
-    return QString();
-}
-
-/*!
-    Returns the echo mode representing the current state of the given \a
-    property.
-
-    The default implementation of this function returns QLineEdit::Normal.
-
-    \sa QtProperty::valueText()
-*/
-EchoMode QtAbstractPropertyManager::echoMode(const QtProperty *property) const
-{
-    Q_UNUSED(property)
-    return QLineEdit::Normal;
-}
-
-/*!
     Creates a property with the given \a name which then is owned by this manager.
 
     Internally, this function calls the createProperty() and
@@ -781,6 +784,23 @@ QtProperty *QtAbstractPropertyManager::addProperty(const QString &name)
         initializeProperty(property);
     }
     return property;
+}
+
+/*!
+    Return the QtProperty object matching \a id or Null if any.
+
+    \sa addProperty(), setPropertyId(const QString&), properties()
+*/
+QtProperty * QtAbstractPropertyManager::qtProperty(const QString &id)const
+{
+  foreach(QtProperty* prop, d_ptr->m_properties)
+    {
+    if (prop->propertyId() == id)
+      {
+      return prop;
+      }
+    }
+  return 0;
 }
 
 /*!
@@ -823,7 +843,7 @@ QtProperty *QtAbstractPropertyManager::createProperty()
     property is being destroyed so that it can remove the property's
     additional attributes.
 
-    \sa clear(), propertyDestroyed()
+    \sa clear(),  propertyDestroyed()
 */
 void QtAbstractPropertyManager::uninitializeProperty(QtProperty *property)
 {
@@ -884,7 +904,7 @@ void QtAbstractPropertyManager::uninitializeProperty(QtProperty *property)
     which also provides a pure virtual convenience overload of this
     function enabling access to the property's manager.
 
-    \sa QtAbstractEditorFactory::createEditor()
+    \sa  QtAbstractEditorFactory::createEditor()
 */
 
 /*!
@@ -1854,12 +1874,14 @@ QtBrowserItem *QtAbstractPropertyBrowser::insertProperty(QtProperty *property,
     QList<QtProperty *> pendingList = properties();
     int pos = 0;
     int newPos = 0;
+    QtProperty *properAfterProperty = 0;
     while (pos < pendingList.count()) {
         QtProperty *prop = pendingList.at(pos);
         if (prop == property)
             return 0;
         if (prop == afterProperty) {
             newPos = pos + 1;
+            properAfterProperty = afterProperty;
         }
         pos++;
     }
