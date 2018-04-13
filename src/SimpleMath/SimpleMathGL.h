@@ -105,10 +105,10 @@ class Quaternion : public Vector4f {
 			assert (s != 0.f);
 
 			float angle = acos (dot(quat) / s);
-			if (angle == 0.f || isnan(angle)) {
+			if (angle == 0.f || std::isnan(angle)) {
 				return *this;
 			}
-			assert(!isnan(angle));
+			assert(!std::isnan(angle));
 
 			float d = 1.f / sinf (angle);
 			float p0 = sinf ((1.f - alpha) * angle);

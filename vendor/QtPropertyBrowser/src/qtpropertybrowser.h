@@ -1,11 +1,12 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
 **
-** This file is part of the Qt Solutions component.
+** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** $QT_BEGIN_LICENSE:BSD$
+** This file is part of a Qt Solutions component.
+**
 ** You may use this file under the terms of the BSD license as follows:
 **
 ** "Redistribution and use in source and binary forms, with or without
@@ -17,10 +18,10 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
+**   * Neither the name of Nokia Corporation and its Subsidiary(-ies) nor
+**     the names of its contributors may be used to endorse or promote
+**     products derived from this software without specific prior written
+**     permission.
 **
 ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -34,8 +35,6 @@
 ** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 **
-** $QT_END_LICENSE$
-**
 ****************************************************************************/
 
 
@@ -44,13 +43,12 @@
 
 #include <QWidget>
 #include <QSet>
-#include <QLineEdit>
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
 #endif
 
-#if defined(Q_OS_WIN)
+#if defined(Q_WS_WIN)
 #  if !defined(QT_QTPROPERTYBROWSER_EXPORT) && !defined(QT_QTPROPERTYBROWSER_IMPORT)
 #    define QT_QTPROPERTYBROWSER_EXPORT
 #  elif defined(QT_QTPROPERTYBROWSER_IMPORT)
@@ -66,7 +64,6 @@ QT_BEGIN_NAMESPACE
 #  define QT_QTPROPERTYBROWSER_EXPORT
 #endif
 
-typedef QLineEdit::EchoMode EchoMode;
 
 class QtAbstractPropertyManager;
 class QtPropertyPrivate;
@@ -84,21 +81,25 @@ public:
     QString statusTip() const;
     QString whatsThis() const;
     QString propertyName() const;
+    QString propertyId() const;
     bool isEnabled() const;
     bool isModified() const;
 
     bool hasValue() const;
     QIcon valueIcon() const;
     QString valueText() const;
-    QString displayText() const;
+
+    virtual bool compare(QtProperty* otherProperty)const;
 
     void setToolTip(const QString &text);
     void setStatusTip(const QString &text);
     void setWhatsThis(const QString &text);
     void setPropertyName(const QString &text);
+    void setPropertyId(const QString &text);
     void setEnabled(bool enable);
     void setModified(bool modified);
 
+    bool isSubProperty()const;
     void addSubProperty(QtProperty *property);
     void insertSubProperty(QtProperty *property, QtProperty *afterProperty);
     void removeSubProperty(QtProperty *property);
@@ -124,6 +125,7 @@ public:
     void clear() const;
 
     QtProperty *addProperty(const QString &name = QString());
+    QtProperty *qtProperty(const QString &id)const;
 Q_SIGNALS:
 
     void propertyInserted(QtProperty *property,
@@ -135,8 +137,6 @@ protected:
     virtual bool hasValue(const QtProperty *property) const;
     virtual QIcon valueIcon(const QtProperty *property) const;
     virtual QString valueText(const QtProperty *property) const;
-    virtual QString displayText(const QtProperty *property) const;
-    virtual EchoMode echoMode(const QtProperty *) const;
     virtual void initializeProperty(QtProperty *property) = 0;
     virtual void uninitializeProperty(QtProperty *property);
     virtual QtProperty *createProperty();

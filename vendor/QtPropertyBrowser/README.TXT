@@ -17,7 +17,7 @@ ready-made implementations of the browser widget:
 QtTreePropertyBrowser, QtButtonPropertyBrowser and
 QtGroupBoxPropertyBrowser.
 
-Original version history:  https://github.com/commontk/QtPropertyBrowser
+Version history:
 
 2.1: - QtTreePropertyBrowser - tooltip of property applied to
      first column, while second column shows the value text of property

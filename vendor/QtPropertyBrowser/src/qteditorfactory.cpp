@@ -1,11 +1,12 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
 **
-** This file is part of the Qt Solutions component.
+** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** $QT_BEGIN_LICENSE:BSD$
+** This file is part of a Qt Solutions component.
+**
 ** You may use this file under the terms of the BSD license as follows:
 **
 ** "Redistribution and use in source and binary forms, with or without
@@ -17,10 +18,10 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
+**   * Neither the name of Nokia Corporation and its Subsidiary(-ies) nor
+**     the names of its contributors may be used to endorse or promote
+**     products derived from this software without specific prior written
+**     permission.
 **
 ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -33,8 +34,6 @@
 ** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 ** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
 **
 ****************************************************************************/
 
@@ -59,6 +58,7 @@
 #include <QStyleOption>
 #include <QPainter>
 #include <QMap>
+#include <QVector3D>
 
 #if defined(Q_CC_MSVC)
 #    pragma warning(disable: 4786) /* MS VS 6: truncating debug info after 255 characters */
@@ -149,7 +149,6 @@ public:
     void slotPropertyChanged(QtProperty *property, int value);
     void slotRangeChanged(QtProperty *property, int min, int max);
     void slotSingleStepChanged(QtProperty *property, int step);
-    void slotReadOnlyChanged(QtProperty *property, bool readOnly);
     void slotSetValue(int value);
 };
 
@@ -196,24 +195,6 @@ void QtSpinBoxFactoryPrivate::slotSingleStepChanged(QtProperty *property, int st
         QSpinBox *editor = itEditor.next();
         editor->blockSignals(true);
         editor->setSingleStep(step);
-        editor->blockSignals(false);
-    }
-}
-
-void QtSpinBoxFactoryPrivate::slotReadOnlyChanged( QtProperty *property, bool readOnly)
-{
-    if (!m_createdEditors.contains(property))
-        return;
-
-    QtIntPropertyManager *manager = q_ptr->propertyManager(property);
-    if (!manager)
-        return;
-
-    QListIterator<QSpinBox *> itEditor(m_createdEditors[property]);
-    while (itEditor.hasNext()) {
-        QSpinBox *editor = itEditor.next();
-        editor->blockSignals(true);
-        editor->setReadOnly(readOnly);
         editor->blockSignals(false);
     }
 }
@@ -276,8 +257,6 @@ void QtSpinBoxFactory::connectPropertyManager(QtIntPropertyManager *manager)
                 this, SLOT(slotRangeChanged(QtProperty *, int, int)));
     connect(manager, SIGNAL(singleStepChanged(QtProperty *, int)),
                 this, SLOT(slotSingleStepChanged(QtProperty *, int)));
-    connect(manager, SIGNAL(readOnlyChanged(QtProperty *, bool)),
-                this, SLOT(slotReadOnlyChanged(QtProperty *, bool)));
 }
 
 /*!
@@ -293,7 +272,6 @@ QWidget *QtSpinBoxFactory::createEditor(QtIntPropertyManager *manager, QtPropert
     editor->setRange(manager->minimum(property), manager->maximum(property));
     editor->setValue(manager->value(property));
     editor->setKeyboardTracking(false);
-    editor->setReadOnly(manager->isReadOnly(property));
 
     connect(editor, SIGNAL(valueChanged(int)), this, SLOT(slotSetValue(int)));
     connect(editor, SIGNAL(destroyed(QObject *)),
@@ -314,8 +292,6 @@ void QtSpinBoxFactory::disconnectPropertyManager(QtIntPropertyManager *manager)
                 this, SLOT(slotRangeChanged(QtProperty *, int, int)));
     disconnect(manager, SIGNAL(singleStepChanged(QtProperty *, int)),
                 this, SLOT(slotSingleStepChanged(QtProperty *, int)));
-    disconnect(manager, SIGNAL(readOnlyChanged(QtProperty *, bool)),
-                this, SLOT(slotReadOnlyChanged(QtProperty *, bool)));
 }
 
 // QtSliderFactory
@@ -631,7 +607,6 @@ class QtCheckBoxFactoryPrivate : public EditorFactoryPrivate<QtBoolEdit>
     Q_DECLARE_PUBLIC(QtCheckBoxFactory)
 public:
     void slotPropertyChanged(QtProperty *property, bool value);
-    void slotTextVisibleChanged(QtProperty *property, bool textVisible);
     void slotSetValue(bool value);
 };
 
@@ -646,22 +621,6 @@ void QtCheckBoxFactoryPrivate::slotPropertyChanged(QtProperty *property, bool va
         editor->blockCheckBoxSignals(true);
         editor->setChecked(value);
         editor->blockCheckBoxSignals(false);
-    }
-}
-
-void QtCheckBoxFactoryPrivate::slotTextVisibleChanged(QtProperty *property, bool textVisible)
-{
-    if (!m_createdEditors.contains(property))
-        return;
-
-    QtBoolPropertyManager *manager = q_ptr->propertyManager(property);
-    if (!manager)
-        return;
-
-    QListIterator<QtBoolEdit *> itEditor(m_createdEditors[property]);
-    while (itEditor.hasNext()) {
-        QtBoolEdit *editor = itEditor.next();
-        editor->setTextVisible(textVisible);
     }
 }
 
@@ -719,8 +678,6 @@ void QtCheckBoxFactory::connectPropertyManager(QtBoolPropertyManager *manager)
 {
     connect(manager, SIGNAL(valueChanged(QtProperty *, bool)),
                 this, SLOT(slotPropertyChanged(QtProperty *, bool)));
-    connect(manager, SIGNAL(textVisibleChanged(QtProperty *, bool)),
-                this, SLOT(slotTextVisibleChanged(QtProperty *, bool)));
 }
 
 /*!
@@ -733,7 +690,6 @@ QWidget *QtCheckBoxFactory::createEditor(QtBoolPropertyManager *manager, QtPrope
 {
     QtBoolEdit *editor = d_ptr->createEditor(property, parent);
     editor->setChecked(manager->value(property));
-    editor->setTextVisible(manager->textVisible(property));
 
     connect(editor, SIGNAL(toggled(bool)), this, SLOT(slotSetValue(bool)));
     connect(editor, SIGNAL(destroyed(QObject *)),
@@ -750,8 +706,6 @@ void QtCheckBoxFactory::disconnectPropertyManager(QtBoolPropertyManager *manager
 {
     disconnect(manager, SIGNAL(valueChanged(QtProperty *, bool)),
                 this, SLOT(slotPropertyChanged(QtProperty *, bool)));
-    disconnect(manager, SIGNAL(textVisibleChanged(QtProperty *, bool)),
-                this, SLOT(slotTextVisibleChanged(QtProperty *, bool)));
 }
 
 // QtDoubleSpinBoxFactory
@@ -766,7 +720,6 @@ public:
     void slotRangeChanged(QtProperty *property, double min, double max);
     void slotSingleStepChanged(QtProperty *property, double step);
     void slotDecimalsChanged(QtProperty *property, int prec);
-    void slotReadOnlyChanged(QtProperty *property, bool readOnly);
     void slotSetValue(double value);
 };
 
@@ -820,24 +773,6 @@ void QtDoubleSpinBoxFactoryPrivate::slotSingleStepChanged(QtProperty *property, 
         QDoubleSpinBox *editor = itEditor.next();
         editor->blockSignals(true);
         editor->setSingleStep(step);
-        editor->blockSignals(false);
-    }
-}
-
-void QtDoubleSpinBoxFactoryPrivate::slotReadOnlyChanged( QtProperty *property, bool readOnly)
-{
-    if (!m_createdEditors.contains(property))
-        return;
-
-    QtDoublePropertyManager *manager = q_ptr->propertyManager(property);
-    if (!manager)
-        return;
-
-    QListIterator<QDoubleSpinBox *> itEditor(m_createdEditors[property]);
-    while (itEditor.hasNext()) {
-        QDoubleSpinBox *editor = itEditor.next();
-        editor->blockSignals(true);
-        editor->setReadOnly(readOnly);
         editor->blockSignals(false);
     }
 }
@@ -921,8 +856,6 @@ void QtDoubleSpinBoxFactory::connectPropertyManager(QtDoublePropertyManager *man
                 this, SLOT(slotSingleStepChanged(QtProperty *, double)));
     connect(manager, SIGNAL(decimalsChanged(QtProperty *, int)),
                 this, SLOT(slotDecimalsChanged(QtProperty *, int)));
-    connect(manager, SIGNAL(readOnlyChanged(QtProperty *, bool)),
-                this, SLOT(slotReadOnlyChanged(QtProperty *, bool)));
 }
 
 /*!
@@ -939,7 +872,6 @@ QWidget *QtDoubleSpinBoxFactory::createEditor(QtDoublePropertyManager *manager,
     editor->setRange(manager->minimum(property), manager->maximum(property));
     editor->setValue(manager->value(property));
     editor->setKeyboardTracking(false);
-    editor->setReadOnly(manager->isReadOnly(property));
 
     connect(editor, SIGNAL(valueChanged(double)), this, SLOT(slotSetValue(double)));
     connect(editor, SIGNAL(destroyed(QObject *)),
@@ -962,8 +894,6 @@ void QtDoubleSpinBoxFactory::disconnectPropertyManager(QtDoublePropertyManager *
                 this, SLOT(slotSingleStepChanged(QtProperty *, double)));
     disconnect(manager, SIGNAL(decimalsChanged(QtProperty *, int)),
                 this, SLOT(slotDecimalsChanged(QtProperty *, int)));
-    disconnect(manager, SIGNAL(readOnlyChanged(QtProperty *, bool)),
-                this, SLOT(slotReadOnlyChanged(QtProperty *, bool)));
 }
 
 // QtLineEditFactory
@@ -977,8 +907,6 @@ public:
     void slotPropertyChanged(QtProperty *property, const QString &value);
     void slotRegExpChanged(QtProperty *property, const QRegExp &regExp);
     void slotSetValue(const QString &value);
-    void slotEchoModeChanged(QtProperty *, int);
-    void slotReadOnlyChanged(QtProperty *, bool);
 };
 
 void QtLineEditFactoryPrivate::slotPropertyChanged(QtProperty *property,
@@ -990,11 +918,8 @@ void QtLineEditFactoryPrivate::slotPropertyChanged(QtProperty *property,
     QListIterator<QLineEdit *> itEditor( m_createdEditors[property]);
     while (itEditor.hasNext()) {
         QLineEdit *editor = itEditor.next();
-        if (editor->text() != value) {
-            editor->blockSignals(true);
+        if (editor->text() != value)
             editor->setText(value);
-            editor->blockSignals(false);
-        }
     }
 }
 
@@ -1024,42 +949,6 @@ void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty *property,
     }
 }
 
-void QtLineEditFactoryPrivate::slotEchoModeChanged(QtProperty *property, int echoMode)
-{
-    if (!m_createdEditors.contains(property))
-        return;
-
-    QtStringPropertyManager *manager = q_ptr->propertyManager(property);
-    if (!manager)
-        return;
-
-    QListIterator<QLineEdit *> itEditor(m_createdEditors[property]);
-    while (itEditor.hasNext()) {
-        QLineEdit *editor = itEditor.next();
-        editor->blockSignals(true);
-        editor->setEchoMode((EchoMode)echoMode);
-        editor->blockSignals(false);
-    }
-}
-
-void QtLineEditFactoryPrivate::slotReadOnlyChanged( QtProperty *property, bool readOnly)
-{
-    if (!m_createdEditors.contains(property))
-        return;
-
-    QtStringPropertyManager *manager = q_ptr->propertyManager(property);
-    if (!manager)
-        return;
-
-    QListIterator<QLineEdit *> itEditor(m_createdEditors[property]);
-    while (itEditor.hasNext()) {
-        QLineEdit *editor = itEditor.next();
-        editor->blockSignals(true);
-        editor->setReadOnly(readOnly);
-        editor->blockSignals(false);
-    }
-}
-
 void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
 {
     QObject *object = q_ptr->sender();
@@ -1074,8 +963,6 @@ void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
             return;
         }
 }
-
-
 
 /*!
     \class QtLineEditFactory
@@ -1114,13 +1001,9 @@ QtLineEditFactory::~QtLineEditFactory()
 void QtLineEditFactory::connectPropertyManager(QtStringPropertyManager *manager)
 {
     connect(manager, SIGNAL(valueChanged(QtProperty *, const QString &)),
-            this, SLOT(slotPropertyChanged(QtProperty *, const QString &)));
+                this, SLOT(slotPropertyChanged(QtProperty *, const QString &)));
     connect(manager, SIGNAL(regExpChanged(QtProperty *, const QRegExp &)),
-            this, SLOT(slotRegExpChanged(QtProperty *, const QRegExp &)));
-    connect(manager, SIGNAL(echoModeChanged(QtProperty*, int)),
-            this, SLOT(slotEchoModeChanged(QtProperty *, int)));
-    connect(manager, SIGNAL(readOnlyChanged(QtProperty*, bool)),
-        this, SLOT(slotReadOnlyChanged(QtProperty *, bool)));
+                this, SLOT(slotRegExpChanged(QtProperty *, const QRegExp &)));
 }
 
 /*!
@@ -1133,8 +1016,6 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
 {
 
     QLineEdit *editor = d_ptr->createEditor(property, parent);
-    editor->setEchoMode((EchoMode)manager->echoMode(property));
-    editor->setReadOnly(manager->isReadOnly(property));
     QRegExp regExp = manager->regExp(property);
     if (regExp.isValid()) {
         QValidator *validator = new QRegExpValidator(regExp, editor);
@@ -1142,7 +1023,7 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
     }
     editor->setText(manager->value(property));
 
-    connect(editor, SIGNAL(textChanged(const QString &)),
+    connect(editor, SIGNAL(textEdited(const QString &)),
                 this, SLOT(slotSetValue(const QString &)));
     connect(editor, SIGNAL(destroyed(QObject *)),
                 this, SLOT(slotEditorDestroyed(QObject *)));
@@ -1160,11 +1041,6 @@ void QtLineEditFactory::disconnectPropertyManager(QtStringPropertyManager *manag
                 this, SLOT(slotPropertyChanged(QtProperty *, const QString &)));
     disconnect(manager, SIGNAL(regExpChanged(QtProperty *, const QRegExp &)),
                 this, SLOT(slotRegExpChanged(QtProperty *, const QRegExp &)));
-    disconnect(manager, SIGNAL(echoModeChanged(QtProperty*,int)),
-                this, SLOT(slotEchoModeChanged(QtProperty *, int)));
-    disconnect(manager, SIGNAL(readOnlyChanged(QtProperty*, bool)),
-        this, SLOT(slotReadOnlyChanged(QtProperty *, bool)));
-
 }
 
 // QtDateEditFactory
@@ -2697,157 +2573,146 @@ void QtFontEditorFactory::disconnectPropertyManager(QtFontPropertyManager *manag
 }
 
 // QtVector3DEditWidget
-
 class QtVector3DEditWidget : public QWidget {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    QtVector3DEditWidget(QWidget *parent);
+	QtVector3DEditWidget(QWidget *parent);
 
 public Q_SLOTS:
-    void setValue(const QVector3D &value);
+	void setValue(const QVector3D &value);
 
 Q_SIGNALS:
-    void valueChanged(const QVector3D &value);
+	void valueChanged(const QVector3D &value);
 
 protected:
-    void paintEvent(QPaintEvent *);
+	void paintEvent(QPaintEvent *);
 
 private:
-    QVector3D m_vector3d;
-    QLabel *m_label;
+	QVector3D m_vector3d;
+	QLabel *m_label;
 };
 
-QtVector3DEditWidget::QtVector3DEditWidget(QWidget *parent) :
-    QWidget(parent),
-    m_label(new QLabel)
+QtVector3DEditWidget::QtVector3DEditWidget(QWidget *parent) : QWidget(parent), m_label(new QLabel)
 {
-    QHBoxLayout *lt = new QHBoxLayout(this);
-    setupTreeViewEditorMargin(lt);
-    lt->setSpacing(0);
-    lt->addWidget(m_label);
-    lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
+	QHBoxLayout *lt = new QHBoxLayout(this);
+	setupTreeViewEditorMargin(lt);
+	lt->setSpacing(0);
+	lt->addWidget(m_label);
+	lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
 
-    m_label->setText(QtPropertyBrowserUtils::vector3DValueText(m_vector3d));
+	m_label->setText(QtPropertyBrowserUtils::vector3DValueText(m_vector3d));
 }
 
 void QtVector3DEditWidget::setValue(const QVector3D &c)
 {
-    if (m_vector3d != c) {
-        m_vector3d = c;
-        m_label->setText(QtPropertyBrowserUtils::vector3DValueText(c));
-    }
+	if (m_vector3d != c) {
+		m_vector3d = c;
+		m_label->setText(QtPropertyBrowserUtils::vector3DValueText(c));
+	}
 }
 
 void QtVector3DEditWidget::paintEvent(QPaintEvent *)
 {
-    QStyleOption opt;
-    opt.init(this);
-    QPainter p(this);
-    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+	QStyleOption opt;
+	opt.init(this);
+	QPainter p(this);
+	style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }
 
-// QtVector3DEditorFactoryPrivate
 
+// QtVector3DEditorFactoryPrivate
 class QtVector3DEditorFactoryPrivate : public EditorFactoryPrivate<QtVector3DEditWidget>
 {
-    QtVector3DEditorFactory *q_ptr;
-    Q_DECLARE_PUBLIC(QtVector3DEditorFactory)
+	QtVector3DEditorFactory *q_ptr;
+	Q_DECLARE_PUBLIC(QtVector3DEditorFactory)
 public:
+	void slotPropertyChanged(QtProperty *property, const QVector3D &value);
+	void slotSetValue(const QVector3D &value);
+};;
 
-    void slotPropertyChanged(QtProperty *property, const QVector3D &value);
-    void slotSetValue(const QVector3D &value);
-};
-
-void QtVector3DEditorFactoryPrivate::slotPropertyChanged(QtProperty *property,
-                const QVector3D &value)
+void QtVector3DEditorFactoryPrivate::slotPropertyChanged(QtProperty *property, const QVector3D &value)
 {
-    const PropertyToEditorListMap::iterator it = m_createdEditors.find(property);
-    if (it == m_createdEditors.end())
-        return;
-    QListIterator<QtVector3DEditWidget *> itEditor(it.value());
+	const PropertyToEditorListMap::iterator it = m_createdEditors.find(property);
+	if (it == m_createdEditors.end())
+		return;
+	QListIterator<QtVector3DEditWidget *> itEditor(it.value());
 
-    while (itEditor.hasNext())
-        itEditor.next()->setValue(value);
+	while (itEditor.hasNext())
+		itEditor.next()->setValue(value);
 }
 
 void QtVector3DEditorFactoryPrivate::slotSetValue(const QVector3D &value)
 {
-    QObject *object = q_ptr->sender();
-    const EditorToPropertyMap::ConstIterator ecend = m_editorToProperty.constEnd();
-    for (EditorToPropertyMap::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
-        if (itEditor.key() == object) {
-            QtProperty *property = itEditor.value();
-            QtVector3DPropertyManager *manager = q_ptr->propertyManager(property);
-            if (!manager)
-                return;
-            manager->setValue(property, value);
-            return;
-        }
+	QObject *object = q_ptr->sender();
+	const EditorToPropertyMap::ConstIterator ecend = m_editorToProperty.constEnd();
+	for (EditorToPropertyMap::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
+		if (itEditor.key() == object) {
+			QtProperty *property = itEditor.value();
+			QtVector3DPropertyManager *manager = q_ptr->propertyManager(property);
+			if (!manager)
+				return;
+			manager->setValue(property, value);
+			return;
+		}
 }
 
 /*!
-    \class QtVector3DEditorFactory
+	\class QtVector3DEditorFactory
 
-    \brief The QtVector3DEditorFactory class provides vector3d editing  for
-    properties created by QtVector3DPropertyManager objects.
+	\brief The QtVector3DEditorFactory class provides vector3d editing  for
+	properties created by QtVector3DPropertyManager objects.
 
-    \sa QtAbstractEditorFactory, QtVector3DPropertyManager
+	\sa QtAbstractEditorFactory, QtVector3DPropertyManager
 */
 
 /*!
-    Creates a factory with the given \a parent.
+	Creates a factory with the given \a parent.
 */
-QtVector3DEditorFactory::QtVector3DEditorFactory(QObject *parent) :
-    QtAbstractEditorFactory<QtVector3DPropertyManager>(parent),
-    d_ptr(new QtVector3DEditorFactoryPrivate())
+QtVector3DEditorFactory::QtVector3DEditorFactory(QObject *parent) : QtAbstractEditorFactory<QtVector3DPropertyManager>(parent), d_ptr(new QtVector3DEditorFactoryPrivate())
 {
-    d_ptr->q_ptr = this;
+	d_ptr->q_ptr = this;
 }
 
 /*!
-    Destroys this factory, and all the widgets it has created.
+	Destroys this factory, and all the widgets it has created.
 */
 QtVector3DEditorFactory::~QtVector3DEditorFactory()
 {
-    qDeleteAll(d_ptr->m_editorToProperty.keys());
-    delete d_ptr;
+	qDeleteAll(d_ptr->m_editorToProperty.keys());
+	delete d_ptr;
 }
 
 /*!
-    \internal
-
-    Reimplemented from the QtAbstractEditorFactory class.
+	\internal
+	Reimplemented from the QtAbstractEditorFactory class.
 */
 void QtVector3DEditorFactory::connectPropertyManager(QtVector3DPropertyManager *manager)
 {
-    connect(manager, SIGNAL(valueChanged(QtProperty*,QVector3D)),
-            this, SLOT(slotPropertyChanged(QtProperty*,QVector3D)));
+	connect(manager, SIGNAL(valueChanged(QtProperty*,QVector3D)), this, SLOT(slotPropertyChanged(QtProperty*,QVector3D)));
 }
 
 /*!
-    \internal
-
-    Reimplemented from the QtAbstractEditorFactory class.
+	\internal
+	Reimplemented from the QtAbstractEditorFactory class.
 */
-QWidget *QtVector3DEditorFactory::createEditor(QtVector3DPropertyManager *manager,
-        QtProperty *property, QWidget *parent)
+QWidget *QtVector3DEditorFactory::createEditor(QtVector3DPropertyManager *manager, QtProperty *property, QWidget *parent)
 {
-    QtVector3DEditWidget *editor = d_ptr->createEditor(property, parent);
-    editor->setValue(manager->value(property));
-    connect(editor, SIGNAL(valueChanged(QVector3D)), this, SLOT(slotSetValue(QVector3D)));
-    connect(editor, SIGNAL(destroyed(QObject *)), this, SLOT(slotEditorDestroyed(QObject *)));
-    return editor;
+	QtVector3DEditWidget *editor = d_ptr->createEditor(property, parent);
+	editor->setValue(manager->value(property));
+	connect(editor, SIGNAL(valueChanged(QVector3D)), this, SLOT(slotSetValue(QVector3D)));
+	connect(editor, SIGNAL(destroyed(QObject *)), this, SLOT(slotEditorDestroyed(QObject *)));
+	return editor;
 }
 
 /*!
-    \internal
+	\internal
 
-    Reimplemented from the QtAbstractEditorFactory class.
+	Reimplemented from the QtAbstractEditorFactory class.
 */
 void QtVector3DEditorFactory::disconnectPropertyManager(QtVector3DPropertyManager *manager)
 {
-    disconnect(manager, SIGNAL(valueChanged(QtProperty*,QVector3D)), this, SLOT(slotPropertyChanged(QtProperty*,QVector3D)));
+	disconnect(manager, SIGNAL(valueChanged(QtProperty*,QVector3D)), this, SLOT(slotPropertyChanged(QtProperty*,QVector3D)));
 }
 
 #if QT_VERSION >= 0x040400

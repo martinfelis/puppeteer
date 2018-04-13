@@ -23,12 +23,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE* 
  */
 
+#include <GL/glew.h>
 #include <QtGui> 
 #include <QProgressDialog>
 #include <QFileDialog>
 #include <QRegExp>
 #include <QRegExpValidator>
 #include <QProgressDialog>
+#include <QMessageBox>
 
 #include "GLWidget.h" 
 #include "PuppeteerApp.h"
@@ -1205,7 +1207,7 @@ void PuppeteerApp::valueChanged (QtProperty *property, QVector3D value) {
 		markerModel->setJointOrientationLocalEulerYXZ (activeModelFrame, rotation.toEulerYXZ());
 	} else if (property_name.startsWith("marker_coordinates")) {
 		Vector3f coord (value.x(), value.y(), value.z());
-		markerModel->setFrameMarkerCoord (activeModelFrame, property->propertyName().toAscii(), coord);
+		markerModel->setFrameMarkerCoord (activeModelFrame, property->propertyName().toLatin1(), coord);
 	}	else if (property_name.startsWith("visuals_")) {
 		QRegExp rx("visuals_(\\d+)_(\\w+)");
 		if (!rx.exactMatch (property_name)) {
