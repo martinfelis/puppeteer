@@ -142,7 +142,6 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	colorManager = new QtColorPropertyManager(propertiesBrowser);
 	groupManager = new QtGroupPropertyManager(propertiesBrowser);
 	vector3DPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);
-
 	vector3DReadOnlyPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
 	vector3DYXZPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);	
 	vector3DYXZReadOnlyPropertyManager = new QtVector3DPropertyManager (propertiesBrowser);
@@ -297,6 +296,34 @@ bool PuppeteerApp::parseArgs(int argc, char* argv[]) {
     abort();
   }
 
+	if (markerModel) {
+		drawModelMarkersCheckBox->setEnabled(true);
+		drawBodySegmentsCheckBox->setEnabled(true);
+		drawJointsCheckBox->setEnabled(true);
+		drawPointsCheckBox->setEnabled(true);
+
+		displayModelMarkers (drawModelMarkersCheckBox->checkState());
+		displayBodySegments (drawBodySegmentsCheckBox->checkState());
+		displayJoints (drawJointsCheckBox->checkState());
+	}
+
+	if (markerModel && animationData) {
+		VectorNd state = animationData->getCurrentPose();
+		markerModel->modelStateQ = state;
+		markerModel->updateModelState();
+		markerModel->updateSceneObjects();
+		updateModelStateEditor();
+	}
+
+	if (markerData) {
+		drawMocapMarkersCheckBox->setEnabled(true);
+		if (markerModel) {
+			modelFitter = new SugiharaFitter (markerModel, markerData);
+			//		modelFitter = new LevenbergMarquardtFitter (markerModel, markerData);
+			autoIKButton->setEnabled(true);
+		}
+	}
+
 	if (scripting_file != "") {
 		scripting_init (this, scripting_file.c_str());
 	} else {
@@ -340,6 +367,9 @@ bool PuppeteerApp::loadMocapFile (const char* filename, const bool rotateZ) {
 		delete markerData;
 	markerData = new MarkerData (scene);
 	assert (markerData);
+
+	for (int i=0;i<markerModel->modelMarkers.size();i++)
+		markerData->markerNames.push_back(markerModel->modelMarkers[i]->markerName);
 
 	if(!markerData->loadFromFile (filename)) 
 		return false;

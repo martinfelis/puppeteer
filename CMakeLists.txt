@@ -86,7 +86,6 @@ ADD_EXECUTABLE ( fit_motion
 	src/fit_motion.cc
 	)
 
-qt5_use_modules(puppeteer Widgets Core OpenGL)
 
 INCLUDE_DIRECTORIES (
 	${QT_INCLUDE_DIR}
@@ -134,6 +133,9 @@ TARGET_LINK_LIBRARIES ( SceneGL
 	${OPENGL_LIBRARIES}
 	${RBDL_LIBRARY}
 	${RBDL_LuaModel_LIBRARY}
+	${Qt5Widgets_LIBRARIES}
+	${Qt5Core_LIBRARIES}
+	${Qt5OpenGL_LIBRARIES}
 	c3dfile
 	)
 
