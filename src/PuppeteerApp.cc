@@ -594,25 +594,55 @@ void PuppeteerApp::assignMarkers() {
 	assert (markerData);
 	assert (markerModel);
 	
-	int active_frame = 0;
-	std::vector<string> selected_marker_names;
-	std::list<int>::iterator selected_iter;
+	std::vector<string> marker_names;
+	std::vector<int> frame_ids;
 
-	for (selected_iter = scene->selectedObjectIds.begin(); selected_iter != scene->selectedObjectIds.end(); selected_iter++) {
-		if (markerData->isMarkerObject (*selected_iter)) {
-			selected_marker_names.push_back (markerData->getMarkerName (*selected_iter));
-		} else if (markerModel->isModelObject(*selected_iter)) {
-			active_frame = markerModel->getFrameIdFromObjectId(*selected_iter);
+	bool uniqueMarkerName = true;
+
+	for (unsigned int i = 0; i < markerModel->modelMarkers.size();++i){
+		uniqueMarkerName = true;
+		for(unsigned int j=0; j < markerData->markerNames.size();++j){
+			if(markerModel->modelMarkers[i]->markerName.compare(
+				 markerData->markerNames[j]) == 0){
+
+				if(marker_names.size() == 0){
+					marker_names.push_back(markerData->markerNames[j]);
+					frame_ids.push_back(markerModel->modelMarkers[i]->frameId);
+				}else{
+					for(unsigned int k = 0; k < marker_names.size(); ++k){
+						if(marker_names[k].compare(markerData->markerNames[j])==0){
+							uniqueMarkerName = false;
+							/**
+							MM 17 March 2017. Somehow a c3d with unique label names
+							ends up with a markerData vector that contains duplications.
+							I'm still not sure how this happens. This might be happening
+							in vendor/c3dfile on the call to load.
+
+							cerr << "Duplicate marker name in c3d file: "
+									 << markerData->markerNames[j]
+									 << endl;
+							*/
+						}
+					}
+					if(uniqueMarkerName){
+						marker_names.push_back(markerData->markerNames[j]);
+						frame_ids.push_back(markerModel->modelMarkers[i]->frameId);
+					}
+				}
+			}
 		}
 	}
 
-	for (size_t i = 0; i < selected_marker_names.size(); i++) {
-		Vector3f marker_position = markerData->getMarkerCurrentPosition (selected_marker_names[i].c_str());	
-		Vector3f local_coords = markerModel->calcMarkerLocalCoords (active_frame, marker_position);
-		markerModel->setFrameMarkerCoord (active_frame, selected_marker_names[i].c_str(), local_coords);
+	Vector3f marker_position, local_coords;
+	for (unsigned int i = 0; i < marker_names.size(); i++) {
+		marker_position = markerData->getMarkerCurrentPosition(marker_names[i].c_str());
+		local_coords = markerModel->calcMarkerLocalCoords(frame_ids[i], marker_position);
+		markerModel->setFrameMarkerCoord (frame_ids[i],marker_names[i].c_str(),local_coords);
 	}
 
-	updatePropertiesEditor (markerModel->getObjectIdFromFrameId (active_frame));
+	for(unsigned int i = 0; i < frame_ids[i]; ++i){
+		updatePropertiesEditor(markerModel->getObjectIdFromFrameId(frame_ids[i]));
+	}
 }
 
 void PuppeteerApp::updateGraph() {
