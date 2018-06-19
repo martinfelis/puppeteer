@@ -203,8 +203,8 @@ PuppeteerApp::PuppeteerApp(QWidget *parent)
 	connect (colorManager, SIGNAL (valueChanged (QtProperty *, QColor)), this, SLOT (colorValueChanged (QtProperty *, QColor)));
 
 	// Loading and saving of model and animation data
-	connect (saveModelStateButton, SIGNAL (clicked()), this, SLOT (saveModelState()));
-	connect (loadModelStateButton, SIGNAL (clicked()), this, SLOT (loadModelState()));
+	connect (saveModelStateButton, SIGNAL (clicked()), this, SLOT (saveModelStateDialog()));
+	connect (loadModelStateButton, SIGNAL (clicked()), this, SLOT (loadModelStateDialog()));
 	connect (actionSaveModel, SIGNAL (triggered()), this, SLOT(saveModel()));
 	connect (actionSaveModelAs, SIGNAL (triggered()), this, SLOT(saveModelDialog()));
 	connect (actionLoadModel, SIGNAL (triggered(bool)), this, SLOT(loadModelDialog()));
@@ -503,15 +503,28 @@ void PuppeteerApp::quitApplication() {
 	qApp->quit();
 }
 
-void PuppeteerApp::loadModelState() {
+void PuppeteerApp::loadModelStateDialog() {
 	assert (markerModel);	
-	markerModel->loadStateFromFile ("model_state.lua");
+	QString file_name = QFileDialog::getOpenFileName(this,
+	tr("Open Model State"), "./", tr("LuaModel Files (*.lua)"));
+
+	if (file_name == "")
+		return;
+
+	markerModel->loadStateFromFile (file_name.toLocal8Bit());
 	updateModelStateEditor();
 }
 
-void PuppeteerApp::saveModelState() {
+void PuppeteerApp::saveModelStateDialog() {
 	assert (markerModel);	
-	markerModel->saveStateToFile ("model_state.lua");
+	QString file_name = QFileDialog::getSaveFileName(this, tr("Save Model State"),
+			"./",
+			tr("LuaModel Files (*.lua)"));
+
+	if (file_name == "")
+		return;
+
+	markerModel->saveStateToFile (file_name.toLocal8Bit());
 }
 
 void PuppeteerApp::loadModel() {
@@ -562,7 +575,12 @@ void PuppeteerApp::selectionChanged() {
 		activeModelFrame = active_frame;
 	}
 
-	if (activeModelFrame != 0 && selected_markers_count > 0) {
+//	if (activeModelFrame != 0 && selected_markers_count > 0) {
+//		assignMarkersButton->setEnabled(true);
+//	} else {
+//		assignMarkersButton->setEnabled(false);
+//	}
+	if(markerData && markerModel) {
 		assignMarkersButton->setEnabled(true);
 	} else {
 		assignMarkersButton->setEnabled(false);
