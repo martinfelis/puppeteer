@@ -66,6 +66,7 @@ function auto(name)
 	src_file:close()
 
 	--open, write and close the output
+	out_data = out_data .. "0x00"
 	out_file = io.open(dst, "wb")
 	--see pattern above
 	out_file:write(pattern:format(src, cpp_name, out_data, src))
