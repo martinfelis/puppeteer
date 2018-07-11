@@ -139,8 +139,8 @@ public slots:
 		void loadMotionCaptureDataDialog();
 		void exportAnimationDialog();
 
-		void loadModelState();
-		void saveModelState();
+		void loadModelStateDialog();
+		void saveModelStateDialog();
 		void loadModel();
 		void saveModel();
 		void loadAnimation();
