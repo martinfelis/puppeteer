@@ -68,6 +68,7 @@ struct MarkerData {
 		}
 		return false;
 	}
+	std::vector<std::string> markerNames;
 	void clearMarkers ();
 	void enableMarker (const char* marker_name, const Vector3f &color);
 	bool loadFromFile (const char* filename);

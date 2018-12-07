@@ -59,78 +59,10 @@ bool MarkerData::loadFromFile(const char *filename) {
 	if (!scene)
 		return true;
 
-	enableMarker ("LFHD", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("LBHD", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("RFHD", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("RBHD", Vector3f (0.f, 0.f, 1.f));
-
-	enableMarker ("LASI", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("LPSI", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("RASI", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("RPSI", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("C7",   Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("STRN", Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("T10",  Vector3f (0.f, 0.f, 1.f));
-	enableMarker ("CLAV",  Vector3f (0.f, 0.f, 1.f));
-	
-	enableMarker ("RSHO", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RUPA", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RELB", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RWRA", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RWRB", Vector3f (1.f, 0.f, 0.f));
-
-	enableMarker ("LSHO", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LUPA", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LELB", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LWRA", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LWRB", Vector3f (0.f, 1.f, 0.f));
-
-	enableMarker ("RTHI", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RTIB", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RKNE", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RANK", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RHEE", Vector3f (1.f, 0.f, 0.f));
-	enableMarker ("RTOE", Vector3f (1.f, 0.f, 0.f));
-
-	enableMarker ("LTHI", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LTIB", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LKNE", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LANK", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LHEE", Vector3f (0.f, 1.f, 0.f));
-	enableMarker ("LTOE", Vector3f (0.f, 1.f, 0.f));
-
-	enableMarker ("PELO", Vector3f (1.f, 0.25, 0.9));
-
-	// Alternate marker set:
-	// enableMarker ("LMAS", Vector3f (0.f, 0.f, 1.f));
-	// enableMarker ("RMAS", Vector3f (0.f, 0.f, 1.f));
-	// enableMarker ("HEAD", Vector3f (0.f, 0.f, 1.f));
-
-	// enableMarker ("LHUMS", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LELBW", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LRAD", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LULN", Vector3f (0.f, 1.f, 0.f));
-
-	// enableMarker ("RHUMS", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RELBW", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RRAD", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RULN", Vector3f (1.f, 0.f, 0.f));
-
-	// enableMarker ("LMEP", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LTIB1", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LTIB2", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LTIB3", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LMMAL", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LD5T", Vector3f (0.f, 1.f, 0.f));
-	// enableMarker ("LD2T", Vector3f (0.f, 1.f, 0.f));
-
-	// enableMarker ("RMEP", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RTIB1", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RTIB2", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RTIB3", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RMMAL", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RD5T", Vector3f (1.f, 0.f, 0.f));
-	// enableMarker ("RD2T", Vector3f (1.f, 0.f, 0.f));
+	for (size_t i = 0; i < markerNames.size(); i++) {
+	  std::string tmp = markerNames.at(i);
+	  enableMarker(tmp.c_str(), Vector3f(0.f, 0.f, 1.f));
+	}
 
 	return true;
 }
